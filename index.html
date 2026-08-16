@@ -404,6 +404,20 @@ html[data-theme="dark"] .track{background:#2b2f34}
   background:var(--ink);color:var(--bg);font-weight:700;font-size:13px;padding:11px 20px;border-radius:999px;
   opacity:0;pointer-events:none;transition:.25s;z-index:120;box-shadow:0 8px 30px rgba(0,0,0,.22);white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.road-ask{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(14px) scale(.97);
+  width:min(380px,calc(100% - 32px));display:flex;align-items:center;gap:10px;
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:11px 12px;
+  box-shadow:var(--shadow-lg);z-index:105;opacity:0;pointer-events:none;
+  transition:opacity .32s cubic-bezier(.2,.8,.3,1),transform .32s cubic-bezier(.2,.8,.3,1)}
+.road-ask.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0) scale(1)}
+.ra-ic{font-size:23px;flex:none;animation:raWiggle 1.8s ease-in-out .4s infinite}
+@keyframes raWiggle{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-8deg)}92%{transform:rotate(7deg)}97%{transform:rotate(0)}}
+.ra-tx{flex:1;font-size:12.5px;font-weight:700;min-width:0}
+.ra-tx small{display:block;color:var(--muted);font-weight:500;font-size:10.5px;margin-top:2px}
+.ra-x{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;color:var(--muted);flex:none}
+.ra-x svg{width:13px;height:13px}
+.ra-x:active{background:var(--line2)}
 .modal{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;padding:28px;
   background:rgba(8,9,10,.45);backdrop-filter:blur(4px)}
 .modal.show{display:flex}
@@ -774,6 +788,13 @@ html[data-theme="dark"] .track{background:#2b2f34}
 
 <div class="toast" id="toast"></div>
 
+<div class="road-ask" id="roadAsk">
+  <span class="ra-ic">🛣️</span>
+  <div class="ra-tx">נסעת בכביש 6?<small>מוסיפים את האגרה אוטומטית להוצאות</small></div>
+  <button class="btn amber sm" id="raYes">כן</button>
+  <button class="ra-x" id="raNo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+
 <div class="modal" id="modal">
   <div class="modal-card">
     <h3 id="mTitle"></h3>
@@ -823,7 +844,7 @@ function loadRaw(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):nul
 function normState(d){
   d=d||{};
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
-    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false},d.settings||{});
+    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
@@ -1476,6 +1497,7 @@ $('#saveTx').addEventListener('click',function(){
   setTimeout(function(){
     toast(msgs.join(' · '));
     go('home');
+    if(tx.type==='income'&&tx.cat==='rides')setTimeout(function(){showRoadAsk(tx.date);},450);
   },340);
 });
 
@@ -1941,6 +1963,26 @@ var toastT=null;
 function toast(msg){
   var t=$('#toast');t.textContent=msg;t.classList.add('show');
   clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},2400);
+}
+
+/* ==================== שאלת כביש 6 אחרי נסיעה ==================== */
+var roadAskT=null;
+function showRoadAsk(date){
+  var el=$('#roadAsk');
+  el.classList.add('show');
+  clearTimeout(roadAskT);
+  roadAskT=setTimeout(function(){el.classList.remove('show');},7000);
+  $('#raYes').onclick=function(){
+    el.classList.remove('show');
+    openSheet({title:'אגרת כביש 6 — כמה שילמת?',unit:'₪',decimals:2,initial:state.settings.lastToll||'',ok:'הוספה'},function(v){
+      if(v>0){
+        state.tx.push({id:uid(),type:'expense',cat:'tolls',amount:v,date:date,note:'כביש 6',ts:Date.now()});
+        state.settings.lastToll=v;
+        save();refreshAll('נוספה אגרת כביש 6 ✓');
+      }
+    });
+  };
+  $('#raNo').onclick=function(){el.classList.remove('show');};
 }
 var mCb=null;
 function confirmBox(title,body,ok,cb){
