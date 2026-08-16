@@ -68,6 +68,15 @@ svg{display:block}
   animation:brandIn .55s cubic-bezier(.2,.85,.3,1) both, brandShine 6s ease-in-out .6s infinite}
 @keyframes brandIn{from{transform:scale(.4) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
 @keyframes brandShine{0%,100%{background-position:0% 30%}50%{background-position:100% 70%}}
+#bootSplash{position:fixed;inset:0;z-index:300;background:var(--hero);display:flex;align-items:center;justify-content:center;
+  transition:opacity .42s ease,transform .42s cubic-bezier(.4,0,.2,1)}
+#bootSplash.fadeout{opacity:0;transform:scale(1.08)}
+.boot-mark{width:76px;height:76px;border-radius:23px;display:grid;place-items:center;font-size:40px;font-weight:800;color:var(--accent-ink);
+  background:linear-gradient(135deg,#d99a15 0%,var(--accent) 35%,#ffe093 55%,var(--accent) 75%,#d99a15 100%);
+  background-size:260% 260%;
+  animation:bootMark .62s cubic-bezier(.16,.9,.32,1.15) both, brandShine 4s ease-in-out .62s infinite;
+  box-shadow:0 22px 60px rgba(242,176,30,.5)}
+@keyframes bootMark{0%{transform:scale(.2) rotate(-40deg);opacity:0}65%{transform:scale(1.22) rotate(7deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
 .icon-btn{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
   background:var(--card);border:1px solid var(--line);color:var(--ink2);transition:.15s}
 .icon-btn:active{transform:scale(.93)}
@@ -94,14 +103,20 @@ main{flex:1;padding:18px 18px 132px}
 .lbl{font-size:12.5px;font-weight:600;color:var(--muted)}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:700;
-  border-radius:12px;padding:12px 18px;font-size:14px;transition:transform .12s,background .15s;line-height:1}
-.btn:active{transform:scale(.97)}
+  border-radius:12px;padding:12px 18px;font-size:14px;transition:transform .12s cubic-bezier(.34,1.56,.64,1),background .15s;
+  line-height:1;position:relative;overflow:hidden}
+.btn:active{transform:scale(.96)}
 .btn svg{width:15px;height:15px}
 .btn.ink{background:var(--ink);color:var(--bg)}
 .btn.line{border:1px solid var(--line);background:var(--card);color:var(--ink)}
 .btn.amber{background:var(--accent);color:var(--accent-ink)}
 .btn.big{width:100%;padding:15px;font-size:15.5px;border-radius:14px}
 .btn.sm{padding:9px 14px;font-size:12.5px;border-radius:10px}
+.btn.success-pop{animation:saveSuccess .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes saveSuccess{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+.ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.24;transform:scale(0);
+  animation:rippleAnim .55s ease-out forwards;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(2.8);opacity:0}}
 .divider{height:1px;background:var(--line2);margin:14px -18px -18px}
 
 /* ============ נודג'ים ============ */
@@ -266,6 +281,8 @@ main{flex:1;padding:18px 18px 132px}
 #amtView.income{color:var(--green)} #amtView.expense{color:var(--red)}
 #amtView.pop,#shView.pop{animation:digitPop .24s cubic-bezier(.34,1.56,.64,1)}
 @keyframes digitPop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+.selpop{animation:selPop .32s cubic-bezier(.34,1.7,.64,1)}
+@keyframes selPop{0%{transform:scale(1)}45%{transform:scale(1.1) translateY(-2px)}100%{transform:scale(1)}}
 .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px}
 .cat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:10px 3px;
   display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:var(--muted);transition:.12s}
@@ -367,7 +384,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
   border:1px solid var(--line);border-radius:999px;
   display:flex;justify-content:space-around;align-items:center;
   padding:8px 12px;box-shadow:var(--shadow-lg)}
-.tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);
+.tab-pill{position:absolute;top:6px;bottom:6px;border-radius:999px;background:var(--line2);
+  transition:transform .4s cubic-bezier(.3,1.4,.35,1),width .4s cubic-bezier(.3,1.4,.35,1),opacity .25s ease;
+  z-index:0;opacity:0;pointer-events:none}
+.tab{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);
   font-size:9.5px;font-weight:700;width:58px;padding:3px 0;transition:color .15s}
 .tab svg{width:20px;height:20px;transition:transform .32s cubic-bezier(.34,1.56,.64,1)}
 .tab.active{color:var(--ink)}
@@ -417,6 +437,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
 </style>
 </head>
 <body>
+<div id="bootSplash"><div class="boot-mark">₪</div></div>
 <div class="app">
   <header class="topbar">
     <div class="brand"><span class="brand-mark">₪</span><span>קופת הנהג</span></div>
@@ -732,6 +753,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
   </main>
 
   <nav class="tabbar">
+    <div class="tab-pill" id="tabPill"></div>
     <button class="tab active" data-go="home">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-5h6v5"/></svg>בית
     </button>
@@ -969,6 +991,17 @@ var ui={screen:'home',addType:'income',addCat:'rides',amt:'',method:state.settin
   hm:{y:now.getFullYear(),m:now.getMonth()},lm:{y:now.getFullYear(),m:now.getMonth()},
   rm:{y:now.getFullYear(),m:now.getMonth()},filter:'all',pendingShift:null};
 
+function movePill(){
+  var pill=$('#tabPill');if(!pill)return;
+  var active=document.querySelector('.tab.active');
+  if(!active){pill.style.opacity='0';return;}
+  var bar=pill.parentElement.getBoundingClientRect();
+  var r=active.getBoundingClientRect();
+  pill.style.width=r.width+'px';
+  pill.style.height=r.height+'px';
+  pill.style.transform='translate('+(r.left-bar.left)+'px,'+(r.top-bar.top)+'px)';
+  pill.style.opacity='1';
+}
 function go(id){
   ui.screen=id;
   $$('.screen').forEach(function(s){s.classList.remove('active');});
@@ -979,8 +1012,26 @@ function go(id){
   if(id==='list')renderList();
   if(id==='reports')renderReports();
   window.scrollTo({top:0});
+  movePill();
 }
 $$('[data-go]').forEach(function(b){b.addEventListener('click',function(){go(b.dataset.go);});});
+window.addEventListener('resize',movePill);
+
+/* ==================== ריפל על כפתורים ==================== */
+document.addEventListener('pointerdown',function(e){
+  var b=e.target.closest('.btn');
+  if(!b||e.button===2)return;
+  var r=b.getBoundingClientRect();
+  var size=Math.max(r.width,r.height);
+  var span=document.createElement('span');
+  span.className='ripple';
+  span.style.width=span.style.height=size+'px';
+  var cx=(e.clientX!=null?e.clientX:r.left+r.width/2)-r.left-size/2;
+  var cy=(e.clientY!=null?e.clientY:r.top+r.height/2)-r.top-size/2;
+  span.style.left=cx+'px';span.style.top=cy+'px';
+  b.appendChild(span);
+  setTimeout(function(){span.remove();},600);
+});
 
 /* ==================== בית ==================== */
 function monthLabel(o){return dfMY.format(new Date(o.y,o.m,1));}
@@ -1350,6 +1401,7 @@ $('#methods').addEventListener('click',function(e){
   var b=e.target.closest('[data-m]');if(!b)return;
   ui.method=b.dataset.m;state.settings.lastMethod=ui.method;save();
   $$('#methods button').forEach(function(x){x.classList.toggle('active',x===b);});
+  popEl(b,'selpop');
 });
 
 function buildCats(){
@@ -1363,10 +1415,11 @@ $('#catGrid').addEventListener('click',function(e){
   var b=e.target.closest('[data-cat]');if(!b)return;
   ui.addCat=b.dataset.cat;
   $$('#catGrid .cat').forEach(function(x){x.classList.toggle('active',x.dataset.cat===ui.addCat);});
+  popEl(b,'selpop');
   updateRideHint();
 });
 
-function popEl(el){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}
+function popEl(el,cls){cls=cls||'pop';el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);}
 $('#pad').addEventListener('click',function(e){
   var b=e.target.closest('[data-k]');if(!b)return;
   ui.amt=padStep(ui.amt,b.dataset.k,2,7);
@@ -1416,9 +1469,14 @@ $('#saveTx').addEventListener('click',function(){
   save();
 
   ui.hm.y=+d.slice(0,4);ui.hm.m=+d.slice(5,7)-1;
-  ui.amt='';$('#txNote').value='';renderAmt();
-  toast(msgs.join(' · '));
-  go('home');
+  ui.amt='';$('#txNote').value='';
+  var sbtn=$('#saveTx');
+  sbtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M5 13l4 4L19 7"/></svg>';
+  popEl(sbtn,'success-pop');
+  setTimeout(function(){
+    toast(msgs.join(' · '));
+    go('home');
+  },340);
 });
 
 /* ==================== רשימה ==================== */
@@ -1426,6 +1484,7 @@ $('#filterChips').addEventListener('click',function(e){
   var b=e.target.closest('[data-f]');if(!b)return;
   ui.filter=b.dataset.f;
   $$('#filterChips .chip').forEach(function(c){c.classList.toggle('active',c===b);});
+  popEl(b,'selpop');
   renderList();
 });
 function passFilter(t){
@@ -1560,6 +1619,7 @@ function daySums(iso){
     if(t.type==='income')inc+=t.amount;else exp+=t.amount;}});
   return{inc:inc,exp:exp};
 }
+function easeOutCubic(p){return 1-Math.pow(1-p,3);}
 function drawWeek(){
   var c=$('#weekChart');if(!c)return;
   var g=setupCanvas(c);if(!g)return;
@@ -1573,25 +1633,34 @@ function drawWeek(){
   var max=1;days.forEach(function(d){max=Math.max(max,d.inc,d.exp);});
   var top=8,bot=20,area=h-top-bot;
   var slot=w/7,bw=Math.min(10,slot/3.6),gap=4;
-  ctx.strokeStyle=cssVar('--line2');ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(0,h-bot+.5);ctx.lineTo(w,h-bot+.5);ctx.stroke();
-  var GREEN=cssVar('--green'),RED=cssVar('--red');
-  days.forEach(function(d,i){
-    var cx=slot*i+slot/2;
-    var ih=d.inc/max*area,eh=d.exp/max*area;
-    ctx.fillStyle=GREEN;
-    if(ih>0){rrUp(ctx,cx-bw-gap/2,top+area-ih,bw,ih,3.5);ctx.fill();}
-    ctx.fillStyle=RED;
-    if(eh>0){rrUp(ctx,cx+gap/2,top+area-eh,bw,eh,3.5);ctx.fill();}
-    if(d.today&&d.inc===0&&d.exp===0){
-      ctx.fillStyle=cssVar('--accent');
-      rrUp(ctx,cx-bw/2,top+area-3,bw,3,1.5);ctx.fill();
-    }
-    ctx.fillStyle=d.today?cssVar('--ink'):cssVar('--muted');
-    ctx.font=(d.today?'700 ':'500 ')+'10px Heebo, Arial';
-    ctx.textAlign='center';
-    ctx.fillText(d.lbl,cx,h-6);
-  });
+  var GREEN=cssVar('--green'),RED=cssVar('--red'),LINE=cssVar('--line2'),ACCENT=cssVar('--accent'),
+    INK=cssVar('--ink'),MUTED=cssVar('--muted');
+  var start=null,dur=520;
+  function frame(ts){
+    if(!start)start=ts;
+    var e=easeOutCubic(Math.min(1,(ts-start)/dur));
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle=LINE;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,h-bot+.5);ctx.lineTo(w,h-bot+.5);ctx.stroke();
+    days.forEach(function(d,i){
+      var cx=slot*i+slot/2;
+      var ih=d.inc/max*area*e,eh=d.exp/max*area*e;
+      ctx.fillStyle=GREEN;
+      if(ih>0.5){rrUp(ctx,cx-bw-gap/2,top+area-ih,bw,ih,3.5);ctx.fill();}
+      ctx.fillStyle=RED;
+      if(eh>0.5){rrUp(ctx,cx+gap/2,top+area-eh,bw,eh,3.5);ctx.fill();}
+      if(d.today&&d.inc===0&&d.exp===0){
+        ctx.fillStyle=ACCENT;
+        rrUp(ctx,cx-bw/2,top+area-3*e,bw,3*e,1.5);ctx.fill();
+      }
+      ctx.fillStyle=d.today?INK:MUTED;
+      ctx.font=(d.today?'700 ':'500 ')+'10px Heebo, Arial';
+      ctx.textAlign='center';
+      ctx.fillText(d.lbl,cx,h-6);
+    });
+    if(e<1)requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
 function drawMonth(){
   var c=$('#monthChart');if(!c)return;
@@ -1605,22 +1674,30 @@ function drawMonth(){
   var mid=h*0.5,top=6,bot=18;
   var up=mid-top-5,down=h-bot-mid-5;
   var slot=w/n,bw=Math.max(2,Math.min(8,slot*0.55));
-  ctx.strokeStyle=cssVar('--line2');ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(0,mid+.5);ctx.lineTo(w,mid+.5);ctx.stroke();
-  var GREEN=cssVar('--green'),RED=cssVar('--red');
-  for(i=0;i<n;i++){
-    var cx=slot*i+slot/2;
-    var ih=arr[i].inc/maxI*up,eh=arr[i].exp/maxE*down;
-    ctx.fillStyle=GREEN;
-    if(ih>0){rrUp(ctx,cx-bw/2,mid-ih,bw,ih,2);ctx.fill();}
-    ctx.fillStyle=RED;
-    if(eh>0){rrUp(ctx,cx-bw/2,mid+eh,bw,eh,2);ctx.fill();}
+  var GREEN=cssVar('--green'),RED=cssVar('--red'),LINE=cssVar('--line2'),MUTED=cssVar('--muted');
+  var start=null,dur=520;
+  function frame(ts){
+    if(!start)start=ts;
+    var e=easeOutCubic(Math.min(1,(ts-start)/dur));
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle=LINE;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,mid+.5);ctx.lineTo(w,mid+.5);ctx.stroke();
+    for(i=0;i<n;i++){
+      var cx=slot*i+slot/2;
+      var ih=arr[i].inc/maxI*up*e,eh=arr[i].exp/maxE*down*e;
+      ctx.fillStyle=GREEN;
+      if(ih>0.5){rrUp(ctx,cx-bw/2,mid-ih,bw,ih,2);ctx.fill();}
+      ctx.fillStyle=RED;
+      if(eh>0.5){rrUp(ctx,cx-bw/2,mid+eh,bw,eh,2);ctx.fill();}
+    }
+    ctx.fillStyle=MUTED;ctx.font='9.5px Heebo, Arial';ctx.textAlign='center';
+    [1,5,10,15,20,25,n].forEach(function(d){
+      if(d>n)return;
+      ctx.fillText(String(d),slot*(d-1)+slot/2,h-4);
+    });
+    if(e<1)requestAnimationFrame(frame);
   }
-  ctx.fillStyle=cssVar('--muted');ctx.font='9.5px Heebo, Arial';ctx.textAlign='center';
-  [1,5,10,15,20,25,n].forEach(function(d){
-    if(d>n)return;
-    ctx.fillText(String(d),slot*(d-1)+slot/2,h-4);
-  });
+  requestAnimationFrame(frame);
 }
 function drawDonut(s){
   var c=$('#donut');if(!c)return;
@@ -1644,23 +1721,36 @@ function drawDonut(s){
   });
   var total=slices.reduce(function(a,x){return a+x.v;},0);
   var cx=w/2,cy=h/2,r=Math.min(w,h)/2-13;
-  ctx.lineWidth=15;ctx.lineCap='butt';
-  if(total<=0){
-    ctx.strokeStyle=cssVar('--line2');ctx.beginPath();
-    ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
-  }else{
-    var a=-Math.PI/2;
-    slices.forEach(function(sl){
-      var span=sl.v/total*Math.PI*2;
-      ctx.strokeStyle=sl.color;ctx.beginPath();
-      ctx.arc(cx,cy,r,a+0.03,a+span-0.03);ctx.stroke();
-      a+=span;
-    });
+  var INK=cssVar('--ink'),MUTED=cssVar('--muted'),LINE=cssVar('--line2');
+  var start=null,dur=560;
+  function frame(ts){
+    if(!start)start=ts;
+    var e=easeOutCubic(Math.min(1,(ts-start)/dur));
+    ctx.clearRect(0,0,w,h);
+    ctx.lineWidth=15;ctx.lineCap='butt';
+    if(total<=0){
+      ctx.strokeStyle=LINE;ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+    }else{
+      var full=Math.PI*2*e,a=-Math.PI/2,drawn=0;
+      slices.forEach(function(sl){
+        var span=sl.v/total*Math.PI*2;
+        var thisSpan=Math.max(0,Math.min(span,full-drawn));
+        if(thisSpan>0.001){
+          ctx.strokeStyle=sl.color;ctx.beginPath();
+          var pad=thisSpan>0.06?0.03:0;
+          ctx.arc(cx,cy,r,a+pad,a+thisSpan-pad);ctx.stroke();
+        }
+        a+=span;drawn+=span;
+      });
+    }
+    ctx.fillStyle=INK;ctx.font='800 15px Heebo, Arial';ctx.textAlign='center';
+    ctx.fillText(fmt(total),cx,cy+1);
+    ctx.fillStyle=MUTED;ctx.font='10px Heebo, Arial';
+    ctx.fillText('הוצאות',cx,cy+17);
+    if(e<1)requestAnimationFrame(frame);
   }
-  ctx.fillStyle=cssVar('--ink');ctx.font='800 15px Heebo, Arial';ctx.textAlign='center';
-  ctx.fillText(fmt(total),cx,cy+1);
-  ctx.fillStyle=cssVar('--muted');ctx.font='10px Heebo, Arial';
-  ctx.fillText('הוצאות',cx,cy+17);
+  requestAnimationFrame(frame);
   $('#donutLegend').innerHTML=total<=0
     ?'<div style="color:var(--muted);font-size:12.5px">עוד אין הוצאות החודש</div>'
     :slices.map(function(sl){
@@ -2050,6 +2140,11 @@ renderHome();
 buildCats();
 renderAmt();
 checkNotify();
+requestAnimationFrame(function(){requestAnimationFrame(movePill);});
+setTimeout(function(){
+  var bs=document.getElementById('bootSplash');
+  if(bs){bs.classList.add('fadeout');setTimeout(function(){bs.remove();},440);}
+},650);
 if(!state.settings.wizardDone){setTimeout(openWizard,450);}
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
