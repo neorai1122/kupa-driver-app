@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#111214">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -44,6 +44,7 @@ body{
   background:var(--bg);color:var(--ink);
   overscroll-behavior-y:none;transition:background .25s,color .25s;
   -webkit-font-smoothing:antialiased;
+  touch-action:pan-y;
 }
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 button{font-family:inherit;border:0;background:none;color:inherit;cursor:pointer;touch-action:manipulation}
@@ -60,8 +61,13 @@ svg{display:block}
   border-bottom:1px solid var(--line2);
 }
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:.2px}
-.brand-mark{width:29px;height:29px;border-radius:9px;background:var(--accent);color:var(--accent-ink);
-  font-weight:800;display:grid;place-items:center;font-size:15px}
+.brand-mark{width:29px;height:29px;border-radius:9px;color:var(--accent-ink);position:relative;overflow:hidden;
+  font-weight:800;display:grid;place-items:center;font-size:15px;
+  background:linear-gradient(135deg,#d99a15 0%,var(--accent) 35%,#ffe093 55%,var(--accent) 75%,#d99a15 100%);
+  background-size:260% 260%;
+  animation:brandIn .55s cubic-bezier(.2,.85,.3,1) both, brandShine 6s ease-in-out .6s infinite}
+@keyframes brandIn{from{transform:scale(.4) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes brandShine{0%,100%{background-position:0% 30%}50%{background-position:100% 70%}}
 .icon-btn{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
   background:var(--card);border:1px solid var(--line);color:var(--ink2);transition:.15s}
 .icon-btn:active{transform:scale(.93)}
@@ -69,8 +75,18 @@ svg{display:block}
 
 main{flex:1;padding:18px 18px 132px}
 .screen{display:none}
-.screen.active{display:block;animation:rise .16s cubic-bezier(.2,.7,.3,1)}
+.screen.active{display:block}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes cardRise{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.screen.active>*{animation:cardRise .34s cubic-bezier(.16,.84,.44,1) both}
+.screen.active>*:nth-child(1){animation-delay:.01s}
+.screen.active>*:nth-child(2){animation-delay:.05s}
+.screen.active>*:nth-child(3){animation-delay:.09s}
+.screen.active>*:nth-child(4){animation-delay:.13s}
+.screen.active>*:nth-child(5){animation-delay:.17s}
+.screen.active>*:nth-child(6){animation-delay:.21s}
+.screen.active>*:nth-child(7){animation-delay:.25s}
+.screen.active>*:nth-child(n+8){animation-delay:.28s}
 
 /* ============ כללי ============ */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
@@ -236,8 +252,10 @@ main{flex:1;padding:18px 18px 132px}
 .shift-banner svg{width:16px;height:16px;flex:none}
 .amount-box{display:flex;align-items:baseline;justify-content:center;gap:7px;padding:2px 0 18px}
 .amount-box .cur{font-size:24px;font-weight:600;color:var(--muted)}
-#amtView{font-size:50px;font-weight:800;line-height:1;letter-spacing:-1px;color:var(--ink)}
+#amtView{font-size:50px;font-weight:800;line-height:1;letter-spacing:-1px;color:var(--ink);display:inline-block}
 #amtView.income{color:var(--green)} #amtView.expense{color:var(--red)}
+#amtView.pop,#shView.pop{animation:digitPop .24s cubic-bezier(.34,1.56,.64,1)}
+@keyframes digitPop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
 .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px}
 .cat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:10px 3px;
   display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:var(--muted);transition:.12s}
@@ -341,8 +359,9 @@ html[data-theme="dark"] .track{background:#2b2f34}
   padding:8px 12px;box-shadow:var(--shadow-lg)}
 .tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);
   font-size:9.5px;font-weight:700;width:58px;padding:3px 0;transition:color .15s}
-.tab svg{width:20px;height:20px}
+.tab svg{width:20px;height:20px;transition:transform .32s cubic-bezier(.34,1.56,.64,1)}
 .tab.active{color:var(--ink)}
+.tab.active svg{transform:scale(1.14) translateY(-1px)}
 .tab-fab{width:52px;height:52px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
   display:grid;place-items:center;margin-top:-26px;flex:none;
   box-shadow:0 8px 22px rgba(242,176,30,.4);border:4px solid var(--bg);transition:transform .12s}
@@ -379,7 +398,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
 @keyframes sheetup{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
 .sheet-card h3{font-size:15px;font-weight:800;text-align:center;margin-bottom:14px}
 .sh-amt{display:flex;align-items:baseline;justify-content:center;gap:7px;margin-bottom:16px}
-.sh-amt b{font-size:42px;font-weight:800;letter-spacing:-.8px}
+.sh-amt b{font-size:42px;font-weight:800;letter-spacing:-.8px;display:inline-block}
 .sh-amt span{font-size:16px;color:var(--muted);font-weight:600}
 .pad.slim button{height:50px;font-size:19px}
 .sheet-btns{display:flex;gap:9px;margin-top:4px}
@@ -837,6 +856,25 @@ function fmt(n){
   return s+'₪'+Math.abs(n).toLocaleString('he-IL',{maximumFractionDigits:2});
 }
 function fmtInt(n){return '₪'+Math.round(Math.abs(n)).toLocaleString('he-IL');}
+var numAnimState={};
+function animateNum(el,to,fmtFn){
+  var key=el.id||el;
+  var from=numAnimState[key]!=null?numAnimState[key]:to;
+  numAnimState[key]=to;
+  if(Math.abs(from-to)<0.005||prefersReducedMotion()){el.textContent=fmtFn(to);return;}
+  var start=null,dur=480;
+  function step(ts){
+    if(!start)start=ts;
+    var p=Math.min(1,(ts-start)/dur);
+    var eased=1-Math.pow(1-p,3);
+    el.textContent=fmtFn(from+(to-from)*eased);
+    if(p<1)requestAnimationFrame(step);else el.textContent=fmtFn(to);
+  }
+  requestAnimationFrame(step);
+}
+function prefersReducedMotion(){
+  try{return window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}
+}
 var dfWD=new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long'});
 var dfMY=new Intl.DateTimeFormat('he-IL',{month:'long',year:'numeric'});
 var dfDM=new Intl.DateTimeFormat('he-IL',{day:'numeric',month:'long'});
@@ -956,7 +994,7 @@ function renderHome(){
   $('#streakChip').style.display=streak>=2?'':'none';
   $('#streakDays').textContent=streak;
 
-  $('#netNum').textContent=fmt(net);
+  animateNum($('#netNum'),net,fmt);
 
   /* שינוי מול חודש קודם */
   var py=ui.hm.y,pm=ui.hm.m-1;if(pm<0){pm=11;py--;}
@@ -1315,11 +1353,13 @@ $('#catGrid').addEventListener('click',function(e){
   updateRideHint();
 });
 
+function popEl(el){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}
 $('#pad').addEventListener('click',function(e){
   var b=e.target.closest('[data-k]');if(!b)return;
   ui.amt=padStep(ui.amt,b.dataset.k,2,7);
   if(navigator.vibrate)try{navigator.vibrate(6);}catch(err){}
   renderAmt();
+  popEl($('#amtView'));
 });
 function padStep(cur,k,decimals,maxInt){
   if(k==='del')return cur.slice(0,-1);
@@ -1832,6 +1872,7 @@ $('#shPad').addEventListener('click',function(e){
   var b=e.target.closest('[data-sk]');if(!b)return;
   shAmt=padStep(shAmt,b.dataset.sk,shDec,shMax);renderSheetVal();
   if(navigator.vibrate)try{navigator.vibrate(6);}catch(err){}
+  popEl($('#shView'));
 });
 $('#shOk').addEventListener('click',function(){
   $('#sheet').classList.remove('show');
