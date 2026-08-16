@@ -158,6 +158,8 @@ main{flex:1;padding:18px 18px 132px}
 .goal-wrap{display:flex;align-items:center;gap:13px}
 .goal-ring{position:relative;width:84px;height:84px;flex:none}
 .goal-ring svg{width:84px;height:84px;transform:rotate(-90deg)}
+.goal-ring.reached{animation:goalPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes goalPop{0%{transform:scale(1)}45%{transform:scale(1.1)}100%{transform:scale(1)}}
 .goal-ring .gr-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .goal-ring .gr-pct{font-size:16px;font-weight:800}
 .goal-ring .gr-cap{font-size:8.5px;color:var(--muted);font-weight:600}
@@ -214,7 +216,7 @@ main{flex:1;padding:18px 18px 132px}
 .t-total b{font-size:17px;font-weight:800}
 .today-foot{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.55}
 .today-foot b{color:var(--ink)}
-.ride-hint{text-align:center;font-size:12.5px;color:var(--muted);min-height:20px;margin:-9px 0 13px;font-weight:600}
+.ride-hint{text-align:center;font-size:12.5px;color:var(--muted);min-height:20px;margin:8px 0 13px;font-weight:600}
 .ride-hint b{color:var(--ink)}
 .mini-link{color:var(--ink);text-decoration:underline;font-weight:700;font-size:11.5px}
 
@@ -238,7 +240,8 @@ main{flex:1;padding:18px 18px 132px}
   font-weight:700;margin:0 4px 9px}
 .day-h b{color:var(--ink)}
 .empty{text-align:center;padding:40px 20px;color:var(--muted)}
-.empty svg{width:34px;height:34px;margin:0 auto 12px;color:var(--line)}
+.empty svg{width:34px;height:34px;margin:0 auto 12px;color:var(--line);animation:floatY 2.8s ease-in-out infinite}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .empty b{display:block;color:var(--ink);font-size:15px;font-weight:700;margin-bottom:4px}
 .empty p{font-size:12.5px}
 
@@ -250,9 +253,16 @@ main{flex:1;padding:18px 18px 132px}
   border-radius:13px;padding:11px 13px;margin-bottom:14px;font-size:12.5px;font-weight:600;color:var(--accent-ink)}
 .shift-banner.on{display:flex}
 .shift-banner svg{width:16px;height:16px;flex:none}
-.amount-box{display:flex;align-items:baseline;justify-content:center;gap:7px;padding:2px 0 18px}
+.amount-box{display:flex;align-items:baseline;justify-content:center;gap:7px;padding:10px 0 14px;
+  position:sticky;top:63px;z-index:30;background:var(--bg);margin:-10px -18px 4px;
+  border-bottom:1px solid transparent;transition:padding .28s cubic-bezier(.2,.7,.3,1),border-color .28s ease}
+.amount-box.stuck{padding:6px 0 7px;border-color:var(--line2)}
+.amount-box .cur{transition:font-size .28s cubic-bezier(.2,.7,.3,1)}
+.amount-box.stuck .cur{font-size:15px}
 .amount-box .cur{font-size:24px;font-weight:600;color:var(--muted)}
-#amtView{font-size:50px;font-weight:800;line-height:1;letter-spacing:-1px;color:var(--ink);display:inline-block}
+#amtView{font-size:50px;font-weight:800;line-height:1;letter-spacing:-1px;color:var(--ink);display:inline-block;
+  transition:font-size .28s cubic-bezier(.2,.7,.3,1)}
+.amount-box.stuck #amtView{font-size:26px}
 #amtView.income{color:var(--green)} #amtView.expense{color:var(--red)}
 #amtView.pop,#shView.pop{animation:digitPop .24s cubic-bezier(.34,1.56,.64,1)}
 @keyframes digitPop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
@@ -364,9 +374,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
 .tab.active svg{transform:scale(1.14) translateY(-1px)}
 .tab-fab{width:52px;height:52px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
   display:grid;place-items:center;margin-top:-26px;flex:none;
-  box-shadow:0 8px 22px rgba(242,176,30,.4);border:4px solid var(--bg);transition:transform .12s}
+  box-shadow:0 8px 22px rgba(242,176,30,.4);border:4px solid var(--bg);
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
 .tab-fab svg{width:23px;height:23px}
-.tab-fab:active{transform:scale(.92)}
+.tab-fab:active{transform:scale(.9)}
 
 /* ============ טוסט / מודאל / שיט ============ */
 .toast{position:fixed;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
@@ -523,6 +534,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <button data-type="income" class="active">הכנסה</button>
         <button data-type="expense">הוצאה</button>
       </div>
+      <div id="amtSentinel" style="height:1px"></div>
       <div class="amount-box"><span id="amtView" class="num">0</span><span class="cur">₪</span></div>
       <div class="ride-hint" id="rideHint"></div>
       <div class="methods" id="methods">
@@ -1012,9 +1024,9 @@ function renderHome(){
       Math.abs(Math.round(d))+'% מול '+dfMY.format(new Date(py,pm,1)).split(' ')[0];
   }else chip.style.display='none';
 
-  $('#hInc').textContent=fmt(s.inc);
-  $('#hCom').textContent='−'+fmt(sadranDue(s,pct));
-  $('#hExp').textContent='−'+fmt(s.exp);
+  animateNum($('#hInc'),s.inc,fmt);
+  animateNum($('#hCom'),sadranDue(s,pct),function(v){return '−'+fmt(v);});
+  animateNum($('#hExp'),s.exp,function(v){return '−'+fmt(v);});
 
   /* ===== כרטיס "היום שלך" ===== */
   var td=todayISO();
@@ -1048,7 +1060,7 @@ function renderHome(){
   /* בעל הרכב */
   var all=sums(state.tx);
   var debt=Math.max(0,sadranDue(all,pct)-all.com);
-  $('#debtNum').textContent=fmt(debt);
+  animateNum($('#debtNum'),debt,fmt);
   var ds=$('#debtSub');
   if(debt>0.5){ds.textContent='חוב פתוח מצטבר';ds.className='owner-sub';}
   else{ds.textContent='הכל שולם';ds.className='owner-sub ok';}
@@ -1060,7 +1072,7 @@ function renderHome(){
     :'עוד אין הכנסות החודש';
 
   /* קרן */
-  $('#fundNum').textContent=fmt(state.fund.balance);
+  animateNum($('#fundNum'),state.fund.balance,fmt);
   var rec=Math.max(0,net)*state.settings.fundPct/100;
   var mk=ymKey(ui.hm.y,ui.hm.m);
   var doneM=state.fund.log.filter(function(l){return l.delta>0&&new Date(l.ts).getFullYear()===ui.hm.y&&new Date(l.ts).getMonth()===ui.hm.m;})
@@ -1096,10 +1108,11 @@ function renderGoal(net){
   var off=RING_C*(1-p);
   var daysLeft=daysInMonth(ui.hm.y,ui.hm.m)-new Date().getDate();
   var sameMonth=ymKey(ui.hm.y,ui.hm.m)===ymKey(now.getFullYear(),now.getMonth());
+  var reached=net>=g;
   card.innerHTML='<div class="mini-head"><span class="lbl">יעד חודשי</span>'+
     '<button class="edit-btn" data-act="set-goal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>'+
     '<div class="mini-body goal-wrap">'+
-    '<div class="goal-ring"><svg viewBox="0 0 84 84">'+
+    '<div class="goal-ring'+(reached?' reached':'')+'"><svg viewBox="0 0 84 84">'+
       '<circle cx="42" cy="42" r="34" fill="none" stroke="'+cssVar('--line2')+'" stroke-width="8.5"/>'+
       '<circle cx="42" cy="42" r="34" fill="none" stroke="'+cssVar('--accent')+'" stroke-width="8.5" stroke-linecap="round" stroke-dasharray="'+RING_C+'" stroke-dashoffset="'+off+'" style="transition:stroke-dashoffset .6s ease"/>'+
     '</svg><div class="gr-txt"><div class="gr-pct num">'+Math.round(p*100)+'%</div><div class="gr-cap">מהיעד</div></div></div>'+
@@ -1461,10 +1474,10 @@ function renderReports(){
   var net=netOf(s,pct);
   var hours=hoursInMonth(ui.rm.y,ui.rm.m);
 
-  $('#rNet').textContent=fmt(net);
-  $('#rInc').textContent=fmt(s.inc);
-  $('#rExp').textContent=fmt(s.exp);
-  $('#rCom').textContent=fmt(comDue);
+  animateNum($('#rNet'),net,fmt);
+  animateNum($('#rInc'),s.inc,fmt);
+  animateNum($('#rExp'),s.exp,fmt);
+  animateNum($('#rCom'),comDue,fmt);
   $('#rPerHour').textContent=hours>0.1?fmt(net/hours):'—';
 
   /* ימי עבודה + שיאים */
@@ -1882,6 +1895,16 @@ $('#shOk').addEventListener('click',function(){
 $('#shCancel').addEventListener('click',function(){$('#sheet').classList.remove('show');shCb=null;shAmt='';});
 $('#sheet').addEventListener('click',function(e){
   if(e.target.id==='sheet'){$('#sheet').classList.remove('show');shCb=null;shAmt='';}});
+
+/* ==================== קיבוע סכום ההזנה בגלילה ==================== */
+if('IntersectionObserver' in window){
+  var amtSentinelEl=document.getElementById('amtSentinel');
+  if(amtSentinelEl){
+    new IntersectionObserver(function(entries){
+      $('.amount-box').classList.toggle('stuck',!entries[0].isIntersecting);
+    },{rootMargin:'-64px 0px 0px 0px',threshold:0}).observe(amtSentinelEl);
+  }
+}
 
 /* ==================== אשף הגדרת פרופיל (שכירות / מימון / בבעלות) ==================== */
 var wizState=null,wizOnChoice=null;
