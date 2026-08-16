@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='4' y='4' width='92' height='92' rx='24' fill='%23F2B01E'/%3E%3Ctext x='50' y='69' font-size='54' text-anchor='middle' font-family='Arial' font-weight='bold' fill='%23111214'%3E%E2%82%AA%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ============ פלטה ============ */
 :root{
@@ -69,7 +69,7 @@ svg{display:block}
 
 main{flex:1;padding:18px 18px 132px}
 .screen{display:none}
-.screen.active{display:block;animation:rise .3s cubic-bezier(.2,.7,.3,1)}
+.screen.active{display:block;animation:rise .16s cubic-bezier(.2,.7,.3,1)}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
 /* ============ כללי ============ */
@@ -92,7 +92,7 @@ main{flex:1;padding:18px 18px 132px}
 .nudges{margin-bottom:14px;display:none;flex-direction:column;gap:8px}
 .nudges.on{display:flex}
 .nudge{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
-  border-inline-start:3px solid var(--accent);border-radius:14px;padding:11px 13px;box-shadow:var(--shadow);animation:rise .3s ease}
+  border-inline-start:3px solid var(--accent);border-radius:14px;padding:11px 13px;box-shadow:var(--shadow);animation:rise .16s ease}
 .nudge .n-ic{color:var(--accent);flex:none}
 .nudge .n-ic svg{width:17px;height:17px}
 .nudge .n-tx{flex:1;font-size:13px;font-weight:600;line-height:1.45}
@@ -374,7 +374,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
   background:rgba(8,9,10,.45);backdrop-filter:blur(4px)}
 .sheet.show{display:flex}
 .sheet-card{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-width:520px;
-  padding:20px 20px calc(20px + env(safe-area-inset-bottom));animation:sheetup .28s cubic-bezier(.2,.7,.3,1)}
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));animation:sheetup .18s cubic-bezier(.2,.7,.3,1)}
 @keyframes sheetup{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
 .sheet-card h3{font-size:15px;font-weight:800;text-align:center;margin-bottom:14px}
 .sh-amt{display:flex;align-items:baseline;justify-content:center;gap:7px;margin-bottom:16px}
@@ -789,7 +789,7 @@ function save(){
 function loadRaw(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
 function normState(d){
   d=d||{};
-  d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:6000,workDays:24,autoRent:true,gistId:''},d.settings||{});
+  d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,gistId:''},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
@@ -1976,7 +1976,17 @@ buildCats();
 renderAmt();
 checkNotify();
 if('serviceWorker' in navigator){
-  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      setInterval(function(){reg.update().catch(function(){});},60*60*1000);
+      document.addEventListener('visibilitychange',function(){if(!document.hidden)reg.update().catch(function(){});});
+    }).catch(function(){});
+  });
+  var swReloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(swReloaded)return;swReloaded=true;
+    location.reload();
+  });
 }
 if(cloudOn()){cloudPull(false).then(function(){applyTheme();renderSettings();});}
 setInterval(function(){if(!document.hidden&&cloudOn())cloudPull(false);},300000);
