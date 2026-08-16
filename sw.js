@@ -1,5 +1,5 @@
 /* קופת הנהג — Service Worker: עבודה מלאה אופליין */
-var CACHE = 'kupa-v2-5';
+var CACHE = 'kupa-v2-6';
 var ASSETS = [
   './',
   './index.html',
@@ -33,9 +33,8 @@ self.addEventListener('activate', function(e){
 
 self.addEventListener('fetch', function(e){
   var req = e.request;
-  if(req.method !== 'GET') return;                 /* סנכרון ענן — לעולם ישירות */
+  if(req.method !== 'GET') return;
   var url = new URL(req.url);
-  if(url.hostname === 'api.github.com') return;    /* הענן תמיד מהרשת */
 
   /* גופנים — stale-while-revalidate */
   if(url.hostname.indexOf('fonts.g') > -1){

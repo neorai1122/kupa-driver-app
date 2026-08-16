@@ -26,11 +26,8 @@
 
 ## אחסון
 
-- **לוקלי:** `localStorage` (מפתח `kupaNehed.v2`).
-- **ענן (אופציונלי):** גיבוי ל-**GitHub Gist פרטי** באמצעות REST API.
-  - טוקן מאוחסן ב-`localStorage('kupa.gh')`.
-  - מזהה הגיסט ב-`state.settings.gistId`.
-  - סנכרון: דחיפה אחרי כל שמירה (debounce 1500ms), משיכה כל 5 דקות ובחזרה לטב.
+- **לוקלי בלבד:** `localStorage` (מפתח `kupaNehed.v2`). בלי שרת, בלי חשבון, בלי סנכרון ענן — פשוט ומהיר.
+- גיבוי/שחזור ידני דרך JSON (כפתורים בהגדרות: "גיבוי" / "שחזור מקובץ גיבוי").
 
 ## מבנה ה-State
 
@@ -38,7 +35,7 @@
 state = {
   settings: {
     name, pct:30, dark, goal, fundPct:10, ownerPhone, remindOn, remindTime,
-    lastMethod, rent:0, workDays:24, autoRent:true, gistId,
+    lastMethod, rent:0, workDays:24, autoRent:true,
     ownershipType,     // '' | 'rent' | 'finance' | 'leasing' | 'owned' — נקבע באשף
     insuranceType,     // '' | 'חובה' | 'צד ג׳' | 'מקיף' | 'included' (בליסינג)
     insuranceMonthly:0, autoIns:true,
