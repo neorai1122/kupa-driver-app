@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111214">
+<title>הפעלה והתקנה — קופת הנהג</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F6F3;--card:#fff;--ink:#111214;--muted:#898e96;--line:rgba(17,18,20,.08);--accent:#F2B01E;--accent-ink:#231a04;--green:#2E7D52;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.75;padding-bottom:60px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:520px;margin:0 auto;padding:20px 18px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:800;display:grid;place-items:center;font-size:17px}
+h1{font-size:21px;font-weight:800}
+.lead{color:var(--muted);font-size:13.5px;margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px}
+.card h2{font-size:15px;font-weight:800;display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.card h2 .n{width:23px;height:23px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:12px;display:grid;place-items:center;flex:none}
+ol{padding-inline-start:18px;display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+li::marker{font-weight:800;color:var(--accent-ink)}
+code{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:1px 8px;font-size:12px;direction:ltr;display:inline-block}
+.note{background:#fdf6e2;border:1px solid #f0dfa8;border-radius:12px;padding:11px 13px;font-size:12.5px;margin-top:12px;line-height:1.6}
+.ok{background:#e9f4ee;border-color:#bfe0cf}
+a{color:var(--ink);font-weight:700}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;font-weight:700;text-decoration:none;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">‹ חזרה לאפליקציה</a>
+  <div class="top"><span class="mark">₪</span><h1>התקנה וענן — שלב אחר שלב</h1></div>
+  <div class="lead">5 דקות עבודה חד־פעמית, והאפליקציה שלך חיה לתמיד: כתובת קבועה, אייקון במסך הבית, וגיבוי ענן אוטומטי. הכול בחינם.</div>
+
+  <div class="card">
+    <h2><span class="n">1</span>יצירת חשבון GitHub (חינם)</h2>
+    <ol>
+      <li>כנס ל־<a href="https://github.com/signup" target="_blank" rel="noopener">github.com/signup</a></li>
+      <li>מלא אימייל + סיסמה + שם משתמש (באנגלית, בלי רווחים) — לחץ <code>Sign up</code> ואשר את המייל</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">2</span>העלאת האפליקציה לאינטרנט</h2>
+    <ol>
+      <li>בתוך GitHub: לחץ <code>+</code> למעלה ← <code>New repository</code></li>
+      <li>שם: <code>kupa</code> · Public · לחץ <code>Create repository</code></li>
+      <li>לחץ על הקישור <code>uploading an existing file</code></li>
+      <li>העלה את <b>כל הקבצים</b> מהתיקייה: <code>index.html</code>, <code>manifest.json</code>, <code>sw.js</code>, <code>guide.html</code> וארבעת האייקונים <code>icon-*.png</code> — ואז <code>Commit changes</code></li>
+      <li>נכנס ל־<code>Settings</code> ← בתפריט הצד <code>Pages</code> ← תחת Branch בחר <code>main</code> ← <code>Save</code></li>
+      <li>אחרי דקה־שתיים האתר חי בכתובת: <code>https://השם-שלך.github.io/kupa/</code></li>
+    </ol>
+    <div class="note">💡 הכתובת הזו היא שלך לתמיד. שמור אותה במועדפים.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span>התקנה במסך הבית (כמו אפליקציה רגילה)</h2>
+    <ol>
+      <li>פתח את הכתובת החדשה בדפדפן הטלפון</li>
+      <li><b>אנדרואיד (Chrome):</b> תפריט ⋮ ← <b>״התקן אפליקציה״</b> או ״הוספה למסך הבית״</li>
+      <li><b>אייפון (Safari):</b> כפתור שיתוף ← <b>״הוסף למסך הבית״</b></li>
+    </ol>
+    <div class="note ok">✅ מעכשיו יש לך אייקון צהוב במסך הבית — נפתח במסך מלא, עובד גם בלי אינטרנט.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">4</span>הפעלת ענן — גיבוי וסנכרון אוטומטי</h2>
+    <ol>
+      <li>בתוך GitHub: פתח <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a></li>
+      <li>לחץ <code>Generate new token</code> ← בחר <code>Generate new token (classic)</code></li>
+      <li>שם: <code>kupa</code> · תוקף: <code>No expiration</code> · סמן <b>V</b> רק ליד <code>gist</code></li>
+      <li>גלול למטה ← <code>Generate token</code> ← <b>העתק את המפתח</b> (מתחיל ב־<code>ghp_</code>)</li>
+      <li>באפליקציה: <b>הגדרות ← סנכרון ענן</b> ← הדבק את המפתח ← <b>חיבור והפעלת הענן</b></li>
+      <li>תקבל <b>קוד סנכרון</b> — העתק ושלח לעצמך בוואטסאפ (הוא המפתח לשחזור במכשירים נוספים)</li>
+    </ol>
+    <div class="note">🔐 הנתונים נשמרים ב־Gist <b>פרטי</b> בחשבון GitHub שלך בלבד. המפתח נשמר רק במכשיר. אל תשתף אותם עם אף אחד.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">5</span>מכשיר נוסף / טלפון חדש</h2>
+    <ol>
+      <li>פתח את כתובת האפליקציה במכשיר החדש</li>
+      <li>הגדרות ← סנכרון ענן ← הדבק את ה־<b>מפתח</b> ואת <b>קוד הסנכרון</b> ← לחץ חיבור</li>
+      <li>הנתונים יורדים לבד, ומכאן הכול מסתנכרן לשני הכיוונים</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">?</span>שאלות נפוצות</h2>
+    <ol>
+      <li><b>החלפתי טלפון ואיבדתי הכול — למה?</b> בלי ענן הנתונים נשמרים רק במכשיר. תמיד כדאי להפעיל את הענן (שלב 4).</li>
+      <li><b>זה עולה כסף?</b> לא. GitHub Pages ו־Gist חינמיים לגמרי.</li>
+      <li><b>מי רואה את הנתונים?</b> רק אתה. ה־Gist פרטי (Secret), והאתר עצמו לא שומר דבר בשרת.</li>
+      <li><b>רוצה לעדכן גרסה?</b> מעלים את הקבצים החדשים לריפו (Add file → Upload) והאתר מתעדכן תוך דקה.</li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1987 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111214">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="קופת הנהג">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>קופת הנהג — ניהול כסף לדריבר</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='4' y='4' width='92' height='92' rx='24' fill='%23F2B01E'/%3E%3Ctext x='50' y='69' font-size='54' text-anchor='middle' font-family='Arial' font-weight='bold' fill='%23111214'%3E%E2%82%AA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============ פלטה ============ */
+:root{
+  --bg:#F6F6F3; --card:#FFFFFF;
+  --ink:#111214; --ink2:#3d4147; --muted:#898e96;
+  --line:rgba(17,18,20,.08); --line2:rgba(17,18,20,.045);
+  --accent:#F2B01E; --accent-ink:#231a04; --accent-soft:#fdf3da;
+  --green:#2E7D52; --green-soft:#e7f2ec;
+  --red:#B5452E; --red-soft:#f9ebe7;
+  --hero:#121417; --hero-ink:#F3F2EC; --hero-line:rgba(255,255,255,.09);
+  --radius:18px;
+  --shadow:0 1px 2px rgba(17,18,20,.05);
+  --shadow-lg:0 12px 40px rgba(17,18,20,.10);
+}
+html[data-theme="dark"]{
+  --bg:#0D0E10; --card:#141619;
+  --ink:#EDEEEA; --ink2:#c3c7cc; --muted:#7d838c;
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.05);
+  --accent-soft:rgba(242,176,30,.13); --green-soft:rgba(46,125,82,.2); --red-soft:rgba(181,69,46,.18);
+  --hero:#17191D; --hero-ink:#F3F2EC;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent}
+body{
+  font-family:'Heebo',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  background:var(--bg);color:var(--ink);
+  overscroll-behavior-y:none;transition:background .25s,color .25s;
+  -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+button{font-family:inherit;border:0;background:none;color:inherit;cursor:pointer;touch-action:manipulation}
+input{font-family:inherit;font-size:16px;color:var(--ink)}
+svg{display:block}
+.app{max-width:520px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+
+/* ============ טופבר ============ */
+.topbar{
+  position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px 12px;
+  background:color-mix(in srgb,var(--bg) 85%,transparent);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line2);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:.2px}
+.brand-mark{width:29px;height:29px;border-radius:9px;background:var(--accent);color:var(--accent-ink);
+  font-weight:800;display:grid;place-items:center;font-size:15px}
+.icon-btn{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
+  background:var(--card);border:1px solid var(--line);color:var(--ink2);transition:.15s}
+.icon-btn:active{transform:scale(.93)}
+.icon-btn svg{width:17px;height:17px}
+
+main{flex:1;padding:18px 18px 132px}
+.screen{display:none}
+.screen.active{display:block;animation:rise .3s cubic-bezier(.2,.7,.3,1)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ============ כללי ============ */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+.slabel{font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.6px;margin:4px 3px 10px}
+.lbl{font-size:12.5px;font-weight:600;color:var(--muted)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:700;
+  border-radius:12px;padding:12px 18px;font-size:14px;transition:transform .12s,background .15s;line-height:1}
+.btn:active{transform:scale(.97)}
+.btn svg{width:15px;height:15px}
+.btn.ink{background:var(--ink);color:var(--bg)}
+.btn.line{border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.btn.amber{background:var(--accent);color:var(--accent-ink)}
+.btn.big{width:100%;padding:15px;font-size:15.5px;border-radius:14px}
+.btn.sm{padding:9px 14px;font-size:12.5px;border-radius:10px}
+.divider{height:1px;background:var(--line2);margin:14px -18px -18px}
+
+/* ============ נודג'ים ============ */
+.nudges{margin-bottom:14px;display:none;flex-direction:column;gap:8px}
+.nudges.on{display:flex}
+.nudge{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
+  border-inline-start:3px solid var(--accent);border-radius:14px;padding:11px 13px;box-shadow:var(--shadow);animation:rise .3s ease}
+.nudge .n-ic{color:var(--accent);flex:none}
+.nudge .n-ic svg{width:17px;height:17px}
+.nudge .n-tx{flex:1;font-size:13px;font-weight:600;line-height:1.45}
+.nudge .n-tx small{display:block;color:var(--muted);font-weight:500;font-size:11.5px}
+.nudge .btn{flex:none}
+.nudge .n-x{color:var(--muted);width:28px;height:28px;display:grid;place-items:center;border-radius:8px;flex:none}
+.nudge .n-x svg{width:13px;height:13px}
+
+/* ============ בית ============ */
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:4px 2px 18px}
+.greet{font-size:21px;font-weight:800;letter-spacing:-.2px}
+.sub{color:var(--muted);font-size:12.5px;margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.streak-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-soft);color:var(--accent-ink);
+  font-weight:700;font-size:11px;padding:2px 9px;border-radius:999px}
+.streak-chip svg{width:11px;height:11px}
+.month-pager{display:flex;align-items:center;gap:1px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:3px;box-shadow:var(--shadow);flex:none}
+.month-pager button{width:29px;height:29px;border-radius:999px;display:grid;place-items:center;color:var(--muted)}
+.month-pager button:active{background:var(--line2);color:var(--ink)}
+.month-pager button svg{width:13px;height:13px}
+.month-pager span{font-size:12.5px;font-weight:700;min-width:92px;text-align:center}
+
+.hero{background:var(--hero);border-color:transparent;color:var(--hero-ink);position:relative;overflow:hidden;padding:20px}
+.hero .lbl{color:rgba(243,242,236,.55)}
+.hero-net-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.hero-net{font-size:42px;font-weight:800;color:var(--accent);line-height:1.15;letter-spacing:-.5px;margin-top:4px}
+.trend{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:5px 10px;
+  border-radius:999px;background:rgba(255,255,255,.07);color:rgba(243,242,236,.75);margin-bottom:6px;white-space:nowrap}
+.trend.up{color:#7fd0a6}.trend.down{color:#f08a6f}
+.trend svg{width:10px;height:10px}
+.hero-notes{font-size:11.5px;color:rgba(243,242,236,.42);margin-top:3px}
+.hero-row{display:flex;margin-top:18px;padding-top:15px;border-top:1px solid var(--hero-line)}
+.hero-row>div{flex:1;display:flex;flex-direction:column;gap:4px;padding-inline-start:13px;min-width:0}
+.hero-row>div:first-child{padding-inline-start:0}
+.hero-row>div+div{border-inline-start:1px solid var(--hero-line)}
+.hero-row .hr-lb{font-size:11px;color:rgba(243,242,236,.5);display:flex;align-items:center;gap:5px;font-weight:600}
+.hero-row .hr-vl{font-size:15.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.mini-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:15px;display:flex;flex-direction:column;min-height:158px}
+.mini-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.mini-body{flex:1;display:flex;flex-direction:column;justify-content:center}
+.mini-foot{margin-top:auto;padding-top:10px}
+
+/* טבעת יעד */
+.goal-wrap{display:flex;align-items:center;gap:13px}
+.goal-ring{position:relative;width:84px;height:84px;flex:none}
+.goal-ring svg{width:84px;height:84px;transform:rotate(-90deg)}
+.goal-ring .gr-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.goal-ring .gr-pct{font-size:16px;font-weight:800}
+.goal-ring .gr-cap{font-size:8.5px;color:var(--muted);font-weight:600}
+.goal-info{display:flex;flex-direction:column;gap:4px;min-width:0}
+.goal-info .gi-big{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.goal-info .gi-sub{font-size:11.5px;color:var(--muted);line-height:1.5}
+.goal-empty{text-align:center;padding:6px 0}
+.goal-empty .ge-svg{color:var(--line);margin:0 auto 8px;width:30px;height:30px}
+.edit-btn{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--muted)}
+.edit-btn:active{background:var(--line2);color:var(--ink)}
+.edit-btn svg{width:13px;height:13px}
+
+/* משמרת */
+.shift-timer{font-size:27px;font-weight:800;letter-spacing:-.5px}
+.shift-live{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--green)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.6s ease infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+.shift-stats{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.55}
+.shift-foot{font-size:11.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:9px}
+.shift-foot b{color:var(--ink)}
+
+/* בעל הרכב */
+.owner-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+.owner-num{font-size:25px;font-weight:800;letter-spacing:-.3px;margin-top:3px}
+.owner-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.owner-sub.ok{color:var(--green);font-weight:700}
+.owner-btns{display:flex;gap:8px}
+.owner-btns .btn{flex:1}
+.progress{height:8px;background:var(--line2);border-radius:999px;overflow:hidden;margin-bottom:8px}
+.progress>div{height:100%;width:0%;background:var(--accent);border-radius:999px;transition:width .45s ease}
+.owner-foot{font-size:11.5px;color:var(--muted)}
+
+/* קרן */
+.fund-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fund-num{font-size:25px;font-weight:800;margin-top:3px}
+.fund-sub{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.5}
+.fund-btns{display:flex;gap:8px;margin-top:13px}
+.fund-btns .btn{flex:1}
+
+/* פעולות מהירות */
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.quick button{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px 4px;
+  font-weight:700;font-size:11.5px;color:var(--ink2);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;align-items:center;gap:6px}
+.quick button svg{width:14px;height:14px;color:var(--muted)}
+.quick button:active{transform:scale(.96);border-color:var(--ink)}
+
+.card-title{font-weight:800;font-size:14px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between}
+.legend{display:flex;gap:16px;align-items:center;font-size:11px;color:var(--muted);margin-top:11px}
+.t-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px}
+.t-row span{color:var(--muted);font-weight:600}
+.t-total{display:flex;justify-content:space-between;align-items:center;padding-top:11px;margin-top:3px;border-top:1px solid var(--line2)}
+.t-total span{font-weight:800;font-size:13.5px}
+.t-total b{font-size:17px;font-weight:800}
+.today-foot{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.55}
+.today-foot b{color:var(--ink)}
+.ride-hint{text-align:center;font-size:12.5px;color:var(--muted);min-height:20px;margin:-9px 0 13px;font-weight:600}
+.ride-hint b{color:var(--ink)}
+.mini-link{color:var(--ink);text-decoration:underline;font-weight:700;font-size:11.5px}
+.cloud-code{font-size:15px;letter-spacing:1.5px;text-align:center;background:var(--bg);border:1px solid var(--line);
+  border-radius:12px;padding:12px;margin:8px 0 12px;font-weight:800;user-select:all;-webkit-user-select:all}
+.cloud-dot{position:absolute;top:-3px;left:-3px;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg)}
+.cloud-dot.ok{background:var(--green)}.cloud-dot.sy{background:var(--accent)}.cloud-dot.err{background:var(--red)}
+#cloudBtn{position:relative}
+
+/* רשימת תנועות */
+.tx{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+  border-radius:15px;padding:11px 13px;box-shadow:var(--shadow);margin-bottom:7px}
+.tx-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:17.5px;flex:none;
+  background:var(--line2)}
+.tx-mid{flex:1;min-width:0}
+.tx-cat{font-weight:700;font-size:13.5px}
+.tx-note{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.tx-amt{font-weight:800;font-size:14px;white-space:nowrap}
+.tx-amt.in{color:var(--green)} .tx-amt.out{color:var(--red)}
+.tx-del{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--muted);flex:none}
+.tx-del:active{background:var(--red-soft);color:var(--red)}
+.tx-del svg{width:15px;height:15px}
+.tx-home .tx{margin-bottom:7px}
+.tx-home .tx-del{display:none}
+.day-g{margin-bottom:16px}
+.day-h{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);
+  font-weight:700;margin:0 4px 9px}
+.day-h b{color:var(--ink)}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty svg{width:34px;height:34px;margin:0 auto 12px;color:var(--line)}
+.empty b{display:block;color:var(--ink);font-size:15px;font-weight:700;margin-bottom:4px}
+.empty p{font-size:12.5px}
+
+/* ============ הוספה ============ */
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;margin-bottom:16px}
+.seg button{flex:1;padding:11px;border-radius:10px;font-weight:700;font-size:14px;color:var(--muted);transition:.15s}
+.seg button.active{background:var(--ink);color:var(--bg)}
+.shift-banner{display:none;align-items:center;gap:10px;background:var(--accent-soft);border:1px solid var(--accent);
+  border-radius:13px;padding:11px 13px;margin-bottom:14px;font-size:12.5px;font-weight:600;color:var(--accent-ink)}
+.shift-banner.on{display:flex}
+.shift-banner svg{width:16px;height:16px;flex:none}
+.amount-box{display:flex;align-items:baseline;justify-content:center;gap:7px;padding:2px 0 18px}
+.amount-box .cur{font-size:24px;font-weight:600;color:var(--muted)}
+#amtView{font-size:50px;font-weight:800;line-height:1;letter-spacing:-1px;color:var(--ink)}
+#amtView.income{color:var(--green)} #amtView.expense{color:var(--red)}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:10px 3px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:var(--muted);transition:.12s}
+.cat .ic{font-size:19px;filter:saturate(.85)}
+.cat.active{border-color:var(--ink);color:var(--ink);background:var(--bg)}
+.cat:active{transform:scale(.95)}
+.methods{display:none;gap:6px;margin-bottom:13px}
+.methods.on{display:flex}
+.methods button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);
+  font-weight:700;font-size:12px;color:var(--muted)}
+.methods button.active{border-color:var(--ink);color:var(--ink);background:var(--bg)}
+.add-meta{display:flex;gap:8px;margin-bottom:14px}
+.add-meta input{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 12px;min-width:0}
+#txDate{width:148px;font-size:13px}
+#txNote{flex:1;font-size:13px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.pad button{height:56px;border-radius:13px;background:var(--card);border:1px solid var(--line);
+  font-size:21px;font-weight:600;display:grid;place-items:center}
+.pad button:active{transform:scale(.95);background:var(--line2)}
+.pad svg{width:21px;height:21px}
+#saveTx.income{background:var(--green);color:#fff}
+#saveTx.expense{background:var(--red);color:#fff}
+#saveTx{color:#fff}
+
+/* ============ רשימה ============ */
+.list-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.mini-totals{display:flex;gap:6px;font-size:11.5px;font-weight:800}
+.mini-totals span{padding:5px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line)}
+.mini-totals .up{color:var(--green)} .mini-totals .down{color:var(--red)}
+.chips{display:flex;gap:7px;margin-bottom:15px;overflow-x:auto;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+  font-weight:700;font-size:12px;color:var(--muted)}
+.chip.active{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+
+/* ============ דוחות ============ */
+.rep-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.rep-title{font-size:18px;font-weight:800}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.metric{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 13px 11px;box-shadow:var(--shadow)}
+.metric .m-lb{font-size:10.5px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:5px}
+.metric .m-vl{font-size:16.5px;font-weight:800;margin-top:7px;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.metric.hero-m{background:var(--hero);border-color:transparent}
+.metric.hero-m .m-lb{color:rgba(243,242,236,.55)}
+.metric.hero-m .m-vl{color:var(--accent)}
+.week-line{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:600;margin:-4px 3px 15px}
+.week-line b{color:var(--ink)}
+.week-line .trend{background:var(--card);border:1px solid var(--line);color:var(--muted);margin:0}
+.week-line .trend.up{color:var(--green)} .week-line .trend.down{color:var(--red)}
+
+.sbar{height:10px;border-radius:999px;overflow:hidden;display:flex;background:var(--line2);margin-bottom:11px}
+.sbar>div{height:100%}
+.mrow{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:7px 0;border-bottom:1px dashed var(--line2)}
+.mrow:last-child{border-bottom:0}
+.mrow .nm{flex:1;font-weight:600}
+.mrow .vl{font-weight:800}
+.mrow .pc{color:var(--muted);font-size:11px;width:36px;text-align:left}
+
+canvas#weekChart{width:100%;height:140px;display:block}
+canvas#monthChart{width:100%;height:165px;display:block}
+.donut-wrap{display:flex;align-items:center;gap:18px}
+canvas#donut{width:132px;height:132px;flex:none}
+.d-legend{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0}
+.d-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.d-row .nm{flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-row .vl{font-weight:800;white-space:nowrap}
+.d-row .pc{color:var(--muted);font-size:10.5px;width:32px;text-align:left;flex:none}
+
+.rep-actions{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+
+/* ============ הגדרות ============ */
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px dashed var(--line2)}
+.set-row:last-child{border-bottom:0}
+.set-row .r-lb{font-weight:700;font-size:13.5px}
+.set-row .r-sub{font-size:11px;color:var(--muted);margin-top:2px;font-weight:400}
+.set-val{font-weight:800;font-size:14px;display:flex;align-items:center;gap:6px}
+.set-val .edit-btn{width:30px;height:30px}
+.set-row input[type=text],.set-row input[type=tel],.set-row input[type=time]{background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;padding:8px 12px;width:132px;text-align:left;font-size:14px}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper button{width:32px;height:32px;border-radius:9px;background:var(--bg);border:1px solid var(--line);font-size:16px;font-weight:700}
+.stepper b{min-width:48px;text-align:center;font-size:14.5px}
+.switch{position:relative;width:46px;height:28px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;width:100%;height:100%;cursor:pointer;z-index:2}
+.track{position:absolute;inset:0;border-radius:999px;background:#d6d8db;transition:.2s}
+html[data-theme="dark"] .track{background:#2b2f34}
+.track::before{content:"";position:absolute;top:3.5px;inset-inline-start:4px;width:21px;height:21px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22);transition:.2s}
+.switch input:checked + .track{background:var(--accent)}
+.switch input:checked + .track::before{transform:translateX(-17px)}
+.data-btns{display:flex;flex-direction:column;gap:9px;padding-top:13px}
+.about{text-align:center;color:var(--muted);font-size:11.5px;margin-top:22px;line-height:1.8}
+
+/* ============ טאב-בר צף ============ */
+.tabbar{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:50;
+  width:min(496px,calc(100% - 24px));
+  background:color-mix(in srgb,var(--card) 92%,transparent);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--line);border-radius:999px;
+  display:flex;justify-content:space-around;align-items:center;
+  padding:8px 12px;box-shadow:var(--shadow-lg)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);
+  font-size:9.5px;font-weight:700;width:58px;padding:3px 0;transition:color .15s}
+.tab svg{width:20px;height:20px}
+.tab.active{color:var(--ink)}
+.tab-fab{width:52px;height:52px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+  display:grid;place-items:center;margin-top:-26px;flex:none;
+  box-shadow:0 8px 22px rgba(242,176,30,.4);border:4px solid var(--bg);transition:transform .12s}
+.tab-fab svg{width:23px;height:23px}
+.tab-fab:active{transform:scale(.92)}
+
+/* ============ טוסט / מודאל / שיט ============ */
+.toast{position:fixed;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--ink);color:var(--bg);font-weight:700;font-size:13px;padding:11px 20px;border-radius:999px;
+  opacity:0;pointer-events:none;transition:.25s;z-index:120;box-shadow:0 8px 30px rgba(0,0,0,.22);white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;padding:28px;
+  background:rgba(8,9,10,.45);backdrop-filter:blur(4px)}
+.modal.show{display:flex}
+.modal-card{background:var(--card);border-radius:20px;padding:22px 20px;width:100%;max-width:330px;
+  box-shadow:var(--shadow-lg);animation:rise .22s ease}
+.modal-card h3{font-size:16px;font-weight:800;margin-bottom:7px}
+.modal-card p{font-size:13px;color:var(--muted);line-height:1.6}
+.modal-btns{display:flex;gap:8px;margin-top:18px}
+.modal-btns .btn{flex:1}
+.btn.danger{background:var(--red);color:#fff}
+
+.sheet{position:fixed;inset:0;z-index:115;display:none;align-items:flex-end;justify-content:center;
+  background:rgba(8,9,10,.45);backdrop-filter:blur(4px)}
+.sheet.show{display:flex}
+.sheet-card{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-width:520px;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));animation:sheetup .28s cubic-bezier(.2,.7,.3,1)}
+@keyframes sheetup{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
+.sheet-card h3{font-size:15px;font-weight:800;text-align:center;margin-bottom:14px}
+.sh-amt{display:flex;align-items:baseline;justify-content:center;gap:7px;margin-bottom:16px}
+.sh-amt b{font-size:42px;font-weight:800;letter-spacing:-.8px}
+.sh-amt span{font-size:16px;color:var(--muted);font-weight:600}
+.pad.slim button{height:50px;font-size:19px}
+.sheet-btns{display:flex;gap:9px;margin-top:4px}
+.sheet-btns .btn{flex:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">₪</span><span>קופת הנהג</span></div>
+    <button class="icon-btn" id="cloudBtn" title="סנכרון ענן" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z"/></svg>
+      <span class="cloud-dot ok" id="cloudDot"></span>
+    </button>
+    <button class="icon-btn" id="themeBtn" title="מצב לילה">
+      <svg id="icMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+      <svg id="icSun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <!-- ================= בית ================= -->
+    <section class="screen active" id="s-home">
+      <div class="nudges" id="nudges"></div>
+
+      <div class="head">
+        <div>
+          <div class="greet" id="greet">בוקר טוב</div>
+          <div class="sub"><span id="todayLine"></span><span class="streak-chip" id="streakChip" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+            רצף <span id="streakDays"></span> ימים</span></div>
+        </div>
+        <div class="month-pager">
+          <button id="hmPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+          <span id="hmLbl"></span>
+          <button id="hmNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        </div>
+      </div>
+
+      <div class="card hero">
+        <div class="lbl">נטו אמיתי · <span id="heroMonth"></span></div>
+        <div class="hero-net-row">
+          <div class="hero-net num" id="netNum">₪0</div>
+          <div class="trend" id="momChip" style="display:none"></div>
+        </div>
+        <div class="hero-notes">אחרי עמלת סדרן (<span data-pct>30</span>%) והוצאות</div>
+        <div class="hero-row">
+          <div><div class="hr-lb">הכנסות</div><div class="hr-vl num" id="hInc">₪0</div></div>
+          <div><div class="hr-lb">סדרן · <span data-pct>30</span>%</div><div class="hr-vl num" id="hCom">₪0</div></div>
+          <div><div class="hr-lb">הוצאות</div><div class="hr-vl num" id="hExp">₪0</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">היום שלך<span class="lbl num" id="tCarCost"></span></div>
+        <div class="t-row"><span>נסיעות — נטו אחרי סדרן</span><b class="num" id="tRides">₪0</b></div>
+        <div class="t-row"><span>דלק והוצאות</span><b class="num" id="tExp">₪0</b></div>
+        <div class="t-row"><span>הרכב להיום</span><b class="num" id="tCar">₪0</b></div>
+        <div class="t-total"><span>מאזן היום</span><b class="num" id="tNet">₪0</b></div>
+        <div class="progress" style="margin-top:12px"><div id="tProg"></div></div>
+        <div class="today-foot" id="tFoot"></div>
+      </div>
+
+      <div class="grid2">
+        <div class="mini-card" id="goalCard"></div>
+        <div class="mini-card" id="shiftCard"></div>
+      </div>
+
+      <div class="card">
+        <div class="owner-top">
+          <div>
+            <div class="lbl">לסדרן</div>
+            <div class="owner-num num" id="debtNum">₪0</div>
+            <div class="owner-sub" id="debtSub"></div>
+          </div>
+        </div>
+        <div class="progress"><div id="comProg"></div></div>
+        <div class="owner-foot num" id="comFoot"></div>
+        <div class="owner-btns" style="margin-top:13px">
+          <button class="btn line sm" data-act="pay-commission">רישום תשלום</button>
+          <button class="btn ink sm" data-act="wa-share">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>
+            סיכום בוואטסאפ</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="fund-top">
+          <div>
+            <div class="lbl">קרן חכמה</div>
+            <div class="fund-num num" id="fundNum">₪0</div>
+            <div class="fund-sub" id="fundSub"></div>
+          </div>
+          <span class="slabel" style="margin:0">לביטוח וטיפולים</span>
+        </div>
+        <div class="fund-btns">
+          <button class="btn line sm" data-act="fund-in">הפקדה לקרן</button>
+          <button class="btn line sm" data-act="fund-out">משיכה</button>
+        </div>
+      </div>
+
+      <div class="quick">
+        <button data-act="q-rides"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>נסיעות</button>
+        <button data-act="q-fuel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>דלק</button>
+        <button data-act="q-commission"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>סדרן</button>
+        <button data-act="q-other"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>אחר</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">7 הימים האחרונים</div>
+        <canvas id="weekChart"></canvas>
+        <div class="legend"><span><span class="dot" style="background:var(--green)"></span> הכנסות</span><span><span class="dot" style="background:var(--red)"></span> הוצאות</span></div>
+      </div>
+
+      <div class="card-title" style="margin:20px 3px 10px">תנועות אחרונות<button class="edit-btn" data-go="list" style="width:auto;padding:0 8px;font-weight:700;font-size:12px">הכל</button></div>
+      <div id="recentList" class="tx-home"></div>
+    </section>
+
+    <!-- ================= הוספה ================= -->
+    <section class="screen" id="s-add">
+      <div class="shift-banner" id="shiftBanner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span id="shiftBannerTx"></span>
+      </div>
+      <div class="seg" id="typeSeg">
+        <button data-type="income" class="active">הכנסה</button>
+        <button data-type="expense">הוצאה</button>
+      </div>
+      <div class="amount-box"><span id="amtView" class="num">0</span><span class="cur">₪</span></div>
+      <div class="ride-hint" id="rideHint"></div>
+      <div class="methods" id="methods">
+        <button data-m="cash" class="active">מזומן</button>
+        <button data-m="bit">ביט</button>
+        <button data-m="credit">אשראי</button>
+      </div>
+      <div class="cats" id="catGrid"></div>
+      <div class="add-meta">
+        <input type="date" id="txDate">
+        <input type="text" id="txNote" placeholder="הערה (לא חובה)" maxlength="40">
+      </div>
+      <div class="pad" dir="ltr" id="pad">
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button data-k=".">.</button><button data-k="0">0</button>
+        <button data-k="del"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7 6-7Z"/><path d="M12 10l4 4m0-4-4 4"/></svg></button>
+      </div>
+      <button class="btn big income" id="saveTx">הוספת הכנסה</button>
+    </section>
+
+    <!-- ================= תנועות ================= -->
+    <section class="screen" id="s-list">
+      <div class="list-top">
+        <div class="month-pager">
+          <button id="lmPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+          <span id="lmLbl"></span>
+          <button id="lmNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        </div>
+        <div class="mini-totals"><span class="up num" id="mtUp">+₪0</span><span class="down num" id="mtDown">−₪0</span></div>
+      </div>
+      <div class="chips" id="filterChips">
+        <button class="chip active" data-f="all">הכל</button>
+        <button class="chip" data-f="income">הכנסות</button>
+        <button class="chip" data-f="expense">הוצאות</button>
+        <button class="chip" data-f="commission">סדרן</button>
+      </div>
+      <div id="fullList"></div>
+    </section>
+
+    <!-- ================= דוחות ================= -->
+    <section class="screen" id="s-reports">
+      <div class="rep-head">
+        <div class="rep-title">דוחות</div>
+        <div class="month-pager">
+          <button id="rmPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+          <span id="rmLbl"></span>
+          <button id="rmNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric hero-m"><div class="m-lb">נטו אמיתי</div><div class="m-vl num" id="rNet">₪0</div></div>
+        <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--green)"></span>הכנסות</div><div class="m-vl num" id="rInc">₪0</div></div>
+        <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--red)"></span>הוצאות</div><div class="m-vl num" id="rExp">₪0</div></div>
+        <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--accent)"></span>סדרן <span data-pct>30</span>%</div><div class="m-vl num" id="rCom">₪0</div></div>
+        <div class="metric"><div class="m-lb">נטו לשעה</div><div class="m-vl num" id="rPerHour">—</div></div>
+        <div class="metric"><div class="m-lb">ימי עבודה</div><div class="m-vl num" id="rDays">0</div></div>
+      </div>
+      <div class="week-line" id="weekLine"></div>
+
+      <div class="card">
+        <div class="card-title">אמצעי תשלום</div>
+        <div class="sbar" id="methodBar"></div>
+        <div id="methodRows"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">מפת החודש</div>
+        <canvas id="monthChart"></canvas>
+        <div class="legend"><span><span class="dot" style="background:var(--green)"></span> הכנסות (למעלה)</span><span><span class="dot" style="background:var(--red)"></span> הוצאות (למטה)</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">לאן הולך הכסף</div>
+        <div class="donut-wrap">
+          <canvas id="donut"></canvas>
+          <div class="d-legend" id="donutLegend"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">רצף ושיאים</div>
+        <div class="mrow"><span class="nm">רצף ימי עבודה נוכחי</span><span class="vl num" id="stStreak">0 ימים</span></div>
+        <div class="mrow"><span class="nm">היום הכי חזק החודש</span><span class="vl num" id="stBest">—</span></div>
+        <div class="mrow"><span class="nm">שיא יומי בכל הזמנים</span><span class="vl num" id="stBestEver">—</span></div>
+        <div class="mrow"><span class="nm">ממוצע הכנסה ליום עבודה</span><span class="vl num" id="stAvg">—</span></div>
+      </div>
+
+      <div class="rep-actions">
+        <button class="btn ink big" data-act="wa-share">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>
+          שליחת סיכום חודשי לסדרן</button>
+        <button class="btn line big" id="csvBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          ייצוא החודש לאקסל (CSV)</button>
+      </div>
+    </section>
+
+    <!-- ================= הגדרות ================= -->
+    <section class="screen" id="s-settings">
+      <div class="rep-title" style="margin-bottom:14px">הגדרות</div>
+
+      <div class="card">
+        <div class="card-title">פרופיל</div>
+        <div class="set-row">
+          <div class="r-lb">שם<div class="r-sub">מופיע במסך הבית</div></div>
+          <input type="text" id="nameInput" placeholder="השם שלך" maxlength="16">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">רכב וסדרן</div>
+        <div class="set-row">
+          <div class="r-lb">שכירות רכב חודשית<div class="r-sub" id="dailyCostLbl">—</div></div>
+          <div class="set-val"><span class="num" id="rentVal">—</span>
+            <button class="edit-btn" data-act="set-rent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">ימי עבודה בחודש<div class="r-sub">לחישוב עלות הרכב היומית</div></div>
+          <div class="stepper"><button id="wdDown">−</button><b class="num" id="wdVal">24</b><button id="wdUp">+</button></div>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">שכירות אוטומטית בהוצאות<div class="r-sub">נוספת לבד ב־1 לכל חודש</div></div>
+          <label class="switch"><input type="checkbox" id="autoRent" checked><span class="track"></span></label>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">עמלה לסדרן — מכל נסיעה<div class="r-sub">ברירת מחדל: 30%</div></div>
+          <div class="stepper"><button id="pctDown">−</button><b class="num"><span data-pct>30</span>%</b><button id="pctUp">+</button></div>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">טלפון של הסדרן<div class="r-sub">לשליחת סיכום ישירה בוואטסאפ</div></div>
+          <input type="tel" id="phoneInput" placeholder="05X-XXXXXXX" maxlength="12" dir="ltr">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">יעדים וקרן</div>
+        <div class="set-row">
+          <div class="r-lb">יעד נטו חודשי<div class="r-sub">מעקב בטבעת במסך הבית</div></div>
+          <div class="set-val"><span class="num" id="goalVal">לא הוגדר</span>
+            <button class="edit-btn" data-act="set-goal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">הפרשה לקרן חכמה<div class="r-sub">אחוז מהנטו שכדאי לשים בצד</div></div>
+          <div class="stepper"><button id="fundDown">−</button><b class="num"><span id="fundPct">10</span>%</b><button id="fundUp">+</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">תזכורות</div>
+        <div class="set-row">
+          <div class="r-lb">תזכורת סגירת יום<div class="r-sub">אם לא נרשמה הכנסה עד השעה</div></div>
+          <label class="switch"><input type="checkbox" id="remindSwitch"><span class="track"></span></label>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">שעת התזכורת</div>
+          <input type="time" id="remindTime" value="21:30">
+        </div>
+        <div class="set-row">
+          <div class="r-lb">מצב לילה<div class="r-sub">נוח למשמרות לילה</div></div>
+          <label class="switch"><input type="checkbox" id="darkSwitch"><span class="track"></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">הנתונים שלי</div>
+        <div class="data-btns">
+          <button class="btn line" id="backupBtn">גיבוי — ייצוא כל הנתונים (JSON)</button>
+          <button class="btn line" id="restoreBtn">שחזור מקובץ גיבוי</button>
+          <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+          <button class="btn line" id="demoBtn">טעינת נתוני דמו להתרשמות</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">סנכרון ענן</div>
+        <div id="cloudOff">
+          <div class="r-sub" style="margin-bottom:12px;line-height:1.65">גיבוי אוטומטי וסנכרון בין כל המכשירים שלך — דרך חשבון GitHub חינמי. הנתונים פרטים לחלוטין, והמפתח נשמר רק במכשיר שלך.</div>
+          <button class="btn line" id="cloudGuide" style="width:100%;margin-bottom:6px">איך משיגים מפתח? מדריך של 2 דקות</button>
+          <div class="set-row" style="border:0;padding-bottom:8px">
+            <div class="r-lb">מפתח גישה (Token)</div>
+            <input type="text" id="cloudToken" placeholder="ghp_xxxxxxxx" dir="ltr" style="width:150px" autocomplete="off">
+          </div>
+          <div class="set-row" style="border:0;padding-top:0;padding-bottom:12px">
+            <div class="r-lb">קוד סנכרון<div class="r-sub">רק במכשיר נוסף — בפעם הראשונה משאירים ריק</div></div>
+            <input type="text" id="cloudGist" placeholder="מדביקים קוד ממכשיר אחר" dir="ltr" style="width:150px" autocomplete="off">
+          </div>
+          <button class="btn ink" id="cloudStart" style="width:100%">חיבור והפעלת הענן</button>
+        </div>
+        <div id="cloudOn" style="display:none">
+          <div class="set-row" style="padding-bottom:6px">
+            <div class="r-lb">מצב</div>
+            <div class="set-val" id="syncStatus" style="font-size:13px">—</div>
+          </div>
+          <div class="set-row" style="border:0;padding-bottom:4px">
+            <div class="r-lb">קוד הסנכרון שלך<div class="r-sub">להדביק במכשירים נוספים</div></div>
+            <button class="btn line sm" id="cloudCopy">העתקה</button>
+          </div>
+          <div class="cloud-code" id="cloudShow" dir="ltr"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn line sm" id="cloudNow" style="flex:1">סנכרון עכשיו</button>
+            <button class="btn line sm" id="cloudStop" style="flex:1">ניתוק הענן</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="btn danger big" id="eraseBtn" style="width:100%">מחיקת כל התנועות</button>
+      </div>
+
+      <div class="about">קופת הנהג · גרסה 2.2<br>עובד אופליין · מסתנכרן לענן · כל הנתונים אצלך<br>כל הנתונים נשמרים רק במכשיר שלך · ללא שרת, ללא הרשמה</div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-go="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-5h6v5"/></svg>בית
+    </button>
+    <button class="tab" data-go="list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 6h.01M4 12h.01M4 18h.01M9 6h11M9 12h11M9 18h11"/></svg>תנועות
+    </button>
+    <button class="tab-fab" data-go="add" aria-label="הוספה">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="tab" data-go="reports">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 15v5M9 10v10M15 5v15M21 12v8"/></svg>דוחות
+    </button>
+    <button class="tab" data-go="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2"/><circle cx="10" cy="16" r="2"/></svg>הגדרות
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <h3 id="mTitle"></h3>
+    <p id="mBody"></p>
+    <div class="modal-btns">
+      <button class="btn line" id="mCancel">ביטול</button>
+      <button class="btn danger" id="mOk">אישור</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-card">
+    <h3 id="shTitle">סכום</h3>
+    <div class="sh-amt"><b id="shView" class="num">0</b><span id="shUnit">₪</span></div>
+    <div class="pad slim" dir="ltr" id="shPad">
+      <button data-sk="1">1</button><button data-sk="2">2</button><button data-sk="3">3</button>
+      <button data-sk="4">4</button><button data-sk="5">5</button><button data-sk="6">6</button>
+      <button data-sk="7">7</button><button data-sk="8">8</button><button data-sk="9">9</button>
+      <button data-sk=".">.</button><button data-sk="0">0</button>
+      <button data-sk="del"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7 6-7Z"/><path d="M12 10l4 4m0-4-4 4"/></svg></button>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn line" id="shCancel">ביטול</button>
+      <button class="btn ink" id="shOk">אישור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s);};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s));};
+
+/* ==================== אחסון ==================== */
+var KEY='kupaNehed.v2',OLD='kupaNehed.v1',mem=null;
+function save(){
+  state.updatedAt=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){mem=JSON.stringify(state);}
+  cloudPush();
+}
+function loadRaw(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
+function normState(d){
+  d=d||{};
+  d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:6000,workDays:24,autoRent:true,gistId:''},d.settings||{});
+  if(!Array.isArray(d.tx))d.tx=[];
+  if(!Array.isArray(d.shifts))d.shifts=[];
+  if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
+  if(!Array.isArray(d.fund.log))d.fund.log=[];
+  d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{}},d.meta||{});
+  if(!d.meta.dismiss)d.meta.dismiss={};
+  if(typeof d.updatedAt!=='number')d.updatedAt=0;
+  return d;
+}
+function load(){
+  var d=loadRaw(KEY)||loadRaw(OLD);
+  if(!d&&mem){try{return JSON.parse(mem);}catch(e){}}
+  return normState(d);
+}
+var state=load();
+
+var CATS={
+  income:[
+    {id:'rides',label:'נסיעות',icon:'🚕'},
+    {id:'tips',label:'טיפים',icon:'💛'},
+    {id:'refund',label:'החזר',icon:'↩️'},
+    {id:'other_in',label:'אחר',icon:'✨'}
+  ],
+  expense:[
+    {id:'fuel',label:'דלק',icon:'⛽'},
+    {id:'commission',label:'לסדרן',icon:'🤝'},
+    {id:'rent',label:'שכירות רכב',icon:'🚗'},
+    {id:'maintenance',label:'תחזוקה',icon:'🔧'},
+    {id:'wash',label:'רחיצה',icon:'🧼'},
+    {id:'tolls',label:'אגרות וחניה',icon:'🛣️'},
+    {id:'insurance',label:'ביטוח',icon:'🛡️'},
+    {id:'food',label:'אוכל בדרך',icon:'🥪'},
+    {id:'other_ex',label:'אחר',icon:'📦'}
+  ]
+};
+function catById(id){
+  var all=CATS.income.concat(CATS.expense);
+  for(var i=0;i<all.length;i++)if(all[i].id===id)return all[i];
+  return{id:'x',label:'אחר',icon:'📦'};
+}
+var METHODS={cash:'מזומן',bit:'ביט',credit:'אשראי'};
+
+/* ==================== עזר ==================== */
+function pad2(n){return String(n).padStart(2,'0');}
+function isoOf(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function todayISO(){return isoOf(new Date());}
+function shiftISO(iso,days){var p=iso.split('-');return isoOf(new Date(+p[0],+p[1]-1,+p[2]+days));}
+function ymKey(y,m){return y+'-'+pad2(m+1);}
+function dObj(iso){var p=iso.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function daysInMonth(y,m){return new Date(y,m+1,0).getDate();}
+function monthTx(y,m){var k=ymKey(y,m);return state.tx.filter(function(t){return t.date.slice(0,7)===k;});}
+function sums(list){
+  var inc=0,com=0,exp=0,rides=0;
+  for(var i=0;i<list.length;i++){var t=list[i];
+    if(t.type==='income'){inc+=t.amount;if(t.cat==='rides')rides+=t.amount;}
+    else if(t.cat==='commission')com+=t.amount;
+    else exp+=t.amount;}
+  return{inc:inc,com:com,exp:exp,rides:rides,expAll:com+exp};
+}
+function sadranDue(s,pct){return (s.rides||0)*pct/100;}
+function fmt(n){
+  if(n<0&&Math.abs(n)<0.005)n=0;
+  var s=n<0?'−':'';
+  return s+'₪'+Math.abs(n).toLocaleString('he-IL',{maximumFractionDigits:2});
+}
+function fmtInt(n){return '₪'+Math.round(Math.abs(n)).toLocaleString('he-IL');}
+var dfWD=new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long'});
+var dfMY=new Intl.DateTimeFormat('he-IL',{month:'long',year:'numeric'});
+var dfDM=new Intl.DateTimeFormat('he-IL',{day:'numeric',month:'long'});
+var dfNW=new Intl.DateTimeFormat('he-IL',{weekday:'narrow'});
+var dfTM=new Intl.DateTimeFormat('he-IL',{hour:'2-digit',minute:'2-digit',hour12:false});
+function cssVar(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function uid(){return 't'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36);}
+function sortedTx(){return state.tx.slice().sort(function(a,b){
+  if(a.date!==b.date)return a.date<b.date?1:-1;return (b.ts||0)-(a.ts||0);});}
+function netOf(s,pct){return s.inc-sadranDue(s,pct)-s.exp;}
+function firstName(){var n=(state.settings.name||'').trim();return n?' '+n:'';}
+
+/* ==================== משמרות ושעות ==================== */
+function activeShift(){return state.shifts.find(function(s){return !s.end;})||null;}
+function shiftDay(s){var d=new Date(s.start);return isoOf(d);}
+function shiftDurMs(s,nowTs){
+  if(s.manual)return (s.hours||0)*3600000;
+  return ((s.end||nowTs||Date.now())-s.start);
+}
+function hoursOnDay(iso){
+  var nowTs=Date.now(),h=0;
+  state.shifts.forEach(function(s){if(shiftDay(s)===iso)h+=shiftDurMs(s,nowTs);});
+  return h/3600000;
+}
+function hoursInMonth(y,m){
+  var k=ymKey(y,m),nowTs=Date.now(),h=0;
+  state.shifts.forEach(function(s){if(shiftDay(s).slice(0,7)===k)h+=shiftDurMs(s,nowTs);});
+  return h/3600000;
+}
+function fmtHours(h){
+  if(h<=0)return '—';
+  var hh=Math.floor(h),mm=Math.round((h-hh)*60);
+  if(mm===60){hh++;mm=0;}
+  return hh+':'+pad2(mm)+' ש״ע';
+}
+
+/* ==================== רצף ==================== */
+function incomeDaySet(){
+  var set={};state.tx.forEach(function(t){if(t.type==='income')set[t.date]=1;});return set;
+}
+function currentStreak(){
+  var set=incomeDaySet(),d=todayISO();
+  if(!set[d])d=shiftISO(d,-1);
+  var n=0;while(set[d]){n++;d=shiftISO(d,-1);}
+  return n;
+}
+function bestDayEver(){
+  var by={};state.tx.forEach(function(t){if(t.type==='income')by[t.date]=(by[t.date]||0)+t.amount;});
+  var best=0;Object.keys(by).forEach(function(k){best=Math.max(best,by[k]);});
+  return best;
+}
+function ensureRentExpense(){
+  if(!state.settings.autoRent||!(state.settings.rent>0))return;
+  var d=new Date(),k=ymKey(d.getFullYear(),d.getMonth());
+  var exists=state.tx.some(function(t){return t.type==='expense'&&t.cat==='rent'&&t.date.slice(0,7)===k;});
+  if(exists)return;
+  state.tx.push({id:uid(),type:'expense',cat:'rent',amount:state.settings.rent,date:k+'-01',note:'שכירות חודשית',ts:Date.now()});
+  save();
+}
+
+/* ==================== ניווט ==================== */
+var now=new Date();
+var ui={screen:'home',addType:'income',addCat:'rides',amt:'',method:state.settings.lastMethod||'cash',
+  hm:{y:now.getFullYear(),m:now.getMonth()},lm:{y:now.getFullYear(),m:now.getMonth()},
+  rm:{y:now.getFullYear(),m:now.getMonth()},filter:'all',pendingShift:null};
+
+function go(id){
+  ui.screen=id;
+  $$('.screen').forEach(function(s){s.classList.remove('active');});
+  $('#s-'+id).classList.add('active');
+  $$('.tab').forEach(function(b){b.classList.toggle('active',b.dataset.go===id);});
+  if(id==='add'){$('#txDate').value=todayISO();buildCats();renderAmt();renderShiftBanner();}
+  if(id==='home')renderHome();
+  if(id==='list')renderList();
+  if(id==='reports')renderReports();
+  window.scrollTo({top:0});
+}
+$$('[data-go]').forEach(function(b){b.addEventListener('click',function(){go(b.dataset.go);});});
+
+/* ==================== בית ==================== */
+function monthLabel(o){return dfMY.format(new Date(o.y,o.m,1));}
+function greetWord(){
+  var h=new Date().getHours();
+  if(h>=5&&h<12)return 'בוקר טוב';
+  if(h>=12&&h<17)return 'צהריים טובים';
+  if(h>=17&&h<22)return 'ערב טוב';
+  return 'לילה טוב';
+}
+
+function renderHome(){
+  var s=sums(monthTx(ui.hm.y,ui.hm.m));
+  var pct=state.settings.pct;
+  var net=netOf(s,pct);
+
+  $('#hmLbl').textContent=monthLabel(ui.hm);
+  $('#heroMonth').textContent=monthLabel(ui.hm);
+  $('#greet').textContent=greetWord()+firstName();
+  $('#todayLine').textContent=dfWD.format(new Date());
+
+  var streak=currentStreak();
+  $('#streakChip').style.display=streak>=2?'':'none';
+  $('#streakDays').textContent=streak;
+
+  $('#netNum').textContent=fmt(net);
+
+  /* שינוי מול חודש קודם */
+  var py=ui.hm.y,pm=ui.hm.m-1;if(pm<0){pm=11;py--;}
+  var prev=sums(monthTx(py,pm));
+  var chip=$('#momChip');
+  if(prev.inc>0){
+    var pNet=netOf(prev,pct);
+    var d=pNet!==0?(net-pNet)/Math.abs(pNet)*100:0;
+    var up=d>=0;
+    chip.style.display='';
+    chip.className='trend '+(up?'up':'down');
+    chip.innerHTML=(up
+      ?'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l7 12H5z"/></svg>'
+      :'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20 5 8h14z"/></svg>')+
+      Math.abs(Math.round(d))+'% מול '+dfMY.format(new Date(py,pm,1)).split(' ')[0];
+  }else chip.style.display='none';
+
+  $('#hInc').textContent=fmt(s.inc);
+  $('#hCom').textContent='−'+fmt(sadranDue(s,pct));
+  $('#hExp').textContent='−'+fmt(s.exp);
+
+  /* ===== כרטיס "היום שלך" ===== */
+  var td=todayISO();
+  var dTx=state.tx.filter(function(x){return x.date===td;});
+  var dS=sums(dTx);
+  var dDue=sadranDue(dS,pct);
+  var dNetIn=dS.inc-dDue;
+  var car=state.settings.rent>0?state.settings.rent/state.settings.workDays:0;
+  var bal=dNetIn-dS.exp-car;
+  $('#tRides').textContent=(dNetIn>=0?'+':'')+fmt(dNetIn);
+  $('#tExp').textContent='−'+fmt(dS.exp);
+  $('#tCar').textContent=car>0?'−'+fmtInt(car):'—';
+  var tn=$('#tNet');
+  tn.textContent=(bal>=0?'+':'')+fmt(bal);
+  tn.style.color=bal>=0?'var(--green)':'var(--red)';
+  $('#tCarCost').textContent=car>0?'הרכב: '+fmtInt(car)+' ליום':'';
+  $('#tProg').style.width=car>0?Math.min(100,Math.max(0,dNetIn)/car*100)+'%':'0%';
+  var footHtml;
+  if(car>0){
+    footHtml=dNetIn>=car?'הרכב כוסה להיום ✓':'עוד <b>'+fmt(Math.max(0,car-dNetIn))+'</b> לכיסוי הרכב';
+    if(dDue>0)footHtml+=' · לסדרן היום: '+fmt(dDue);
+    if(dS.com>0)footHtml+=' · שולם בפועל: '+fmt(dS.com);
+  }else{
+    footHtml='כדאי להגדיר <b>שכירות רכב חודשית</b> ולראות כאן כמה הרכב עולה ביום · <button class="mini-link" data-act="open-settings">להגדרות</button>';
+  }
+  $('#tFoot').innerHTML=footHtml;
+
+  renderGoal(net);
+  renderShiftCard(s,pct);
+
+  /* בעל הרכב */
+  var all=sums(state.tx);
+  var debt=Math.max(0,sadranDue(all,pct)-all.com);
+  $('#debtNum').textContent=fmt(debt);
+  var ds=$('#debtSub');
+  if(debt>0.5){ds.textContent='חוב פתוח מצטבר';ds.className='owner-sub';}
+  else{ds.textContent='הכל שולם';ds.className='owner-sub ok';}
+  var comDue=sadranDue(s,pct);
+  var paidPct=comDue>0?Math.min(100,s.com/comDue*100):0;
+  $('#comProg').style.width=paidPct+'%';
+  $('#comFoot').textContent=comDue>0
+    ?'החודש הועבר '+fmt(s.com)+' מתוך '+fmt(comDue)+' ('+Math.round(paidPct)+'%)'
+    :'עוד אין הכנסות החודש';
+
+  /* קרן */
+  $('#fundNum').textContent=fmt(state.fund.balance);
+  var rec=Math.max(0,net)*state.settings.fundPct/100;
+  var mk=ymKey(ui.hm.y,ui.hm.m);
+  var doneM=state.fund.log.filter(function(l){return l.delta>0&&new Date(l.ts).getFullYear()===ui.hm.y&&new Date(l.ts).getMonth()===ui.hm.m;})
+    .reduce(function(a,l){return a+l.delta;},0);
+  $('#fundSub').textContent=rec>0
+    ?('מומלץ להפריש '+fmt(rec)+' החודש ('+state.settings.fundPct+'% מהנטו) · הופקד '+fmt(doneM))
+    :'ההפרשה המומלצת תוצג כשיש נטו חיובי';
+
+  /* אחרונות */
+  var rec5=sortedTx().slice(0,5);
+  var el=$('#recentList');
+  el.innerHTML=rec5.length?rec5.map(txRow).join(''):
+    '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>בוא נתחיל לעקוב אחרי הכסף</b><p>הקש על + למטה להוספת תנועה ראשונה</p></div>';
+
+  renderNudges(s,debt);
+  drawWeek();
+}
+
+/* ---------- יעד חודשי ---------- */
+var RING_C=2*Math.PI*34;
+function renderGoal(net){
+  var g=state.settings.goal;
+  var card=$('#goalCard');
+  if(!g){
+    card.innerHTML='<div class="mini-head"><span class="lbl">יעד חודשי</span></div>'+
+      '<div class="mini-body goal-empty">'+
+      '<svg class="ge-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>'+
+      '<div class="gi-sub" style="margin-bottom:11px">עוד לא הוגדר יעד נטו</div>'+
+      '<button class="btn ink sm" data-act="set-goal">הגדרת יעד</button></div>';
+    return;
+  }
+  var p=Math.max(0,Math.min(1,net/g));
+  var off=RING_C*(1-p);
+  var daysLeft=daysInMonth(ui.hm.y,ui.hm.m)-new Date().getDate();
+  var sameMonth=ymKey(ui.hm.y,ui.hm.m)===ymKey(now.getFullYear(),now.getMonth());
+  card.innerHTML='<div class="mini-head"><span class="lbl">יעד חודשי</span>'+
+    '<button class="edit-btn" data-act="set-goal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>'+
+    '<div class="mini-body goal-wrap">'+
+    '<div class="goal-ring"><svg viewBox="0 0 84 84">'+
+      '<circle cx="42" cy="42" r="34" fill="none" stroke="'+cssVar('--line2')+'" stroke-width="8.5"/>'+
+      '<circle cx="42" cy="42" r="34" fill="none" stroke="'+cssVar('--accent')+'" stroke-width="8.5" stroke-linecap="round" stroke-dasharray="'+RING_C+'" stroke-dashoffset="'+off+'" style="transition:stroke-dashoffset .6s ease"/>'+
+    '</svg><div class="gr-txt"><div class="gr-pct num">'+Math.round(p*100)+'%</div><div class="gr-cap">מהיעד</div></div></div>'+
+    '<div class="goal-info">'+
+      '<div class="gi-big num">'+fmtInt(g)+'</div>'+
+      '<div class="gi-sub">'+(net>=g?'היעד הושג — יפה מאוד':'נותרו '+fmt(Math.max(0,g-net)))+(sameMonth&&daysLeft>0?'<br>עוד '+daysLeft+' ימים לסוף החודש':'')+'</div>'+
+    '</div></div>';
+}
+
+/* ---------- משמרת ---------- */
+function renderShiftCard(s,pct){
+  var card=$('#shiftCard');
+  var act=activeShift();
+  var hours=hoursOnDay(todayISO());
+  var tSums=sums(state.tx.filter(function(x){return x.date===todayISO();}));
+  var tNet=netOf(tSums,pct);
+  var foot='<div class="shift-foot">היום: <b>'+fmt(tNet)+'</b> נטו'+(hours>0.1?' · <b>'+fmtInt(tNet/hours)+'</b> לשעה':'')+'</div>';
+  if(act){
+    card.innerHTML='<div class="mini-head"><span class="lbl">משמרת</span><span class="shift-live"><span class="pulse"></span>פעילה</span></div>'+
+      '<div class="mini-body"><div class="shift-timer num" id="shiftTimer">'+fmtHours(shiftDurMs(act,Date.now())/3600000)+'</div>'+
+      '<div class="shift-stats">מתחילת המשמרת</div></div>'+
+      '<div class="mini-foot"><button class="btn amber sm" style="width:100%" data-act="end-shift">סיום משמרת</button></div>';
+  }else{
+    card.innerHTML='<div class="mini-head"><span class="lbl">משמרת</span></div>'+
+      '<div class="mini-body"><div class="shift-timer num">'+fmtHours(hours)+'</div>'+
+      '<div class="shift-stats">שעות עבודה היום · <button class="edit-btn" style="display:inline-flex;vertical-align:-6px" data-act="manual-hours" title="הוספת שעות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div></div>'+
+      '<div class="mini-foot"><button class="btn ink sm" style="width:100%" data-act="start-shift">התחלת משמרת</button></div>'+
+      (hours>0.1?foot:'');
+  }
+}
+function renderShiftBanner(){
+  var b=$('#shiftBanner');
+  if(ui.pendingShift){
+    var sh=state.shifts.find(function(x){return x.id===ui.pendingShift;});
+    if(sh){
+      b.classList.add('on');
+      $('#shiftBannerTx').textContent='סיימת משמרת של '+fmtHours(shiftDurMs(sh,Date.now())/3600000)+' — כמה נכנס?';
+      return;
+    }
+  }
+  b.classList.remove('on');
+}
+
+/* ---------- נודג'ים ---------- */
+function renderNudges(s,debt){
+  var list=[];
+  var today=todayISO();
+  var haveIncome=state.tx.some(function(t){return t.date===today&&t.type==='income';});
+  var hh=(state.settings.remindTime||'21:30').split(':');
+  var pastTime=new Date().getHours()> +hh[0]||(new Date().getHours()===+hh[0]&&new Date().getMinutes()>=+hh[1]);
+  if(state.settings.remindOn&&pastTime&&!haveIncome){
+    list.push({key:'close-'+today,icon:'clock',title:'עוד לא נסגר היום',sub:'רושמים את ההכנסה ב-10 שניות',btn:'רישום',act:'q-rides'});
+  }
+  if(debt>=50&&new Date().getDay()===0){
+    list.push({key:'comm-'+today,icon:'send',title:'יום ראשון — זמן להעביר לסדרן',sub:'חוב פתוח: '+fmt(debt),btn:'וואטסאפ',act:'wa-share'});
+  }
+  list=list.filter(function(n){return state.meta.dismiss[n.key]!==today;});
+  var box=$('#nudges');
+  if(!list.length){box.classList.remove('on');box.innerHTML='';return;}
+  box.classList.add('on');
+  var icons={
+    clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>'
+  };
+  box.innerHTML=list.map(function(n){
+    return '<div class="nudge"><div class="n-ic">'+icons[n.icon]+'</div>'+
+    '<div class="n-tx">'+n.title+'<small>'+n.sub+'</small></div>'+
+    '<button class="btn ink sm" data-act="'+n.act+'">'+n.btn+'</button>'+
+    '<button class="n-x" data-dis="'+n.key+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>';
+  }).join('');
+}
+
+/* ==================== שורת תנועה ==================== */
+function txRow(t){
+  var c=catById(t.cat);
+  var isIn=t.type==='income';
+  var bits=[];
+  if(isIn&&t.method&&METHODS[t.method])bits.push(METHODS[t.method]);
+  if(isIn&&t.cat==='rides')bits.push('נטו '+fmtInt(t.amount*(1-state.settings.pct/100)));
+  if(t.hours)bits.push(fmtHours(t.hours));
+  if(t.note)bits.push(t.note);
+  if(t.ts)bits.push(dfTM.format(new Date(t.ts)));
+  return '<div class="tx">'+
+    '<div class="tx-ic">'+c.icon+'</div>'+
+    '<div class="tx-mid"><div class="tx-cat">'+c.label+'</div><div class="tx-note">'+bits.join(' · ')+'</div></div>'+
+    '<div class="tx-amt num '+(isIn?'in':'out')+'">'+(isIn?'+':'−')+fmt(t.amount)+'</div>'+
+    '<button class="tx-del" data-del="'+t.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>'+
+  '</div>';
+}
+
+/* ==================== פעולות (מואצלות) ==================== */
+document.addEventListener('click',function(e){
+  var del=e.target.closest('[data-del]');
+  if(del){
+    var id=del.dataset.del;
+    confirmBox('מחיקת תנועה','למחוק את התנועה? אי אפשר לשחזר.','מחיקה',function(){
+      state.tx=state.tx.filter(function(t){return t.id!==id;});
+      save();refreshAll('התנועה נמחקה');
+    });
+    return;
+  }
+  var dis=e.target.closest('[data-dis]');
+  if(dis){
+    state.meta.dismiss[dis.dataset.dis]=todayISO();save();renderHome();return;
+  }
+  var b=e.target.closest('[data-act]');
+  if(!b)return;
+  var act=b.dataset.act;
+
+  if(act==='q-rides'){quickAdd('income','rides');}
+  else if(act==='q-fuel'){quickAdd('expense','fuel');}
+  else if(act==='q-commission'){quickAdd('expense','commission');}
+  else if(act==='q-other'){go('add');}
+  else if(act==='pay-commission'){
+    var pct=state.settings.pct,s=sums(monthTx(ui.hm.y,ui.hm.m));
+    var due=Math.max(0,s.inc*pct/100-s.com);
+    quickAdd('expense','commission',due>0?due:null);
+  }
+  else if(act==='wa-share'){shareSummary();}
+  else if(act==='start-shift'){
+    state.shifts.push({id:uid(),start:Date.now(),end:null});
+    save();renderHome();toast('משמרת החלה — נסיעה טובה');
+  }
+  else if(act==='end-shift'){
+    var sh=activeShift();if(!sh)return;
+    sh.end=Date.now();save();
+    ui.pendingShift=sh.id;
+    quickAdd('income','rides',null,'סיום משמרת');
+  }
+  else if(act==='manual-hours'){
+    openSheet({title:'הוספת שעות עבודה (היום)',unit:'ש״ע',decimals:1,max:24,ok:'הוספה'},function(v){
+      if(v>0){
+        var d=new Date();d.setHours(12,0,0,0);
+        state.shifts.push({id:uid(),start:d.getTime(),end:d.getTime(),manual:true,hours:v});
+        save();renderHome();renderReports();toast('נוספו '+fmtHours(v));
+      }
+    });
+  }
+  else if(act==='set-goal'){
+    openSheet({title:'יעד נטו חודשי',unit:'₪',decimals:0,initial:state.settings.goal||'',ok:'שמירה'},function(v){
+      state.settings.goal=Math.round(v);save();renderHome();renderSettings();
+      toast(state.settings.goal?'היעד עודכן':'היעד בוטל');
+    });
+  }
+  else if(act==='set-rent'){
+    openSheet({title:'שכירות רכב חודשית',unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'שמירה'},function(v){
+      state.settings.rent=Math.round(v);save();ensureRentExpense();
+      renderSettings();renderHome();toast('עודכן בהצלחה');
+    });
+  }
+  else if(act==='open-settings'){go('settings');}
+  else if(act==='fund-in'||act==='fund-out'){
+    var isIn=act==='fund-in';
+    openSheet({title:isIn?'הפקדה לקרן החכמה':'משיכה מהקרן',unit:'₪',decimals:2,ok:isIn?'הפקדה':'משיכה'},function(v){
+      if(v<=0)return;
+      if(!isIn&&v>state.fund.balance)v=state.fund.balance;
+      state.fund.balance+=isIn?v:-v;
+      state.fund.balance=Math.round(state.fund.balance*100)/100;
+      state.fund.log.push({id:uid(),ts:Date.now(),delta:isIn?v:-v});
+      save();renderHome();toast(isIn?'הופקד לקרן ✓':'נמשך מהקרן');
+    });
+  }
+});
+
+function quickAdd(type,cat,amount,note){
+  go('add');setSeg(type);ui.addCat=cat;buildCats();
+  if(amount!=null&&amount>0){ui.amt=String(Math.round(amount));renderAmt();}
+  if(note)$('#txNote').value=note;
+}
+
+/* ==================== וואטסאפ ==================== */
+function shareSummary(){
+  var isRep=ui.screen==='reports';
+  var o=isRep?ui.rm:ui.hm;
+  var s=sums(monthTx(o.y,o.m));
+  var pct=state.settings.pct;
+  var due=Math.round(sadranDue(s,pct));
+  var remain=Math.max(0,due-Math.round(s.com));
+  var lines=[
+    'סיכום '+monthLabel(o)+' — קופת הנהג',
+    '———————————',
+    'נסיעות ברוטו: '+fmtInt(s.rides),
+    'עמלה לסדרן ('+pct+'%): '+fmtInt(due),
+    'כבר הועבר: '+fmtInt(s.com),
+    'נותר לתשלום: '+fmtInt(remain)
+  ];
+  var phone=(state.settings.ownerPhone||'').replace(/\D/g,'');
+  if(phone.indexOf('0')===0)phone='972'+phone.slice(1);
+  var url='https://wa.me/'+(phone?phone+'?':'?')+'text='+encodeURIComponent(lines.join('\n'));
+  window.open(url,'_blank');
+}
+
+/* ==================== הוספה ==================== */
+function amtVal(){var v=parseFloat(ui.amt);return isNaN(v)?0:v;}
+function amtViewStr(){
+  if(!ui.amt)return '0';
+  var p=ui.amt.split('.');
+  var i=(+p[0]||0).toLocaleString('he-IL');
+  return p.length>1?i+'.'+p[1]:i;
+}
+function renderAmt(){
+  var v=$('#amtView');
+  v.textContent=amtViewStr();
+  v.className='num '+(amtVal()?(ui.addType):'');
+  var b=$('#saveTx');
+  b.className='btn big '+ui.addType;
+  b.textContent=ui.addType==='income'?'הוספת הכנסה':'הוספת הוצאה';
+  $('#methods').classList.toggle('on',ui.addType==='income');
+  updateRideHint();
+}
+function updateRideHint(){
+  var el=$('#rideHint');
+  if(ui.addType==='income'&&ui.addCat==='rides'&&amtVal()>0){
+    var due=amtVal()*state.settings.pct/100;
+    el.innerHTML='לסדרן: −'+fmt(due)+' · <b>נשאר לך '+fmt(amtVal()-due)+'</b>';
+  }else el.innerHTML='&nbsp;';
+}
+function setSeg(t){
+  ui.addType=t;
+  $$('#typeSeg button').forEach(function(b){b.classList.toggle('active',b.dataset.type===t);});
+  ui.addCat=CATS[t][0].id;
+  buildCats();renderAmt();
+}
+$$('#typeSeg button').forEach(function(b){b.addEventListener('click',function(){setSeg(b.dataset.type);});});
+$('#methods').addEventListener('click',function(e){
+  var b=e.target.closest('[data-m]');if(!b)return;
+  ui.method=b.dataset.m;state.settings.lastMethod=ui.method;save();
+  $$('#methods button').forEach(function(x){x.classList.toggle('active',x===b);});
+});
+
+function buildCats(){
+  $('#catGrid').innerHTML=CATS[ui.addType].map(function(c){
+    return '<button class="cat'+(c.id===ui.addCat?' active':'')+'" data-cat="'+c.id+'">'+
+      '<span class="ic">'+c.icon+'</span>'+c.label+'</button>';
+  }).join('');
+  $$('#methods button').forEach(function(x){x.classList.toggle('active',x.dataset.m===ui.method);});
+}
+$('#catGrid').addEventListener('click',function(e){
+  var b=e.target.closest('[data-cat]');if(!b)return;
+  ui.addCat=b.dataset.cat;
+  $$('#catGrid .cat').forEach(function(x){x.classList.toggle('active',x.dataset.cat===ui.addCat);});
+  updateRideHint();
+});
+
+$('#pad').addEventListener('click',function(e){
+  var b=e.target.closest('[data-k]');if(!b)return;
+  ui.amt=padStep(ui.amt,b.dataset.k,2,7);
+  if(navigator.vibrate)try{navigator.vibrate(6);}catch(err){}
+  renderAmt();
+});
+function padStep(cur,k,decimals,maxInt){
+  if(k==='del')return cur.slice(0,-1);
+  if(k==='.'){return cur.indexOf('.')<0?(cur===''?'0':cur)+'.':cur;}
+  var dot=cur.indexOf('.');
+  if(dot>=0){return cur.length-dot>decimals?cur:cur+k;}
+  var ip=cur.replace(/^0+/,'');
+  if(ip.length>=maxInt)return cur;
+  return (cur===''||cur==='0')?k:cur+k;
+}
+
+$('#saveTx').addEventListener('click',function(){
+  var v=Math.round(amtVal()*100)/100;
+  if(v<=0){toast('קודם מזינים סכום');return;}
+  var d=$('#txDate').value||todayISO();
+  var tx={id:uid(),type:ui.addType,cat:ui.addCat,amount:v,date:d,
+    note:$('#txNote').value.trim(),ts:Date.now()};
+  if(ui.addType==='income')tx.method=ui.method;
+  if(ui.pendingShift){
+    var sh=state.shifts.find(function(x){return x.id===ui.pendingShift;});
+    if(sh)tx.hours=Math.round(shiftDurMs(sh,sh.end||Date.now())/3600000*10)/10;
+    ui.pendingShift=null;
+  }
+  state.tx.push(tx);
+
+  /* שיאים ויעד */
+  var msgs=['נשמר ✓'];
+  var carD=state.settings.rent>0?state.settings.rent/state.settings.workDays:0;
+  if(carD>0&&state.meta.coveredDay!==d){
+    var dn=sums(state.tx.filter(function(x){return x.date===d;}));
+    if(dn.inc-sadranDue(dn,state.settings.pct)>=carD){msgs.push('הרכב כוסה להיום ✓');state.meta.coveredDay=d;}
+  }
+  var todayInc=sums(state.tx.filter(function(x){return x.date===d&&x.type==='income';})).inc;
+  if(d===todayISO()&&state.meta.best>0&&todayInc>state.meta.best)msgs.push('יום שיא חדש');
+  state.meta.best=Math.max(state.meta.best,todayInc);
+  var g=state.settings.goal,mk=ymKey(ui.hm.y,ui.hm.m);
+  if(g&&state.meta.goalToast!==mk){
+    var net=netOf(sums(monthTx(ui.hm.y,ui.hm.m)),state.settings.pct);
+    if(net>=g){msgs.push('הגעת ליעד החודשי');state.meta.goalToast=mk;}
+  }
+  save();
+
+  ui.hm.y=+d.slice(0,4);ui.hm.m=+d.slice(5,7)-1;
+  ui.amt='';$('#txNote').value='';renderAmt();
+  toast(msgs.join(' · '));
+  go('home');
+});
+
+/* ==================== רשימה ==================== */
+$('#filterChips').addEventListener('click',function(e){
+  var b=e.target.closest('[data-f]');if(!b)return;
+  ui.filter=b.dataset.f;
+  $$('#filterChips .chip').forEach(function(c){c.classList.toggle('active',c===b);});
+  renderList();
+});
+function passFilter(t){
+  if(ui.filter==='income')return t.type==='income';
+  if(ui.filter==='expense')return t.type==='expense'&&t.cat!=='commission';
+  if(ui.filter==='commission')return t.cat==='commission';
+  return true;
+}
+function renderList(){
+  $('#lmLbl').textContent=monthLabel(ui.lm);
+  var list=monthTx(ui.lm.y,ui.lm.m).sort(function(a,b){
+    if(a.date!==b.date)return a.date<b.date?1:-1;return (b.ts||0)-(a.ts||0);});
+  var s=sums(list);
+  $('#mtUp').textContent='+'+fmt(s.inc);
+  $('#mtDown').textContent='−'+fmt(s.expAll);
+  var el=$('#fullList');
+  var filtered=list.filter(passFilter);
+  if(!filtered.length){
+    el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h.01M4 12h.01M4 18h.01M9 6h11M9 12h11M9 18h11"/></svg><b>אין תנועות בחודש הזה</b><p>נסה חודש אחר או מסנן אחר</p></div>';
+    return;
+  }
+  var html='',curDay='',dayNet=0,buffer=[];
+  function flush(){
+    if(!buffer.length)return;
+    html+='<div class="day-g"><div class="day-h"><span>'+dfWD.format(dObj(curDay))+'</span><b class="num">'+
+      (dayNet>=0?'+':'−')+fmtInt(dayNet)+'</b></div>'+buffer.join('')+'</div>';
+    buffer=[];
+  }
+  filtered.forEach(function(t){
+    if(t.date!==curDay){flush();curDay=t.date;
+      dayNet=list.filter(function(x){return x.date===curDay;}).reduce(function(acc,x){
+        return acc+(x.type==='income'?x.amount:-x.amount);},0);}
+    buffer.push(txRow(t));
+  });
+  flush();
+  el.innerHTML=html;
+}
+
+/* ==================== דוחות ==================== */
+function renderReports(){
+  $('#rmLbl').textContent=monthLabel(ui.rm);
+  var list=monthTx(ui.rm.y,ui.rm.m);
+  var s=sums(list);
+  var pct=state.settings.pct;
+  var comDue=sadranDue(s,pct);
+  var net=netOf(s,pct);
+  var hours=hoursInMonth(ui.rm.y,ui.rm.m);
+
+  $('#rNet').textContent=fmt(net);
+  $('#rInc').textContent=fmt(s.inc);
+  $('#rExp').textContent=fmt(s.exp);
+  $('#rCom').textContent=fmt(comDue);
+  $('#rPerHour').textContent=hours>0.1?fmt(net/hours):'—';
+
+  /* ימי עבודה + שיאים */
+  var by={},i;
+  for(i=0;i<list.length;i++){var t=list[i];
+    by[t.date]=by[t.date]||{inc:0};if(t.type==='income')by[t.date].inc+=t.amount;}
+  var work=Object.keys(by).filter(function(d){return by[d].inc>0;});
+  $('#rDays').textContent=work.length;
+  $('#stAvg').textContent=work.length?fmt(s.inc/work.length):'—';
+  var best='',bestV=0;
+  work.forEach(function(d){if(by[d].inc>bestV){bestV=by[d].inc;best=d;}});
+  $('#stBest').textContent=best?dfDM.format(dObj(best))+' · '+fmtInt(bestV):'—';
+  var be=bestDayEver();
+  $('#stBestEver').textContent=be>0?fmtInt(be):'—';
+  var streak=currentStreak();
+  $('#stStreak').textContent=streak+(streak===1?' יום':' ימים');
+
+  /* שבוע מול שבוע */
+  var dow=new Date().getDay();
+  var w0=shiftISO(todayISO(),-dow);
+  var sameMonth=w0.slice(0,7)===ymKey(ui.rm.y,ui.rm.m)||todayISO().slice(0,7)===ymKey(ui.rm.y,ui.rm.m);
+  var wl=$('#weekLine');
+  if(sameMonth){
+    var rangeSum=function(a,b){return sums(state.tx.filter(function(t){return t.date>=a&&t.date<=b;})).inc;};
+    var cur=rangeSum(w0,todayISO());
+    var prev=rangeSum(shiftISO(w0,-7),shiftISO(todayISO(),-7));
+    if(prev>0||cur>0){
+      var dp=prev>0?(cur-prev)/prev*100:100;
+      var up=dp>=0;
+      wl.innerHTML='השבוע עד כה <b class="num">'+fmtInt(cur)+'</b>'+
+        '<span class="trend '+(up?'up':'down')+'">'+(up?'▲':'▼')+' '+Math.abs(Math.round(dp))+'% מול שבוע שעבר</span>';
+    }else wl.innerHTML='';
+  }else wl.innerHTML='';
+
+  /* אמצעי תשלום */
+  var ms={cash:0,bit:0,credit:0,none:0};
+  list.forEach(function(t){if(t.type==='income')ms[t.method||'none']+=t.amount;});
+  var mKeys=['cash','bit','credit','none'];
+  var mLbl={cash:'מזומן',bit:'ביט',credit:'אשראי',none:'לא סומן'};
+  var mCol={cash:'#111214',bit:'#5c636b',credit:'#a6acb3',none:'#d8dbe0'};
+  if(document.documentElement.dataset.theme==='dark')mCol={cash:'#EDEEEA',bit:'#989ea6',credit:'#5c636b',none:'#3a3f45'};
+  var incT=s.inc;
+  if(incT>0){
+    $('#methodBar').innerHTML=mKeys.filter(function(k){return ms[k]>0;}).map(function(k){
+      return '<div style="width:'+(ms[k]/incT*100)+'%;background:'+mCol[k]+'"></div>';}).join('');
+    $('#methodRows').innerHTML=mKeys.filter(function(k){return ms[k]>0;}).map(function(k){
+      return '<div class="mrow"><span class="dot" style="background:'+mCol[k]+'"></span><span class="nm">'+mLbl[k]+'</span>'+
+        '<span class="vl num">'+fmt(ms[k])+'</span><span class="pc num">'+Math.round(ms[k]/incT*100)+'%</span></div>';
+    }).join('');
+  }else{
+    $('#methodBar').innerHTML='';
+    $('#methodRows').innerHTML='<div style="color:var(--muted);font-size:12.5px">עוד אין הכנסות החודש</div>';
+  }
+
+  drawMonth();
+  drawDonut(s);
+}
+
+/* ==================== גרפים ==================== */
+function setupCanvas(c){
+  var dpr=window.devicePixelRatio||1;
+  var w=c.clientWidth,h=c.clientHeight;
+  if(!w||!h)return null;
+  c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);
+  var ctx=c.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  return{ctx:ctx,w:w,h:h};
+}
+function rrUp(ctx,x,y,w,h,r){
+  r=Math.min(r,w/2,h);if(h<=0||w<=0)return;
+  ctx.beginPath();
+  ctx.moveTo(x,y+h);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);
+  ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h);ctx.closePath();
+}
+function daySums(iso){
+  var inc=0,exp=0;
+  state.tx.forEach(function(t){if(t.date===iso){
+    if(t.type==='income')inc+=t.amount;else exp+=t.amount;}});
+  return{inc:inc,exp:exp};
+}
+function drawWeek(){
+  var c=$('#weekChart');if(!c)return;
+  var g=setupCanvas(c);if(!g)return;
+  var ctx=g.ctx,w=g.w,h=g.h;
+  var days=[],i;
+  for(i=6;i>=0;i--){
+    var iso=shiftISO(todayISO(),-i);
+    var s=daySums(iso);
+    days.push({iso:iso,inc:s.inc,exp:s.exp,lbl:dfNW.format(dObj(iso)),today:i===0});
+  }
+  var max=1;days.forEach(function(d){max=Math.max(max,d.inc,d.exp);});
+  var top=8,bot=20,area=h-top-bot;
+  var slot=w/7,bw=Math.min(10,slot/3.6),gap=4;
+  ctx.strokeStyle=cssVar('--line2');ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,h-bot+.5);ctx.lineTo(w,h-bot+.5);ctx.stroke();
+  var GREEN=cssVar('--green'),RED=cssVar('--red');
+  days.forEach(function(d,i){
+    var cx=slot*i+slot/2;
+    var ih=d.inc/max*area,eh=d.exp/max*area;
+    ctx.fillStyle=GREEN;
+    if(ih>0){rrUp(ctx,cx-bw-gap/2,top+area-ih,bw,ih,3.5);ctx.fill();}
+    ctx.fillStyle=RED;
+    if(eh>0){rrUp(ctx,cx+gap/2,top+area-eh,bw,eh,3.5);ctx.fill();}
+    if(d.today&&d.inc===0&&d.exp===0){
+      ctx.fillStyle=cssVar('--accent');
+      rrUp(ctx,cx-bw/2,top+area-3,bw,3,1.5);ctx.fill();
+    }
+    ctx.fillStyle=d.today?cssVar('--ink'):cssVar('--muted');
+    ctx.font=(d.today?'700 ':'500 ')+'10px Heebo, Arial';
+    ctx.textAlign='center';
+    ctx.fillText(d.lbl,cx,h-6);
+  });
+}
+function drawMonth(){
+  var c=$('#monthChart');if(!c)return;
+  var g=setupCanvas(c);if(!g)return;
+  var ctx=g.ctx,w=g.w,h=g.h;
+  var n=daysInMonth(ui.rm.y,ui.rm.m);
+  var k=ymKey(ui.rm.y,ui.rm.m);
+  var maxI=1,maxE=1,arr=[],i,s;
+  for(i=1;i<=n;i++){s=daySums(k+'-'+pad2(i));arr.push(s);
+    maxI=Math.max(maxI,s.inc);maxE=Math.max(maxE,s.exp);}
+  var mid=h*0.5,top=6,bot=18;
+  var up=mid-top-5,down=h-bot-mid-5;
+  var slot=w/n,bw=Math.max(2,Math.min(8,slot*0.55));
+  ctx.strokeStyle=cssVar('--line2');ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,mid+.5);ctx.lineTo(w,mid+.5);ctx.stroke();
+  var GREEN=cssVar('--green'),RED=cssVar('--red');
+  for(i=0;i<n;i++){
+    var cx=slot*i+slot/2;
+    var ih=arr[i].inc/maxI*up,eh=arr[i].exp/maxE*down;
+    ctx.fillStyle=GREEN;
+    if(ih>0){rrUp(ctx,cx-bw/2,mid-ih,bw,ih,2);ctx.fill();}
+    ctx.fillStyle=RED;
+    if(eh>0){rrUp(ctx,cx-bw/2,mid+eh,bw,eh,2);ctx.fill();}
+  }
+  ctx.fillStyle=cssVar('--muted');ctx.font='9.5px Heebo, Arial';ctx.textAlign='center';
+  [1,5,10,15,20,25,n].forEach(function(d){
+    if(d>n)return;
+    ctx.fillText(String(d),slot*(d-1)+slot/2,h-4);
+  });
+}
+function drawDonut(s){
+  var c=$('#donut');if(!c)return;
+  var g=setupCanvas(c);if(!g)return;
+  var ctx=g.ctx,w=g.w,h=g.h;
+  var list=monthTx(ui.rm.y,ui.rm.m);
+  var byCat={},i;
+  for(i=0;i<list.length;i++){var t=list[i];
+    if(t.type!=='expense')continue;
+    byCat[t.cat]=(byCat[t.cat]||0)+t.amount;}
+  var ramp=document.documentElement.dataset.theme==='dark'
+    ?['#EDEEEA','#9aa1a9','#6e757d','#494f56','#33383e']
+    :['#14161a','#3e444b','#676e76','#979ea6','#c6cbd1'];
+  var keys=Object.keys(byCat).sort(function(a,b){return byCat[b]-byCat[a];});
+  if(keys.length>5){var rest=keys.splice(4);
+    byCat['__x']=rest.reduce(function(a,k){return a+byCat[k];},0);keys.push('__x');}
+  var slices=keys.map(function(k,idx){
+    var lbl=k==='__x'?'אחר':catById(k).label;
+    var col=k==='commission'?cssVar('--accent'):ramp[Math.min(idx,ramp.length-1)];
+    return{label:lbl,color:col,v:byCat[k]};
+  });
+  var total=slices.reduce(function(a,x){return a+x.v;},0);
+  var cx=w/2,cy=h/2,r=Math.min(w,h)/2-13;
+  ctx.lineWidth=15;ctx.lineCap='butt';
+  if(total<=0){
+    ctx.strokeStyle=cssVar('--line2');ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+  }else{
+    var a=-Math.PI/2;
+    slices.forEach(function(sl){
+      var span=sl.v/total*Math.PI*2;
+      ctx.strokeStyle=sl.color;ctx.beginPath();
+      ctx.arc(cx,cy,r,a+0.03,a+span-0.03);ctx.stroke();
+      a+=span;
+    });
+  }
+  ctx.fillStyle=cssVar('--ink');ctx.font='800 15px Heebo, Arial';ctx.textAlign='center';
+  ctx.fillText(fmt(total),cx,cy+1);
+  ctx.fillStyle=cssVar('--muted');ctx.font='10px Heebo, Arial';
+  ctx.fillText('הוצאות',cx,cy+17);
+  $('#donutLegend').innerHTML=total<=0
+    ?'<div style="color:var(--muted);font-size:12.5px">עוד אין הוצאות החודש</div>'
+    :slices.map(function(sl){
+      return '<div class="d-row"><span class="dot" style="background:'+sl.color+'"></span>'+
+        '<span class="nm">'+sl.label+'</span><span class="vl num">'+fmtInt(sl.v)+'</span>'+
+        '<span class="pc num">'+Math.round(sl.v/total*100)+'%</span></div>';
+    }).join('');
+}
+
+/* ==================== ייצוא / גיבוי ==================== */
+function dl(name,content,type){
+  var b=new Blob([content],{type:type});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);
+}
+$('#csvBtn').addEventListener('click',function(){
+  var list=monthTx(ui.rm.y,ui.rm.m).sort(function(a,b){
+    return a.date<b.date?-1:a.date>b.date?1:(a.ts||0)-(b.ts||0);});
+  if(!list.length){toast('אין נתונים לייצוא בחודש הזה');return;}
+  var rows=['"תאריך","סוג","אמצעי","קטגוריה","סכום","נטו לך","שעות","הערה"'];
+  var q=function(x){return '"'+String(x==null?'':x).replace(/"/g,'""')+'"';};
+  list.forEach(function(t){
+    var tp=t.type==='income'?'הכנסה':(t.cat==='commission'?'עמלה':'הוצאה');
+    var netC=t.type==='income'&&t.cat==='rides'?(t.amount*(1-state.settings.pct/100)).toFixed(2):'';
+    rows.push([q(t.date),q(tp),q(METHODS[t.method]||''),q(catById(t.cat).label),
+      q(t.amount.toFixed(2)),q(netC),q(t.hours||''),q(t.note||'')].join(','));
+  });
+  dl('kupa-'+ymKey(ui.rm.y,ui.rm.m)+'.csv','\ufeff'+rows.join('\r\n'),'text/csv;charset=utf-8');
+  toast('הקובץ ירד בהצלחה');
+});
+$('#backupBtn').addEventListener('click',function(){
+  dl('kupa-backup.json',JSON.stringify(state,null,2),'application/json');
+  toast('הגיבוי ירד');
+});
+$('#restoreBtn').addEventListener('click',function(){$('#restoreFile').click();});
+$('#restoreFile').addEventListener('change',function(e){
+  var f=e.target.files[0];if(!f)return;
+  f.text().then(function(txt){
+    try{
+      var d=JSON.parse(txt);
+      if(!d||!Array.isArray(d.tx))throw 0;
+      state=normState(d);
+      save();ensureRentExpense();applyTheme();renderSettings();refreshAll('הנתונים שוחזרו ✓');
+    }catch(err){toast('הקובץ לא תקין');}
+  });
+  e.target.value='';
+});
+$('#demoBtn').addEventListener('click',function(){
+  var notes=['קו מרכז','שיפט לילה','נמל','רכבת','צפון',''];
+  var methods=['cash','cash','bit','credit'];
+  var i,iso;
+  for(i=13;i>=0;i--){
+    iso=shiftISO(todayISO(),-i);
+    if(i%7===3)continue;
+    var base=new Date();base.setDate(base.getDate()-i);
+    var sh={id:uid(),start:new Date(base.getFullYear(),base.getMonth(),base.getDate(),9).getTime(),
+      end:new Date(base.getFullYear(),base.getMonth(),base.getDate(),9+7+Math.floor(Math.random()*3)).getTime()};
+    state.shifts.push(sh);
+    var rides=Math.round((180+Math.random()*320)/5)*5;
+    state.tx.push({id:uid(),type:'income',cat:'rides',amount:rides,date:iso,
+      note:notes[i%notes.length],method:methods[i%methods.length],ts:Date.now()-i*864e5,hours:8});
+    if(Math.random()<0.4)state.tx.push({id:uid(),type:'income',cat:'tips',amount:Math.round(Math.random()*35),
+      date:iso,note:'',method:'cash',ts:Date.now()-i*864e5+5});
+    if(i%4===0)state.tx.push({id:uid(),type:'expense',cat:'fuel',amount:120+Math.round(Math.random()*80),date:iso,note:'',ts:Date.now()-i*864e5+9});
+    if(i===10){state.tx.push({id:uid(),type:'expense',cat:'wash',amount:40,date:iso,note:'',ts:Date.now()-i*864e5+8});
+      state.fund.balance+=150;state.fund.log.push({id:uid(),ts:Date.now()-i*864e5,delta:150});}
+    if(i===8)state.tx.push({id:uid(),type:'expense',cat:'tolls',amount:32,date:iso,note:'כביש 6',ts:Date.now()-i*864e5+7});
+    if(i===6){
+      var s=sums(state.tx);
+      var dueD=Math.round(sadranDue(s,state.settings.pct)-s.com);
+      if(dueD>0)state.tx.push({id:uid(),type:'expense',cat:'commission',amount:dueD,
+        date:iso,note:'סגירה שבועית',ts:Date.now()-i*864e5+6});
+    }
+  }
+  state.meta.best=bestDayEver();
+  save();refreshAll('נתוני דמו נטענו');
+});
+
+/* ==================== הגדרות ==================== */
+function setPct(p){
+  state.settings.pct=Math.max(0,Math.min(60,Math.round(p)));
+  save();
+  $$('[data-pct]').forEach(function(el){el.textContent=state.settings.pct;});
+  renderHome();renderReports();renderList();
+}
+$('#pctUp').addEventListener('click',function(){setPct(state.settings.pct+1);});
+$('#pctDown').addEventListener('click',function(){setPct(state.settings.pct-1);});
+function setFundPct(p){
+  state.settings.fundPct=Math.max(0,Math.min(50,Math.round(p)));
+  save();$('#fundPct').textContent=state.settings.fundPct;renderHome();
+}
+$('#fundUp').addEventListener('click',function(){setFundPct(state.settings.fundPct+1);});
+$('#fundDown').addEventListener('click',function(){setFundPct(state.settings.fundPct-1);});
+function updateDailyCostLbl(){
+  var r=state.settings.rent||0,w=state.settings.workDays||24;
+  $('#dailyCostLbl').textContent=r>0?('≈ '+fmtInt(r/w)+' ליום עבודה'):'לא הוגדרה שכירות';
+}
+function setWorkDays(n){
+  state.settings.workDays=Math.max(20,Math.min(31,Math.round(n)));
+  save();$('#wdVal').textContent=state.settings.workDays;updateDailyCostLbl();
+  renderHome();renderReports();
+}
+$('#wdUp').addEventListener('click',function(){setWorkDays(state.settings.workDays+1);});
+$('#wdDown').addEventListener('click',function(){setWorkDays(state.settings.workDays-1);});
+$('#autoRent').addEventListener('change',function(){
+  state.settings.autoRent=$('#autoRent').checked;save();
+  if(state.settings.autoRent)ensureRentExpense();
+  refreshAll();
+});
+$('#nameInput').addEventListener('input',function(){
+  state.settings.name=$('#nameInput').value.trim();save();
+  $('#greet').textContent=greetWord()+firstName();
+});
+$('#phoneInput').addEventListener('input',function(){
+  state.settings.ownerPhone=$('#phoneInput').value.trim();save();
+});
+$('#remindSwitch').addEventListener('change',function(){
+  state.settings.remindOn=$('#remindSwitch').checked;save();renderHome();
+  if(state.settings.remindOn&&'Notification' in window&&Notification.permission==='default'){
+    try{Notification.requestPermission();}catch(e){}
+  }
+  toast(state.settings.remindOn?'תזכורת יומית הופעלה':'התזכורת כבויה');
+});
+$('#remindTime').addEventListener('change',function(){
+  state.settings.remindTime=$('#remindTime').value||'21:30';save();renderHome();
+});
+function applyTheme(){
+  document.documentElement.dataset.theme=state.settings.dark?'dark':'light';
+  $('#icMoon').style.display=state.settings.dark?'none':'';
+  $('#icSun').style.display=state.settings.dark?'':'none';
+  $('#darkSwitch').checked=!!state.settings.dark;
+}
+$('#themeBtn').addEventListener('click',function(){
+  state.settings.dark=!state.settings.dark;save();applyTheme();
+  drawWeek();if(ui.screen==='reports')renderReports();
+});
+$('#darkSwitch').addEventListener('change',function(){
+  state.settings.dark=$('#darkSwitch').checked;save();applyTheme();
+  renderHome();if(ui.screen==='reports')renderReports();
+});
+$('#eraseBtn').addEventListener('click',function(){
+  confirmBox('מחיקת כל הנתונים','כל התנועות, המשמרות והקרן יימחקו לצמיתות. ההגדרות יישמרו.','מחיקה',function(){
+    state.tx=[];state.shifts=[];state.fund={balance:0,log:[]};
+    state.meta.best=0;state.meta.goalToast='';
+    save();refreshAll('הכל נוקה');
+  });
+});
+function renderSettings(){
+  $('#nameInput').value=state.settings.name||'';
+  $('#phoneInput').value=state.settings.ownerPhone||'';
+  $('#remindSwitch').checked=!!state.settings.remindOn;
+  $('#remindTime').value=state.settings.remindTime||'21:30';
+  $('#fundPct').textContent=state.settings.fundPct;
+  $('#goalVal').textContent=state.settings.goal?fmtInt(state.settings.goal):'לא הוגדר';
+  $('#rentVal').textContent=state.settings.rent?fmtInt(state.settings.rent):'לא הוגדר';
+  $('#wdVal').textContent=state.settings.workDays;
+  $('#autoRent').checked=!!state.settings.autoRent;
+  updateDailyCostLbl();
+  renderCloudUI();
+  $$('[data-pct]').forEach(function(el){el.textContent=state.settings.pct;});
+}
+
+/* ==================== טוסט / מודאל / שיט ==================== */
+var toastT=null;
+function toast(msg){
+  var t=$('#toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},2400);
+}
+var mCb=null;
+function confirmBox(title,body,ok,cb){
+  $('#mTitle').textContent=title;$('#mBody').textContent=body;
+  $('#mOk').textContent=ok;mCb=cb;
+  $('#modal').classList.add('show');
+}
+$('#mOk').addEventListener('click',function(){
+  $('#modal').classList.remove('show');if(mCb)mCb();mCb=null;});
+$('#mCancel').addEventListener('click',function(){$('#modal').classList.remove('show');mCb=null;});
+$('#modal').addEventListener('click',function(e){
+  if(e.target.id==='modal'){$('#modal').classList.remove('show');mCb=null;}});
+
+/* גיליון סכום כללי */
+var shAmt='',shCb=null,shDec=2,shMax=7;
+function openSheet(opts,cb){
+  shAmt=opts.initial!=null&&opts.initial!==''?String(opts.initial):'';
+  shDec=opts.decimals!=null?opts.decimals:2;
+  shMax=opts.max?6:7;
+  $('#shTitle').textContent=opts.title||'סכום';
+  $('#shUnit').textContent=opts.unit||'₪';
+  $('#shOk').textContent=opts.ok||'אישור';
+  shCb=cb;renderSheetVal();
+  $('#sheet').classList.add('show');
+}
+function renderSheetVal(){
+  var p=shAmt.split('.');
+  var i=(+p[0]||0).toLocaleString('he-IL');
+  $('#shView').textContent=shAmt?(p.length>1?i+'.'+p[1]:i):'0';
+}
+$('#shPad').addEventListener('click',function(e){
+  var b=e.target.closest('[data-sk]');if(!b)return;
+  shAmt=padStep(shAmt,b.dataset.sk,shDec,shMax);renderSheetVal();
+  if(navigator.vibrate)try{navigator.vibrate(6);}catch(err){}
+});
+$('#shOk').addEventListener('click',function(){
+  $('#sheet').classList.remove('show');
+  var v=parseFloat(shAmt);if(isNaN(v))v=0;
+  if(shCb)shCb(v);shCb=null;shAmt='';
+});
+$('#shCancel').addEventListener('click',function(){$('#sheet').classList.remove('show');shCb=null;shAmt='';});
+$('#sheet').addEventListener('click',function(e){
+  if(e.target.id==='sheet'){$('#sheet').classList.remove('show');shCb=null;shAmt='';}});
+
+/* ==================== שעון משמרת + תזכורות ==================== */
+setInterval(function(){
+  var act=activeShift();
+  var el=document.getElementById('shiftTimer');
+  if(act&&el)el.textContent=fmtHours(shiftDurMs(act,Date.now())/3600000);
+},2000);
+
+setInterval(checkNotify,60000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)checkNotify();});
+function checkNotify(){
+  if(!state.settings.remindOn)return;
+  var today=todayISO();
+  if(state.meta.notified===today)return;
+  var haveIncome=state.tx.some(function(t){return t.date===today&&t.type==='income';});
+  if(haveIncome)return;
+  var hh=(state.settings.remindTime||'21:30').split(':');
+  var d=new Date();
+  var past=d.getHours()>+hh[0]||(d.getHours()===+hh[0]&&d.getMinutes()>=+hh[1]);
+  if(!past)return;
+  state.meta.notified=today;save();
+  if('Notification' in window&&Notification.permission==='granted'){
+    try{new Notification('קופת הנהג',{body:'עוד לא נסגר היום — רושמים את ההכנסה ב-10 שניות'});}catch(e){}
+  }
+  if(ui.screen==='home')renderHome();
+}
+
+/* ==================== כללי ==================== */
+function paginate(obj,delta,render){obj.m+=delta;
+  if(obj.m<0){obj.m=11;obj.y--;}if(obj.m>11){obj.m=0;obj.y++;}render();}
+$('#hmPrev').addEventListener('click',function(){paginate(ui.hm,-1,renderHome);});
+$('#hmNext').addEventListener('click',function(){paginate(ui.hm,1,renderHome);});
+$('#lmPrev').addEventListener('click',function(){paginate(ui.lm,-1,renderList);});
+$('#lmNext').addEventListener('click',function(){paginate(ui.lm,1,renderList);});
+$('#rmPrev').addEventListener('click',function(){paginate(ui.rm,-1,renderReports);});
+$('#rmNext').addEventListener('click',function(){paginate(ui.rm,1,renderReports);});
+
+function refreshAll(msg){
+  renderHome();renderList();renderReports();
+  if(msg)toast(msg);
+}
+var rsT=null;
+window.addEventListener('resize',function(){
+  clearTimeout(rsT);
+  rsT=setTimeout(function(){
+    if(ui.screen==='home')drawWeek();
+    if(ui.screen==='reports')renderReports();
+  },160);
+});
+
+/* ==================== ענן — GitHub Gist פרטי ==================== */
+var GH='https://api.github.com';
+var cloudTimer=null;
+function ghToken(){try{return localStorage.getItem('kupa.gh')||'';}catch(e){return '';}}
+function ghSaveToken(t){try{if(t)localStorage.setItem('kupa.gh',t);else localStorage.removeItem('kupa.gh');}catch(e){}}
+function cloudOn(){return !!(ghToken()&&state.settings.gistId);}
+function ghHeaders(){return{'Authorization':'Bearer '+ghToken(),'Accept':'application/vnd.github+json','Content-Type':'application/json'};}
+function cloudDot(mode){var d=$('#cloudDot');if(d)d.className='cloud-dot '+mode;}
+function nowHM(){return new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});}
+function setSync(txt,mode){var el=$('#syncStatus');if(el)el.textContent=txt;if(mode)cloudDot(mode);}
+
+function cloudPush(){
+  if(!cloudOn())return;
+  clearTimeout(cloudTimer);
+  cloudTimer=setTimeout(function(){
+    setSync('מעלה לענן…','sy');
+    fetch(GH+'/gists/'+state.settings.gistId,{
+      method:'PATCH',headers:ghHeaders(),
+      body:JSON.stringify({files:{'kupa.json':{content:JSON.stringify(state)}}})
+    }).then(function(r){
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      setSync('מסונכרן · '+nowHM(),'ok');
+    }).catch(function(){setSync('אופליין — נשמר במכשיר','err');});
+  },1500);
+}
+
+function cloudPull(force){
+  if(!cloudOn())return Promise.resolve(false);
+  return fetch(GH+'/gists/'+state.settings.gistId,{headers:ghHeaders()})
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(function(g){
+      var f=g.files&&g.files['kupa.json'];
+      if(!f)throw new Error('empty');
+      var remote=JSON.parse(f.content);
+      if(force||(remote.updatedAt||0)>(state.updatedAt||0)){
+        state=normState(remote);save();
+        applyTheme();renderSettings();refreshAll('עודכן מהענן');
+      }
+      setSync('מסונכרן · '+nowHM(),'ok');
+      return true;
+    })
+    .catch(function(){setSync('שגיאת סנכרון','err');return false;});
+}
+
+function renderCloudUI(){
+  var on=cloudOn();
+  var off=$('#cloudOff'),onEl=$('#cloudOn'),btn=$('#cloudBtn');
+  if(off)off.style.display=on?'none':'';
+  if(onEl)onEl.style.display=on?'':'none';
+  if(btn)btn.style.display=on?'':'none';
+  if(on){
+    $('#cloudShow').textContent=state.settings.gistId;
+    if($('#syncStatus').textContent==='—')setSync('פעיל','ok');
+  }
+}
+$('#cloudBtn').addEventListener('click',function(){go('settings');});
+$('#cloudGuide').addEventListener('click',function(){window.open('guide.html','_blank');});
+$('#cloudStart').addEventListener('click',function(){
+  var token=$('#cloudToken').value.trim();
+  var gist=$('#cloudGist').value.trim();
+  if(!token){toast('מזינים קודם מפתח גישה');return;}
+  ghSaveToken(token);
+  setSync('מתחבר…','sy');
+  fetch(GH+'/user',{headers:ghHeaders()})
+    .then(function(r){if(!r.ok)throw new Error('auth');return r.json();})
+    .then(function(){
+      if(gist){
+        state.settings.gistId=gist;save();
+        return cloudPull(true).then(function(ok){
+          if(ok){renderCloudUI();toast('הענן חובר — הנתונים נטענו ✓');}
+          else toast('קוד הסנכרון לא נמצא');
+        });
+      }
+      return fetch(GH+'/gists',{method:'POST',headers:ghHeaders(),
+        body:JSON.stringify({description:'קופת הנהג — גיבוי ענן',public:false,
+          files:{'kupa.json':{content:JSON.stringify(state)}}})})
+        .then(function(r){if(!r.ok)throw new Error('create');return r.json();})
+        .then(function(g){
+          state.settings.gistId=g.id;save();
+          renderCloudUI();
+          toast('הענן מוכן — שמור את הקוד למטה');
+        });
+    })
+    .catch(function(e){
+      ghSaveToken('');setSync('החיבור נכשל','err');
+      toast(e.message==='auth'?'המפתח לא תקין':'שגיאת רשת — נסה שוב');
+    });
+});
+$('#cloudNow').addEventListener('click',function(){toast('מסנכרן…');cloudPull(false).then(cloudPush);});
+$('#cloudCopy').addEventListener('click',function(){
+  var id=state.settings.gistId;
+  function done(){toast('הקוד הועתק');}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(id).then(done,done);}
+  else{var ta=document.createElement('textarea');ta.value=id;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();done();}
+});
+$('#cloudStop').addEventListener('click',function(){
+  confirmBox('ניתוק הענן','הנתונים נשארים במכשיר. הגיבוי בענן נשאר באוויר ולא נמחק.','ניתוק',function(){
+    state.settings.gistId='';ghSaveToken('');save();
+    renderCloudUI();$('#cloudToken').value='';$('#cloudGist').value='';
+    toast('ממשיכים במצב מקומי');
+  });
+});
+
+/* ==================== הפעלה ==================== */
+applyTheme();
+renderSettings();
+ensureRentExpense();
+renderHome();
+buildCats();
+renderAmt();
+checkNotify();
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
+}
+if(cloudOn()){cloudPull(false).then(function(){applyTheme();renderSettings();});}
+setInterval(function(){if(!document.hidden&&cloudOn())cloudPull(false);},300000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&cloudOn())cloudPull(false);});
+})();
+</script>
+</body>
+</html>
