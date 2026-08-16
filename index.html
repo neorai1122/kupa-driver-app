@@ -143,6 +143,7 @@ main{flex:1;padding:18px 18px 132px}
   border-radius:999px;padding:3px;box-shadow:var(--shadow);flex:none}
 .month-pager button{width:29px;height:29px;border-radius:999px;display:grid;place-items:center;color:var(--muted)}
 .month-pager button:active{background:var(--line2);color:var(--ink)}
+.month-pager button:disabled{opacity:.35;pointer-events:none}
 .month-pager button svg{width:13px;height:13px}
 .month-pager span{font-size:12.5px;font-weight:700;min-width:92px;text-align:center}
 
@@ -243,13 +244,14 @@ main{flex:1;padding:18px 18px 132px}
 .tx-mid{flex:1;min-width:0}
 .tx-cat{font-weight:700;font-size:13.5px}
 .tx-note{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.tx-amt-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:none}
 .tx-amt{font-weight:800;font-size:14px;white-space:nowrap}
 .tx-amt.in{color:var(--green)} .tx-amt.out{color:var(--red)}
+.tx-net{font-size:10.5px;font-weight:800;color:var(--accent-ink);background:var(--accent-soft);
+  padding:1px 6px;border-radius:999px;white-space:nowrap}
 .tx-del{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--muted);flex:none}
 .tx-del:active{background:var(--red-soft);color:var(--red)}
 .tx-del svg{width:15px;height:15px}
-.tx-home .tx{margin-bottom:7px}
-.tx-home .tx-del{display:none}
 .day-g{margin-bottom:16px}
 .day-h{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);
   font-weight:700;margin:0 4px 9px}
@@ -496,7 +498,14 @@ html[data-theme="dark"] .track{background:#2b2f34}
       </div>
 
       <div class="card">
-        <div class="card-title">היום שלך<span class="lbl num" id="tCarCost"></span></div>
+        <div class="card-title">
+          <span class="month-pager" id="dayPager">
+            <button id="dPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+            <span id="dLbl">היום שלך</span>
+            <button id="dNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+          </span>
+          <span class="lbl num" id="tCarCost"></span>
+        </div>
         <div class="t-row"><span>נסיעות — נטו אחרי סדרן</span><b class="num" id="tRides">₪0</b></div>
         <div class="t-row"><span>דלק והוצאות</span><b class="num" id="tExp">₪0</b></div>
         <div class="t-row"><span>הרכב להיום</span><b class="num" id="tCar">₪0</b></div>
@@ -556,8 +565,8 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <div class="legend"><span><span class="dot" style="background:var(--green)"></span> הכנסות</span><span><span class="dot" style="background:var(--red)"></span> הוצאות</span></div>
       </div>
 
-      <div class="card-title" style="margin:20px 3px 10px">תנועות אחרונות<button class="edit-btn" data-go="list" style="width:auto;padding:0 8px;font-weight:700;font-size:12px">הכל</button></div>
-      <div id="recentList" class="tx-home"></div>
+      <div class="card-title" style="margin:20px 3px 10px"><span id="dayListLbl">תנועות היום</span><button class="edit-btn" data-go="list" style="width:auto;padding:0 8px;font-weight:700;font-size:12px">כל התנועות</button></div>
+      <div id="recentList"></div>
     </section>
 
     <!-- ================= הוספה ================= -->
@@ -577,6 +586,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <button data-m="cash" class="active">מזומן</button>
         <button data-m="bit">ביט</button>
         <button data-m="credit">אשראי</button>
+        <button data-m="bank">העברה בנקאית</button>
       </div>
       <div class="cats" id="catGrid"></div>
       <div class="add-meta">
@@ -891,7 +901,7 @@ function catById(id){
   for(var i=0;i<all.length;i++)if(all[i].id===id)return all[i];
   return{id:'x',label:'אחר',icon:'📦'};
 }
-var METHODS={cash:'מזומן',bit:'ביט',credit:'אשראי'};
+var METHODS={cash:'מזומן',bit:'ביט',credit:'אשראי',bank:'העברה בנקאית'};
 
 /* ==================== עזר ==================== */
 function pad2(n){return String(n).padStart(2,'0');}
@@ -1016,7 +1026,7 @@ function carDailyCost(){
 var now=new Date();
 var ui={screen:'home',addType:'income',addCat:'rides',amt:'',method:state.settings.lastMethod||'cash',
   hm:{y:now.getFullYear(),m:now.getMonth()},lm:{y:now.getFullYear(),m:now.getMonth()},
-  rm:{y:now.getFullYear(),m:now.getMonth()},filter:'all',pendingShift:null};
+  rm:{y:now.getFullYear(),m:now.getMonth()},filter:'all',pendingShift:null,day:todayISO()};
 
 function movePill(){
   var pill=$('#tabPill');if(!pill)return;
@@ -1034,7 +1044,7 @@ function go(id){
   $$('.screen').forEach(function(s){s.classList.remove('active');});
   $('#s-'+id).classList.add('active');
   $$('.tab').forEach(function(b){b.classList.toggle('active',b.dataset.go===id);});
-  if(id==='add'){$('#txDate').value=todayISO();buildCats();renderAmt();renderShiftBanner();}
+  if(id==='add'){$('#txDate').value=ui.day||todayISO();buildCats();renderAmt();renderShiftBanner();}
   if(id==='home')renderHome();
   if(id==='list')renderList();
   if(id==='reports')renderReports();
@@ -1062,6 +1072,16 @@ document.addEventListener('pointerdown',function(e){
 
 /* ==================== בית ==================== */
 function monthLabel(o){return dfMY.format(new Date(o.y,o.m,1));}
+function dayLabel(iso){
+  if(iso===todayISO())return 'היום שלך';
+  if(iso===shiftISO(todayISO(),-1))return 'אתמול';
+  if(iso===shiftISO(todayISO(),1))return 'מחר';
+  return dfDM.format(dObj(iso));
+}
+function changeDay(delta){
+  ui.day=shiftISO(ui.day,delta);
+  renderHome();
+}
 function greetWord(){
   var h=new Date().getHours();
   if(h>=5&&h<12)return 'בוקר טוב';
@@ -1107,7 +1127,9 @@ function renderHome(){
   animateNum($('#hExp'),s.exp,function(v){return '−'+fmt(v);});
 
   /* ===== כרטיס "היום שלך" ===== */
-  var td=todayISO();
+  var td=ui.day;
+  $('#dLbl').textContent=dayLabel(td);
+  $('#dNext').disabled=td>=todayISO();
   var dTx=state.tx.filter(function(x){return x.date===td;});
   var dS=sums(dTx);
   var dDue=sadranDue(dS,pct);
@@ -1159,11 +1181,12 @@ function renderHome(){
     ?('מומלץ להפריש '+fmt(rec)+' החודש ('+state.settings.fundPct+'% מהנטו) · הופקד '+fmt(doneM))
     :'ההפרשה המומלצת תוצג כשיש נטו חיובי';
 
-  /* אחרונות */
-  var rec5=sortedTx().slice(0,5);
+  /* תנועות היום הנבחר */
+  $('#dayListLbl').textContent='תנועות · '+dayLabel(td);
+  var dayList=dTx.slice().sort(function(a,b){return (b.ts||0)-(a.ts||0);});
   var el=$('#recentList');
-  el.innerHTML=rec5.length?rec5.map(txRow).join(''):
-    '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>בוא נתחיל לעקוב אחרי הכסף</b><p>הקש על + למטה להוספת תנועה ראשונה</p></div>';
+  el.innerHTML=dayList.length?dayList.map(txRow).join(''):
+    '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>אין תנועות ביום הזה</b><p>הקש על + למטה כדי להוסיף</p></div>';
 
   renderNudges(s,debt);
   drawWeek();
@@ -1267,16 +1290,20 @@ function renderNudges(s,debt){
 function txRow(t){
   var c=catById(t.cat);
   var isIn=t.type==='income';
+  var isRide=isIn&&t.cat==='rides';
+  var netAmt=isRide?t.amount*(1-state.settings.pct/100):null;
   var bits=[];
   if(isIn&&t.method&&METHODS[t.method])bits.push(METHODS[t.method]);
-  if(isIn&&t.cat==='rides')bits.push('נטו '+fmtInt(t.amount*(1-state.settings.pct/100)));
   if(t.hours)bits.push(fmtHours(t.hours));
   if(t.note)bits.push(t.note);
   if(t.ts)bits.push(dfTM.format(new Date(t.ts)));
   return '<div class="tx">'+
     '<div class="tx-ic">'+c.icon+'</div>'+
     '<div class="tx-mid"><div class="tx-cat">'+c.label+'</div><div class="tx-note">'+bits.join(' · ')+'</div></div>'+
-    '<div class="tx-amt num '+(isIn?'in':'out')+'">'+(isIn?'+':'−')+fmt(t.amount)+'</div>'+
+    '<div class="tx-amt-wrap">'+
+      '<div class="tx-amt num '+(isIn?'in':'out')+'">'+(isIn?'+':'−')+fmt(t.amount)+'</div>'+
+      (isRide?'<div class="tx-net num">נטו '+fmtInt(netAmt)+'</div>':'')+
+    '</div>'+
     '<button class="tx-del" data-del="'+t.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>'+
   '</div>';
 }
@@ -1495,7 +1522,7 @@ $('#saveTx').addEventListener('click',function(){
   }
   save();
 
-  ui.hm.y=+d.slice(0,4);ui.hm.m=+d.slice(5,7)-1;
+  ui.hm.y=+d.slice(0,4);ui.hm.m=+d.slice(5,7)-1;ui.day=d;
   ui.amt='';$('#txNote').value='';
   var sbtn=$('#saveTx');
   sbtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M5 13l4 4L19 7"/></svg>';
@@ -1600,12 +1627,12 @@ function renderReports(){
   }else wl.innerHTML='';
 
   /* אמצעי תשלום */
-  var ms={cash:0,bit:0,credit:0,none:0};
+  var ms={cash:0,bit:0,credit:0,bank:0,none:0};
   list.forEach(function(t){if(t.type==='income')ms[t.method||'none']+=t.amount;});
-  var mKeys=['cash','bit','credit','none'];
-  var mLbl={cash:'מזומן',bit:'ביט',credit:'אשראי',none:'לא סומן'};
-  var mCol={cash:'#111214',bit:'#5c636b',credit:'#a6acb3',none:'#d8dbe0'};
-  if(document.documentElement.dataset.theme==='dark')mCol={cash:'#EDEEEA',bit:'#989ea6',credit:'#5c636b',none:'#3a3f45'};
+  var mKeys=['cash','bit','credit','bank','none'];
+  var mLbl={cash:'מזומן',bit:'ביט',credit:'אשראי',bank:'העברה בנקאית',none:'לא סומן'};
+  var mCol={cash:'#111214',bit:'#5c636b',credit:'#a6acb3',bank:'#F2B01E',none:'#d8dbe0'};
+  if(document.documentElement.dataset.theme==='dark')mCol={cash:'#EDEEEA',bit:'#989ea6',credit:'#5c636b',bank:'#F2B01E',none:'#3a3f45'};
   var incT=s.inc;
   if(incT>0){
     $('#methodBar').innerHTML=mKeys.filter(function(k){return ms[k]>0;}).map(function(k){
@@ -2166,6 +2193,8 @@ $('#lmPrev').addEventListener('click',function(){paginate(ui.lm,-1,renderList);}
 $('#lmNext').addEventListener('click',function(){paginate(ui.lm,1,renderList);});
 $('#rmPrev').addEventListener('click',function(){paginate(ui.rm,-1,renderReports);});
 $('#rmNext').addEventListener('click',function(){paginate(ui.rm,1,renderReports);});
+$('#dPrev').addEventListener('click',function(){changeDay(-1);});
+$('#dNext').addEventListener('click',function(){changeDay(1);});
 
 function refreshAll(msg){
   renderHome();renderList();renderReports();
