@@ -369,6 +369,12 @@ html[data-theme="dark"] .track{background:#2b2f34}
 .modal-btns{display:flex;gap:8px;margin-top:18px}
 .modal-btns .btn{flex:1}
 .btn.danger{background:var(--red);color:#fff}
+.modal-card.wiz{max-width:360px}
+.wiz-choice{display:flex;align-items:center;gap:10px;width:100%;text-align:right;
+  padding:13px 14px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:var(--card)}
+.wiz-choice:active{background:var(--line2);transform:scale(.98)}
+.wiz-choice b{display:block;font-size:13.5px;font-weight:700}
+.wiz-choice span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
 
 .sheet{position:fixed;inset:0;z-index:115;display:none;align-items:flex-end;justify-content:center;
   background:rgba(8,9,10,.45);backdrop-filter:blur(4px)}
@@ -620,19 +626,31 @@ html[data-theme="dark"] .track{background:#2b2f34}
       </div>
 
       <div class="card">
-        <div class="card-title">רכב וסדרן</div>
+        <div class="card-title">רכב וסדרן<button class="btn line sm" data-act="run-wizard" style="font-weight:700">עדכון פרופיל</button></div>
         <div class="set-row">
-          <div class="r-lb">שכירות רכב חודשית<div class="r-sub" id="dailyCostLbl">—</div></div>
+          <div class="r-lb">איך הרכב אצלך<div class="r-sub" id="ownTypeLbl">—</div></div>
+        </div>
+        <div class="set-row" id="rentRow">
+          <div class="r-lb"><span id="rentRowLbl">תשלום חודשי על הרכב</span><div class="r-sub" id="dailyCostLbl">—</div></div>
           <div class="set-val"><span class="num" id="rentVal">—</span>
             <button class="edit-btn" data-act="set-rent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">ביטוח רכב<div class="r-sub" id="insTypeLbl">לא הוגדר</div></div>
+          <div class="set-val"><span class="num" id="insVal">—</span>
+            <button class="edit-btn" data-act="set-insurance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
         </div>
         <div class="set-row">
           <div class="r-lb">ימי עבודה בחודש<div class="r-sub">לחישוב עלות הרכב היומית</div></div>
           <div class="stepper"><button id="wdDown">−</button><b class="num" id="wdVal">24</b><button id="wdUp">+</button></div>
         </div>
-        <div class="set-row">
-          <div class="r-lb">שכירות אוטומטית בהוצאות<div class="r-sub">נוספת לבד ב־1 לכל חודש</div></div>
+        <div class="set-row" id="autoRentRow">
+          <div class="r-lb">תשלום רכב אוטומטי בהוצאות<div class="r-sub">נוסף לבד ב־1 לכל חודש</div></div>
           <label class="switch"><input type="checkbox" id="autoRent" checked><span class="track"></span></label>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">ביטוח אוטומטי בהוצאות<div class="r-sub">נוסף לבד ב־1 לכל חודש</div></div>
+          <label class="switch"><input type="checkbox" id="autoIns" checked><span class="track"></span></label>
         </div>
         <div class="set-row">
           <div class="r-lb">עמלה לסדרן — מכל נסיעה<div class="r-sub">ברירת מחדל: 30%</div></div>
@@ -755,6 +773,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
   </div>
 </div>
 
+<div class="modal" id="wizModal">
+  <div class="modal-card wiz" id="wizCard"></div>
+</div>
+
 <div class="sheet" id="sheet">
   <div class="sheet-card">
     <h3 id="shTitle">סכום</h3>
@@ -789,7 +811,8 @@ function save(){
 function loadRaw(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
 function normState(d){
   d=d||{};
-  d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,gistId:''},d.settings||{});
+  d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,gistId:'',
+    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
@@ -907,13 +930,28 @@ function bestDayEver(){
   var best=0;Object.keys(by).forEach(function(k){best=Math.max(best,by[k]);});
   return best;
 }
+function rentNote(){
+  return state.settings.ownershipType==='finance'?'החזר מימון/ליסינג':'שכירות חודשית';
+}
 function ensureRentExpense(){
   if(!state.settings.autoRent||!(state.settings.rent>0))return;
   var d=new Date(),k=ymKey(d.getFullYear(),d.getMonth());
   var exists=state.tx.some(function(t){return t.type==='expense'&&t.cat==='rent'&&t.date.slice(0,7)===k;});
   if(exists)return;
-  state.tx.push({id:uid(),type:'expense',cat:'rent',amount:state.settings.rent,date:k+'-01',note:'שכירות חודשית',ts:Date.now()});
+  state.tx.push({id:uid(),type:'expense',cat:'rent',amount:state.settings.rent,date:k+'-01',note:rentNote(),ts:Date.now()});
   save();
+}
+function ensureInsuranceExpense(){
+  if(!state.settings.autoIns||!(state.settings.insuranceMonthly>0))return;
+  var d=new Date(),k=ymKey(d.getFullYear(),d.getMonth());
+  var exists=state.tx.some(function(t){return t.type==='expense'&&t.cat==='insurance'&&t.date.slice(0,7)===k;});
+  if(exists)return;
+  state.tx.push({id:uid(),type:'expense',cat:'insurance',amount:state.settings.insuranceMonthly,date:k+'-01',note:'ביטוח חודשי',ts:Date.now()});
+  save();
+}
+function carDailyCost(){
+  var total=(state.settings.rent||0)+(state.settings.insuranceMonthly||0);
+  return total>0?total/state.settings.workDays:0;
 }
 
 /* ==================== ניווט ==================== */
@@ -987,7 +1025,7 @@ function renderHome(){
   var dS=sums(dTx);
   var dDue=sadranDue(dS,pct);
   var dNetIn=dS.inc-dDue;
-  var car=state.settings.rent>0?state.settings.rent/state.settings.workDays:0;
+  var car=carDailyCost();
   var bal=dNetIn-dS.exp-car;
   $('#tRides').textContent=(dNetIn>=0?'+':'')+fmt(dNetIn);
   $('#tExp').textContent='−'+fmt(dS.exp);
@@ -995,7 +1033,7 @@ function renderHome(){
   var tn=$('#tNet');
   tn.textContent=(bal>=0?'+':'')+fmt(bal);
   tn.style.color=bal>=0?'var(--green)':'var(--red)';
-  $('#tCarCost').textContent=car>0?'הרכב: '+fmtInt(car)+' ליום':'';
+  $('#tCarCost').textContent=car>0?'רכב+ביטוח: '+fmtInt(car)+' ליום':'';
   $('#tProg').style.width=car>0?Math.min(100,Math.max(0,dNetIn)/car*100)+'%':'0%';
   var footHtml;
   if(car>0){
@@ -1210,11 +1248,19 @@ document.addEventListener('click',function(e){
     });
   }
   else if(act==='set-rent'){
-    openSheet({title:'שכירות רכב חודשית',unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'שמירה'},function(v){
+    var rentTitle=state.settings.ownershipType==='finance'?'החזר מימון/ליסינג חודשי':'שכירות רכב חודשית';
+    openSheet({title:rentTitle,unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'שמירה'},function(v){
       state.settings.rent=Math.round(v);save();ensureRentExpense();
       renderSettings();renderHome();toast('עודכן בהצלחה');
     });
   }
+  else if(act==='set-insurance'){
+    openSheet({title:'ביטוח רכב — עלות חודשית',unit:'₪',decimals:0,initial:state.settings.insuranceMonthly||'',ok:'שמירה'},function(v){
+      state.settings.insuranceMonthly=Math.round(v);save();ensureInsuranceExpense();
+      renderSettings();renderHome();toast('עודכן בהצלחה');
+    });
+  }
+  else if(act==='run-wizard'){openWizard();}
   else if(act==='open-settings'){go('settings');}
   else if(act==='fund-in'||act==='fund-out'){
     var isIn=act==='fund-in';
@@ -1646,7 +1692,7 @@ $('#restoreFile').addEventListener('change',function(e){
       var d=JSON.parse(txt);
       if(!d||!Array.isArray(d.tx))throw 0;
       state=normState(d);
-      save();ensureRentExpense();applyTheme();renderSettings();refreshAll('הנתונים שוחזרו ✓');
+      save();ensureRentExpense();ensureInsuranceExpense();applyTheme();renderSettings();refreshAll('הנתונים שוחזרו ✓');
     }catch(err){toast('הקובץ לא תקין');}
   });
   e.target.value='';
@@ -1698,8 +1744,8 @@ function setFundPct(p){
 $('#fundUp').addEventListener('click',function(){setFundPct(state.settings.fundPct+1);});
 $('#fundDown').addEventListener('click',function(){setFundPct(state.settings.fundPct-1);});
 function updateDailyCostLbl(){
-  var r=state.settings.rent||0,w=state.settings.workDays||24;
-  $('#dailyCostLbl').textContent=r>0?('≈ '+fmtInt(r/w)+' ליום עבודה'):'לא הוגדרה שכירות';
+  var car=carDailyCost();
+  $('#dailyCostLbl').textContent=car>0?('≈ '+fmtInt(car)+' ליום עבודה (רכב+ביטוח)'):'לא הוגדר תשלום קבוע';
 }
 function setWorkDays(n){
   state.settings.workDays=Math.max(20,Math.min(31,Math.round(n)));
@@ -1711,6 +1757,11 @@ $('#wdDown').addEventListener('click',function(){setWorkDays(state.settings.work
 $('#autoRent').addEventListener('change',function(){
   state.settings.autoRent=$('#autoRent').checked;save();
   if(state.settings.autoRent)ensureRentExpense();
+  refreshAll();
+});
+$('#autoIns').addEventListener('change',function(){
+  state.settings.autoIns=$('#autoIns').checked;save();
+  if(state.settings.autoIns)ensureInsuranceExpense();
   refreshAll();
 });
 $('#nameInput').addEventListener('input',function(){
@@ -1761,6 +1812,16 @@ function renderSettings(){
   $('#rentVal').textContent=state.settings.rent?fmtInt(state.settings.rent):'לא הוגדר';
   $('#wdVal').textContent=state.settings.workDays;
   $('#autoRent').checked=!!state.settings.autoRent;
+  $('#autoIns').checked=!!state.settings.autoIns;
+  var OWN_LBL={rent:'שכירות',finance:'מימון / ליסינג',owned:'בבעלותי, בלי תשלום חודשי'};
+  $('#ownTypeLbl').textContent=OWN_LBL[state.settings.ownershipType]||'טרם הוגדר — לחץ "עדכון פרופיל"';
+  var isOwned=state.settings.ownershipType==='owned';
+  $('#rentRow').style.display=isOwned?'none':'';
+  $('#autoRentRow').style.display=isOwned?'none':'';
+  $('#rentRowLbl').textContent=state.settings.ownershipType==='finance'?'החזר מימון/ליסינג חודשי':'שכירות רכב חודשית';
+  var INS_LBL={'חובה':'חובה בלבד','צד ג׳':'חובה + צד שלישי','מקיף':'מקיף'};
+  $('#insTypeLbl').textContent=state.settings.insuranceType?INS_LBL[state.settings.insuranceType]:'לא הוגדר';
+  $('#insVal').textContent=state.settings.insuranceMonthly?fmtInt(state.settings.insuranceMonthly):'—';
   updateDailyCostLbl();
   renderCloudUI();
   $$('[data-pct]').forEach(function(el){el.textContent=state.settings.pct;});
@@ -1814,6 +1875,87 @@ $('#shOk').addEventListener('click',function(){
 $('#shCancel').addEventListener('click',function(){$('#sheet').classList.remove('show');shCb=null;shAmt='';});
 $('#sheet').addEventListener('click',function(e){
   if(e.target.id==='sheet'){$('#sheet').classList.remove('show');shCb=null;shAmt='';}});
+
+/* ==================== אשף הגדרת פרופיל (שכירות / מימון / בבעלות) ==================== */
+var wizState=null,wizOnChoice=null;
+function wizChoiceBtn(val,title,sub){
+  return '<button type="button" class="wiz-choice" data-wiz="'+val+'"><span style="flex:1"><b>'+title+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</span></button>';
+}
+function wizShow(html){$('#wizCard').innerHTML=html;$('#wizModal').classList.add('show');}
+function wizClose(){$('#wizModal').classList.remove('show');wizOnChoice=null;}
+function openWizard(){
+  wizState={ownershipType:null,carMonthly:0,insuranceType:'',insuranceMonthly:0};
+  wizStep1();
+}
+function wizStep1(){
+  wizOnChoice=function(v){
+    wizState.ownershipType=v;
+    if(v==='owned'){wizState.carMonthly=0;wizStep3();}
+    else wizStep2(v);
+  };
+  wizShow(
+    '<h3>איך הרכב אצלך?</h3><p>זה קובע איך נחשב לך את עלות הרכב היומית.</p>'+
+    '<div style="margin-top:14px">'+
+    wizChoiceBtn('rent','שכירות','משלם סכום חודשי קבוע לסדרן/לחברה')+
+    wizChoiceBtn('finance','מימון / ליסינג','החזר חודשי לבנק/לחברת מימון')+
+    wizChoiceBtn('owned','הרכב שלי, בלי תשלום חודשי','אין החזר חודשי על הרכב עצמו')+
+    '</div>'
+  );
+}
+function wizStep2(type){
+  wizClose();
+  var label=type==='finance'?'כמה ההחזר החודשי על המימון/ליסינג?':'כמה אתה משלם על שכירות הרכב בחודש?';
+  openSheet({title:label,unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'המשך'},function(v){
+    wizState.carMonthly=Math.round(v)||0;
+    wizStep3();
+  });
+}
+function wizStep3(){
+  wizOnChoice=function(v){
+    if(v==='skip'){wizState.insuranceType='';wizState.insuranceMonthly=0;wizFinish();return;}
+    wizState.insuranceType=v;
+    wizStep4();
+  };
+  wizShow(
+    '<h3>ביטוח רכב</h3><p>לא חובה, אבל עוזר לחשב עלות יומית מדויקת יותר.</p>'+
+    '<div style="margin-top:14px">'+
+    wizChoiceBtn('חובה','ביטוח חובה בלבד')+
+    wizChoiceBtn('צד ג׳','חובה + צד שלישי')+
+    wizChoiceBtn('מקיף','ביטוח מקיף')+
+    '</div>'+
+    '<button type="button" class="btn line sm" data-wizskip style="width:100%;margin-top:2px">דלג בינתיים</button>'
+  );
+}
+function wizStep4(){
+  wizClose();
+  openSheet({title:'ביטוח — כמה עולה בחודש?',unit:'₪',decimals:0,initial:state.settings.insuranceMonthly||'',ok:'סיום'},function(v){
+    wizState.insuranceMonthly=Math.round(v)||0;
+    wizFinish();
+  });
+}
+function wizFinish(){
+  state.settings.ownershipType=wizState.ownershipType;
+  state.settings.rent=wizState.carMonthly;
+  state.settings.insuranceType=wizState.insuranceType||'';
+  state.settings.insuranceMonthly=wizState.insuranceMonthly||0;
+  state.settings.wizardDone=true;
+  save();
+  ensureRentExpense();ensureInsuranceExpense();
+  renderSettings();renderHome();
+  var daily=Math.round(carDailyCost());
+  wizShow(
+    '<h3>מוכן ✅</h3><p>עלות הרכב היומית שלך (רכב + ביטוח): <b style="color:var(--ink);font-size:18px">'+fmtInt(daily)+'</b> ליום.<br>אפשר לשנות הכול בכל רגע מ״הגדרות״.</p>'+
+    '<div class="modal-btns"><button type="button" class="btn ink" id="wizDone" style="flex:1">הבנתי</button></div>'
+  );
+}
+document.addEventListener('click',function(e){
+  var wb=e.target.closest('[data-wiz]');
+  if(wb&&wizOnChoice){wizOnChoice(wb.dataset.wiz);return;}
+  var ws=e.target.closest('[data-wizskip]');
+  if(ws&&wizOnChoice){wizOnChoice('skip');return;}
+  if(e.target.id==='wizDone'){wizClose();return;}
+  if(e.target.id==='wizModal'){wizClose();}
+});
 
 /* ==================== שעון משמרת + תזכורות ==================== */
 setInterval(function(){
@@ -1971,10 +2113,12 @@ $('#cloudStop').addEventListener('click',function(){
 applyTheme();
 renderSettings();
 ensureRentExpense();
+ensureInsuranceExpense();
 renderHome();
 buildCats();
 renderAmt();
 checkNotify();
+if(!state.settings.wizardDone){setTimeout(openWizard,450);}
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('sw.js').then(function(reg){
