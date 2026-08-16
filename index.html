@@ -635,7 +635,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <div class="set-val"><span class="num" id="rentVal">—</span>
             <button class="edit-btn" data-act="set-rent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
         </div>
-        <div class="set-row">
+        <div class="set-row" id="insRow">
           <div class="r-lb">ביטוח רכב<div class="r-sub" id="insTypeLbl">לא הוגדר</div></div>
           <div class="set-val"><span class="num" id="insVal">—</span>
             <button class="edit-btn" data-act="set-insurance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
@@ -648,7 +648,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <div class="r-lb">תשלום רכב אוטומטי בהוצאות<div class="r-sub">נוסף לבד ב־1 לכל חודש</div></div>
           <label class="switch"><input type="checkbox" id="autoRent" checked><span class="track"></span></label>
         </div>
-        <div class="set-row">
+        <div class="set-row" id="autoInsRow">
           <div class="r-lb">ביטוח אוטומטי בהוצאות<div class="r-sub">נוסף לבד ב־1 לכל חודש</div></div>
           <label class="switch"><input type="checkbox" id="autoIns" checked><span class="track"></span></label>
         </div>
@@ -931,7 +931,8 @@ function bestDayEver(){
   return best;
 }
 function rentNote(){
-  return state.settings.ownershipType==='finance'?'החזר מימון/ליסינג':'שכירות חודשית';
+  var NOTES={finance:'החזר מימון/הלוואה',leasing:'תשלום ליסינג'};
+  return NOTES[state.settings.ownershipType]||'שכירות חודשית';
 }
 function ensureRentExpense(){
   if(!state.settings.autoRent||!(state.settings.rent>0))return;
@@ -1033,7 +1034,7 @@ function renderHome(){
   var tn=$('#tNet');
   tn.textContent=(bal>=0?'+':'')+fmt(bal);
   tn.style.color=bal>=0?'var(--green)':'var(--red)';
-  $('#tCarCost').textContent=car>0?'רכב+ביטוח: '+fmtInt(car)+' ליום':'';
+  $('#tCarCost').textContent=car>0?carCostBasisLbl()+': '+fmtInt(car)+' ליום':'';
   $('#tProg').style.width=car>0?Math.min(100,Math.max(0,dNetIn)/car*100)+'%':'0%';
   var footHtml;
   if(car>0){
@@ -1248,7 +1249,8 @@ document.addEventListener('click',function(e){
     });
   }
   else if(act==='set-rent'){
-    var rentTitle=state.settings.ownershipType==='finance'?'החזר מימון/ליסינג חודשי':'שכירות רכב חודשית';
+    var RENT_TITLES={finance:'החזר מימון/הלוואה חודשי',leasing:'תשלום ליסינג חודשי (כולל הכל)'};
+    var rentTitle=RENT_TITLES[state.settings.ownershipType]||'שכירות רכב חודשית';
     openSheet({title:rentTitle,unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'שמירה'},function(v){
       state.settings.rent=Math.round(v);save();ensureRentExpense();
       renderSettings();renderHome();toast('עודכן בהצלחה');
@@ -1743,9 +1745,12 @@ function setFundPct(p){
 }
 $('#fundUp').addEventListener('click',function(){setFundPct(state.settings.fundPct+1);});
 $('#fundDown').addEventListener('click',function(){setFundPct(state.settings.fundPct-1);});
+function carCostBasisLbl(){
+  return state.settings.ownershipType==='leasing'?'ליסינג, כולל הכל':'רכב+ביטוח';
+}
 function updateDailyCostLbl(){
   var car=carDailyCost();
-  $('#dailyCostLbl').textContent=car>0?('≈ '+fmtInt(car)+' ליום עבודה (רכב+ביטוח)'):'לא הוגדר תשלום קבוע';
+  $('#dailyCostLbl').textContent=car>0?('≈ '+fmtInt(car)+' ליום עבודה ('+carCostBasisLbl()+')'):'לא הוגדר תשלום קבוע';
 }
 function setWorkDays(n){
   state.settings.workDays=Math.max(20,Math.min(31,Math.round(n)));
@@ -1813,13 +1818,17 @@ function renderSettings(){
   $('#wdVal').textContent=state.settings.workDays;
   $('#autoRent').checked=!!state.settings.autoRent;
   $('#autoIns').checked=!!state.settings.autoIns;
-  var OWN_LBL={rent:'שכירות',finance:'מימון / ליסינג',owned:'בבעלותי, בלי תשלום חודשי'};
+  var OWN_LBL={rent:'שכירות',finance:'מימון / הלוואה',leasing:'ליסינג (הכל כלול)',owned:'בבעלותי, בלי תשלום חודשי'};
   $('#ownTypeLbl').textContent=OWN_LBL[state.settings.ownershipType]||'טרם הוגדר — לחץ "עדכון פרופיל"';
   var isOwned=state.settings.ownershipType==='owned';
+  var isLeasing=state.settings.ownershipType==='leasing';
   $('#rentRow').style.display=isOwned?'none':'';
   $('#autoRentRow').style.display=isOwned?'none':'';
-  $('#rentRowLbl').textContent=state.settings.ownershipType==='finance'?'החזר מימון/ליסינג חודשי':'שכירות רכב חודשית';
-  var INS_LBL={'חובה':'חובה בלבד','צד ג׳':'חובה + צד שלישי','מקיף':'מקיף'};
+  var RENT_LBL={finance:'החזר מימון/הלוואה חודשי',leasing:'תשלום ליסינג חודשי (כולל הכל)'};
+  $('#rentRowLbl').textContent=RENT_LBL[state.settings.ownershipType]||'שכירות רכב חודשית';
+  $('#insRow').style.display=isLeasing?'none':'';
+  $('#autoInsRow').style.display=isLeasing?'none':'';
+  var INS_LBL={'חובה':'חובה בלבד','צד ג׳':'חובה + צד שלישי','מקיף':'מקיף','included':'כלול בליסינג'};
   $('#insTypeLbl').textContent=state.settings.insuranceType?INS_LBL[state.settings.insuranceType]:'לא הוגדר';
   $('#insVal').textContent=state.settings.insuranceMonthly?fmtInt(state.settings.insuranceMonthly):'—';
   updateDailyCostLbl();
@@ -1897,17 +1906,21 @@ function wizStep1(){
     '<h3>איך הרכב אצלך?</h3><p>זה קובע איך נחשב לך את עלות הרכב היומית.</p>'+
     '<div style="margin-top:14px">'+
     wizChoiceBtn('rent','שכירות','משלם סכום חודשי קבוע לסדרן/לחברה')+
-    wizChoiceBtn('finance','מימון / ליסינג','החזר חודשי לבנק/לחברת מימון')+
+    wizChoiceBtn('finance','מימון / הלוואה','החזר חודשי על הרכב + ביטוח בנפרד')+
+    wizChoiceBtn('leasing','ליסינג','תשלום חודשי אחד שכולל הכל — ביטוח, טיפולים וכו׳ (חוץ מדלק)')+
     wizChoiceBtn('owned','הרכב שלי, בלי תשלום חודשי','אין החזר חודשי על הרכב עצמו')+
     '</div>'
   );
 }
 function wizStep2(type){
   wizClose();
-  var label=type==='finance'?'כמה ההחזר החודשי על המימון/ליסינג?':'כמה אתה משלם על שכירות הרכב בחודש?';
-  openSheet({title:label,unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'המשך'},function(v){
+  var labels={rent:'כמה אתה משלם על שכירות הרכב בחודש?',finance:'כמה ההחזר החודשי על ההלוואה/מימון?',leasing:'כמה אתה משלם על הליסינג בחודש? (כולל הכל)'};
+  openSheet({title:labels[type],unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'המשך'},function(v){
     wizState.carMonthly=Math.round(v)||0;
-    wizStep3();
+    if(type==='leasing'){
+      wizState.insuranceType='included';wizState.insuranceMonthly=0;
+      wizFinish();
+    }else wizStep3();
   });
 }
 function wizStep3(){
@@ -1943,8 +1956,9 @@ function wizFinish(){
   ensureRentExpense();ensureInsuranceExpense();
   renderSettings();renderHome();
   var daily=Math.round(carDailyCost());
+  var basis=carCostBasisLbl();
   wizShow(
-    '<h3>מוכן ✅</h3><p>עלות הרכב היומית שלך (רכב + ביטוח): <b style="color:var(--ink);font-size:18px">'+fmtInt(daily)+'</b> ליום.<br>אפשר לשנות הכול בכל רגע מ״הגדרות״.</p>'+
+    '<h3>מוכן ✅</h3><p>עלות הרכב היומית שלך ('+basis+'): <b style="color:var(--ink);font-size:18px">'+fmtInt(daily)+'</b> ליום.<br>אפשר לשנות הכול בכל רגע מ״הגדרות״.</p>'+
     '<div class="modal-btns"><button type="button" class="btn ink" id="wizDone" style="flex:1">הבנתי</button></div>'
   );
 }
