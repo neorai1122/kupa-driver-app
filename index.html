@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <style>
 /* ============ פלטה ============ */
 :root{
@@ -77,6 +79,24 @@ svg{display:block}
   animation:bootMark .62s cubic-bezier(.16,.9,.32,1.15) both, brandShine 4s ease-in-out .62s infinite;
   box-shadow:0 22px 60px rgba(242,176,30,.5)}
 @keyframes bootMark{0%{transform:scale(.2) rotate(-40deg);opacity:0}65%{transform:scale(1.22) rotate(7deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+
+/* ============ שער קוד אישי ============ */
+#codeGate{position:fixed;inset:0;z-index:250;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px}
+#codeGate.show{display:flex}
+.cg-card{width:min(360px,100%);animation:cardRise .4s cubic-bezier(.16,.84,.44,1) both}
+.cg-mark{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-size:28px;font-weight:800;color:var(--accent-ink);
+  background:linear-gradient(135deg,#d99a15 0%,var(--accent) 35%,#ffe093 55%,var(--accent) 75%,#d99a15 100%);
+  margin:0 auto 16px;box-shadow:0 12px 30px rgba(242,176,30,.4)}
+.cg-title{font-size:20px;font-weight:800;text-align:center;margin-bottom:6px}
+.cg-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.65;margin-bottom:20px}
+.cg-seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:4px;gap:4px;margin-bottom:16px}
+.cg-seg button{flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:12.5px;color:var(--muted);transition:.15s}
+.cg-seg button.active{background:var(--ink);color:var(--bg)}
+#cgCode{width:100%;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px 16px;
+  font-size:17px;font-weight:700;text-align:center;letter-spacing:1px;margin-bottom:10px}
+#cgCode:focus{border-color:var(--accent)}
+.cg-err{color:var(--red);font-size:12.5px;font-weight:700;text-align:center;min-height:18px;margin-bottom:8px}
+.cg-hint{font-size:11px;color:var(--muted);text-align:center;line-height:1.6;margin-top:14px}
 .icon-btn{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
   background:var(--card);border:1px solid var(--line);color:var(--ink2);transition:.15s}
 .icon-btn:active{transform:scale(.93)}
@@ -455,6 +475,23 @@ html[data-theme="dark"] .track{background:#2b2f34}
 </head>
 <body>
 <div id="bootSplash"><div class="boot-mark">₪</div></div>
+
+<div id="codeGate">
+  <div class="cg-card">
+    <div class="cg-mark">₪</div>
+    <div class="cg-title">קוד אישי שלך</div>
+    <div class="cg-sub">כדי שהנתונים שלך לעולם לא ילכו לאיבוד — גם אם תיכנס מטלפון אחר, דפדפן אחר, או תנקה את המכשיר — תבחר קוד אישי. הוא הדבר היחיד ששומר את הכל.</div>
+    <div class="cg-seg" id="cgSeg">
+      <button data-cgm="new" class="active">קוד חדש שלי</button>
+      <button data-cgm="join">יש לי כבר קוד</button>
+    </div>
+    <input type="text" id="cgCode" placeholder="לדוגמה: דני2026" autocomplete="off" autocapitalize="off" maxlength="24">
+    <div class="cg-err" id="cgErr"></div>
+    <button class="btn amber big" id="cgGo">המשך</button>
+    <div class="cg-hint" id="cgHint">תזכור את הקוד הזה — תצטרך אותו כדי להיכנס ממכשיר נוסף.</div>
+  </div>
+</div>
+
 <div class="app">
   <header class="topbar">
     <div class="brand"><span class="brand-mark">₪</span><span>קופת הנהג</span></div>
@@ -761,6 +798,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
 
       <div class="card">
         <div class="card-title">הנתונים שלי</div>
+        <div class="set-row">
+          <div class="r-lb">קוד אישי<div class="r-sub">מקליד אותו במכשיר נוסף כדי לשחזר את הנתונים</div></div>
+          <div class="set-val"><span class="num" id="syncCodeVal">—</span>
+            <button class="edit-btn" id="syncCodeCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+        </div>
         <div class="data-btns">
           <button class="btn line" id="backupBtn">גיבוי — ייצוא כל הנתונים (JSON)</button>
           <button class="btn line" id="restoreBtn">שחזור מקובץ גיבוי</button>
@@ -850,17 +892,58 @@ html[data-theme="dark"] .track{background:#2b2f34}
 var $=function(s){return document.querySelector(s);};
 var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s));};
 
+/* ==================== ענן — קוד אישי (Firestore) ==================== */
+var CLOUD_COLLECTION='kupaDriverAccounts';
+var db=null;
+try{
+  var fbApp=firebase.initializeApp({
+    apiKey:"AIzaSyAyNdYfgElkFdAXtwBhFYfabZn2RA9tRcw",
+    authDomain:"sodg-272b7.firebaseapp.com",
+    projectId:"sodg-272b7",
+    storageBucket:"sodg-272b7.firebasestorage.app",
+    messagingSenderId:"130888372582",
+    appId:"1:130888372582:web:c7d9ff95f405b2c720b8a7"
+  });
+  db=firebase.firestore();
+}catch(e){db=null;}
+var cloudPushTimer=null,cloudUnsub=null;
+function cloudPush(){
+  if(!db||!state.settings.syncCode)return;
+  clearTimeout(cloudPushTimer);
+  cloudPushTimer=setTimeout(function(){
+    db.collection(CLOUD_COLLECTION).doc(state.settings.syncCode).set({
+      data:JSON.stringify(state),
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(){});
+  },1200);
+}
+function startCloudSync(){
+  if(!db||!state.settings.syncCode||cloudUnsub)return;
+  cloudUnsub=db.collection(CLOUD_COLLECTION).doc(state.settings.syncCode)
+    .onSnapshot(function(snap){
+      if(!snap.exists)return;
+      var d=snap.data();
+      if(!d||!d.data)return;
+      var remote;
+      try{remote=JSON.parse(d.data);}catch(e){return;}
+      if(!remote||(remote.updatedAt||0)<=(state.updatedAt||0))return;
+      state=normState(remote);
+      applyTheme();renderSettings();refreshAll('עודכן ממכשיר אחר ✓');
+    },function(){});
+}
+
 /* ==================== אחסון ==================== */
 var KEY='kupaNehed.v2',OLD='kupaNehed.v1',mem=null;
 function save(){
   state.updatedAt=Date.now();
   try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){mem=JSON.stringify(state);}
+  cloudPush();
 }
 function loadRaw(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
 function normState(d){
   d=d||{};
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
-    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0},d.settings||{});
+    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:''},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
@@ -1838,6 +1921,13 @@ $('#csvBtn').addEventListener('click',function(){
   dl('kupa-'+ymKey(ui.rm.y,ui.rm.m)+'.csv','\ufeff'+rows.join('\r\n'),'text/csv;charset=utf-8');
   toast('הקובץ ירד בהצלחה');
 });
+$('#syncCodeCopy').addEventListener('click',function(){
+  var code=state.settings.syncCode;
+  if(!code){toast('עדיין אין קוד מוגדר');return;}
+  function done(){toast('הקוד הועתק');}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(code).then(done,done);}
+  else{var ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();done();}
+});
 $('#backupBtn').addEventListener('click',function(){
   dl('kupa-backup.json',JSON.stringify(state,null,2),'application/json');
   toast('הגיבוי ירד');
@@ -1964,6 +2054,7 @@ $('#eraseBtn').addEventListener('click',function(){
   });
 });
 function renderSettings(){
+  $('#syncCodeVal').textContent=state.settings.syncCode||'לא הוגדר';
   $('#nameInput').value=state.settings.name||'';
   $('#phoneInput').value=state.settings.ownerPhone||'';
   $('#remindSwitch').checked=!!state.settings.remindOn;
@@ -2070,6 +2161,62 @@ if('IntersectionObserver' in window){
       $('.amount-box').classList.toggle('stuck',!entries[0].isIntersecting);
     },{rootMargin:'-64px 0px 0px 0px',threshold:0}).observe(amtSentinelEl);
   }
+}
+
+/* ==================== שער קוד אישי ==================== */
+var cgMode='new';
+function normCode(c){return (c||'').trim().replace(/\s+/g,' ');}
+function cgSetErr(msg){$('#cgErr').textContent=msg||'';}
+function cgSetLoading(on){
+  $('#cgGo').disabled=on;
+  $('#cgGo').textContent=on?'בודק…':'המשך';
+}
+function showCodeGate(){
+  $('#codeGate').classList.add('show');
+  $('#cgCode').value='';cgSetErr('');
+  $('#cgCode').focus();
+}
+function hideCodeGate(){$('#codeGate').classList.remove('show');}
+$('#cgSeg').addEventListener('click',function(e){
+  var b=e.target.closest('[data-cgm]');if(!b)return;
+  cgMode=b.dataset.cgm;
+  $$('#cgSeg button').forEach(function(x){x.classList.toggle('active',x===b);});
+  $('#cgHint').textContent=cgMode==='new'
+    ?'תזכור את הקוד הזה — תצטרך אותו כדי להיכנס ממכשיר נוסף.'
+    :'הקלד בדיוק את הקוד שבחרת במכשיר הראשון שלך.';
+  cgSetErr('');
+});
+$('#cgCode').addEventListener('keydown',function(e){if(e.key==='Enter')$('#cgGo').click();});
+$('#cgGo').addEventListener('click',function(){
+  var code=normCode($('#cgCode').value);
+  if(code.length<4){cgSetErr('הקוד קצר מדי — לפחות 4 תווים');return;}
+  if(!db){cgSetErr('אין חיבור לענן כרגע — נסה שוב או המשך בלי (בהגדרות)');return;}
+  cgSetErr('');cgSetLoading(true);
+  var ref=db.collection(CLOUD_COLLECTION).doc(code);
+  ref.get().then(function(snap){
+    if(cgMode==='new'){
+      if(snap.exists){cgSetLoading(false);cgSetErr('הקוד הזה כבר תפוס — נסה קוד אחר');return;}
+      return ref.set({data:JSON.stringify(state),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
+        .then(function(){finishCodeGate(code);});
+    }else{
+      if(!snap.exists){cgSetLoading(false);cgSetErr('הקוד הזה לא נמצא — בדוק שהקלדת נכון');return;}
+      var d=snap.data(),remote;
+      try{remote=JSON.parse(d.data);}catch(e){remote=null;}
+      if(!remote){cgSetLoading(false);cgSetErr('שגיאה בטעינת הנתונים, נסה שוב');return;}
+      state=normState(remote);
+      finishCodeGate(code);
+    }
+  }).catch(function(){cgSetLoading(false);cgSetErr('שגיאת תקשורת — נסה שוב');});
+});
+function finishCodeGate(code){
+  state.settings.syncCode=code;
+  save();
+  cgSetLoading(false);
+  hideCodeGate();
+  applyTheme();renderSettings();
+  refreshAll('הקוד הופעל — הנתונים שלך מגובים לתמיד ✓');
+  startCloudSync();
+  if(!state.settings.wizardDone){setTimeout(openWizard,400);}
 }
 
 /* ==================== אשף הגדרת פרופיל (שכירות / מימון / בבעלות) ==================== */
@@ -2223,7 +2370,12 @@ setTimeout(function(){
   var bs=document.getElementById('bootSplash');
   if(bs){bs.classList.add('fadeout');setTimeout(function(){bs.remove();},440);}
 },650);
-if(!state.settings.wizardDone){setTimeout(openWizard,450);}
+if(state.settings.syncCode){
+  startCloudSync();
+  if(!state.settings.wizardDone){setTimeout(openWizard,450);}
+}else{
+  setTimeout(showCodeGate,700);
+}
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('sw.js').then(function(reg){
