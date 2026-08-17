@@ -41,9 +41,11 @@ state = {
     insuranceType,     // '' | 'חובה' | 'צד ג׳' | 'מקיף' | 'included' (בליסינג)
     insuranceMonthly:0, autoIns:true,
     wizardDone:false,  // האם אשף ההגדרה כבר רץ פעם
-    syncCode:''         // הקוד האישי — מפתח לסנכרון בענן (Firestore)
+    syncCode:'',        // הקוד האישי — מפתח לסנכרון בענן (Firestore)
+    lastRidePct:null    // אחוז העמלה האחרון שנבחר, מוצע כברירת מחדל בפעם הבאה
   },
-  tx: [],        // עסקאות {id,type,cat,amount,date,note,ts,method}
+  tx: [],        // עסקאות {id,type,cat,amount,date,note,ts,method,pct}
+                 // pct רלוונטי רק לתנועות rides — אחוז עמלה ספציפי לנסיעה הזו (דורס את settings.pct)
   shifts: [],    // משמרות
   fund: {balance, log:[]},
   meta: {best, goalToast, notified, coveredDay, dismiss},
@@ -58,9 +60,9 @@ state = {
 
 ### לוגיקת סכומים
 
-- `sums(list)` מחזיר `{inc, com, exp, rides}`.
-- עמלת סדרן: `rides × pct / 100`.
-- נטו: `inc − סדרן − exp`.
+- `sums(list)` מחזיר `{inc, com, exp, rides, due}` — `due` מחושב per-transaction לפי `ridePct(t)` של כל נסיעה (לא אחוז גלובלי אחיד).
+- עמלת סדרן: `ridePct(t) = t.pct ?? settings.pct`, מסוכם על כל הנסיעות ל-`due`.
+- נטו: `inc − due − exp`.
 - `carDailyCost()`: `(rent + insuranceMonthly) / workDays`.
 
 ## אשף הגדרת פרופיל רכב

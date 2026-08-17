@@ -316,6 +316,13 @@ main{flex:1;padding:18px 18px 132px}
 .methods button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);
   font-weight:700;font-size:12px;color:var(--muted)}
 .methods button.active{border-color:var(--ink);color:var(--ink);background:var(--bg)}
+.pct-row{display:none;margin-bottom:14px}
+.pct-row.on{display:block}
+.pct-lbl{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:7px}
+.pct-chips{display:flex;gap:6px}
+.pct-chips button{flex:1;padding:9px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);
+  font-weight:700;font-size:12px;color:var(--muted)}
+.pct-chips button.active{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft)}
 .add-meta{display:flex;gap:8px;margin-bottom:14px}
 .add-meta input{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 12px;min-width:0}
 #txDate{width:148px;font-size:13px}
@@ -626,6 +633,16 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <button data-m="bank">העברה בנקאית</button>
       </div>
       <div class="cats" id="catGrid"></div>
+      <div class="pct-row" id="pctRow">
+        <span class="pct-lbl">עמלה לנסיעה הזו</span>
+        <div class="pct-chips" id="pctChips">
+          <button data-pct="10">10%</button>
+          <button data-pct="20">20%</button>
+          <button data-pct="25">25%</button>
+          <button data-pct="30">30%</button>
+          <button data-pct="custom">אחר</button>
+        </div>
+      </div>
       <div class="add-meta">
         <input type="date" id="txDate">
         <input type="text" id="txNote" placeholder="הערה (לא חובה)" maxlength="40">
@@ -758,7 +775,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <label class="switch"><input type="checkbox" id="autoIns" checked><span class="track"></span></label>
         </div>
         <div class="set-row">
-          <div class="r-lb">עמלה לסדרן — מכל נסיעה<div class="r-sub">ברירת מחדל: 30%</div></div>
+          <div class="r-lb">עמלה לסדרן — ברירת מחדל<div class="r-sub">אפשר לשנות לכל נסיעה בנפרד בעת ההוספה</div></div>
           <div class="stepper"><button id="pctDown">−</button><b class="num"><span data-pct>30</span>%</b><button id="pctUp">+</button></div>
         </div>
         <div class="set-row">
@@ -943,7 +960,7 @@ function loadRaw(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):nul
 function normState(d){
   d=d||{};
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
-    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:''},d.settings||{});
+    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
@@ -995,15 +1012,19 @@ function ymKey(y,m){return y+'-'+pad2(m+1);}
 function dObj(iso){var p=iso.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
 function daysInMonth(y,m){return new Date(y,m+1,0).getDate();}
 function monthTx(y,m){var k=ymKey(y,m);return state.tx.filter(function(t){return t.date.slice(0,7)===k;});}
+function ridePct(t){return t.pct!=null?t.pct:state.settings.pct;}
 function sums(list){
-  var inc=0,com=0,exp=0,rides=0;
+  var inc=0,com=0,exp=0,rides=0,due=0;
   for(var i=0;i<list.length;i++){var t=list[i];
-    if(t.type==='income'){inc+=t.amount;if(t.cat==='rides')rides+=t.amount;}
+    if(t.type==='income'){
+      inc+=t.amount;
+      if(t.cat==='rides'){rides+=t.amount;due+=t.amount*ridePct(t)/100;}
+    }
     else if(t.cat==='commission')com+=t.amount;
     else exp+=t.amount;}
-  return{inc:inc,com:com,exp:exp,rides:rides,expAll:com+exp};
+  return{inc:inc,com:com,exp:exp,rides:rides,due:due,expAll:com+exp};
 }
-function sadranDue(s,pct){return (s.rides||0)*pct/100;}
+function sadranDue(s){return s.due||0;}
 function fmt(n){
   if(n<0&&Math.abs(n)<0.005)n=0;
   var s=n<0?'−':'';
@@ -1108,6 +1129,7 @@ function carDailyCost(){
 /* ==================== ניווט ==================== */
 var now=new Date();
 var ui={screen:'home',addType:'income',addCat:'rides',amt:'',method:state.settings.lastMethod||'cash',
+  ridePct:state.settings.lastRidePct||state.settings.pct,
   hm:{y:now.getFullYear(),m:now.getMonth()},lm:{y:now.getFullYear(),m:now.getMonth()},
   rm:{y:now.getFullYear(),m:now.getMonth()},filter:'all',pendingShift:null,day:todayISO()};
 
@@ -1374,9 +1396,10 @@ function txRow(t){
   var c=catById(t.cat);
   var isIn=t.type==='income';
   var isRide=isIn&&t.cat==='rides';
-  var netAmt=isRide?t.amount*(1-state.settings.pct/100):null;
+  var netAmt=isRide?t.amount*(1-ridePct(t)/100):null;
   var bits=[];
   if(isIn&&t.method&&METHODS[t.method])bits.push(METHODS[t.method]);
+  if(isRide)bits.push('עמלה '+ridePct(t)+'%');
   if(t.hours)bits.push(fmtHours(t.hours));
   if(t.note)bits.push(t.note);
   if(t.ts)bits.push(dfTM.format(new Date(t.ts)));
@@ -1518,13 +1541,29 @@ function renderAmt(){
   b.className='btn big '+ui.addType;
   b.textContent=ui.addType==='income'?'הוספת הכנסה':'הוספת הוצאה';
   $('#methods').classList.toggle('on',ui.addType==='income');
+  var isRideCat=ui.addType==='income'&&ui.addCat==='rides';
+  $('#pctRow').classList.toggle('on',isRideCat);
+  if(isRideCat)renderPctChips();
   updateRideHint();
+}
+function renderPctChips(){
+  var presets=[10,20,25,30];
+  $$('#pctChips button').forEach(function(x){
+    var p=x.dataset.pct;
+    if(p==='custom'){
+      var isCustom=presets.indexOf(ui.ridePct)<0;
+      x.classList.toggle('active',isCustom);
+      x.textContent=isCustom?ui.ridePct+'%':'אחר';
+    }else{
+      x.classList.toggle('active',+p===ui.ridePct);
+    }
+  });
 }
 function updateRideHint(){
   var el=$('#rideHint');
   if(ui.addType==='income'&&ui.addCat==='rides'&&amtVal()>0){
-    var due=amtVal()*state.settings.pct/100;
-    el.innerHTML='לסדרן: −'+fmt(due)+' · <b>נשאר לך '+fmt(amtVal()-due)+'</b>';
+    var due=amtVal()*ui.ridePct/100;
+    el.innerHTML='לסדרן ('+ui.ridePct+'%): −'+fmt(due)+' · <b>נשאר לך '+fmt(amtVal()-due)+'</b>';
   }else el.innerHTML='&nbsp;';
 }
 function setSeg(t){
@@ -1540,6 +1579,20 @@ $('#methods').addEventListener('click',function(e){
   $$('#methods button').forEach(function(x){x.classList.toggle('active',x===b);});
   popEl(b,'selpop');
 });
+$('#pctChips').addEventListener('click',function(e){
+  var b=e.target.closest('[data-pct]');if(!b)return;
+  if(b.dataset.pct==='custom'){
+    openSheet({title:'אחוז עמלה מותאם לנסיעה זו',unit:'%',decimals:0,initial:ui.ridePct||'',ok:'אישור'},function(v){
+      if(v>0&&v<=100){
+        ui.ridePct=Math.round(v);state.settings.lastRidePct=ui.ridePct;save();
+        renderPctChips();updateRideHint();
+      }
+    });
+    return;
+  }
+  ui.ridePct=+b.dataset.pct;state.settings.lastRidePct=ui.ridePct;save();
+  renderPctChips();popEl(b,'selpop');updateRideHint();
+});
 
 function buildCats(){
   $('#catGrid').innerHTML=CATS[ui.addType].map(function(c){
@@ -1553,6 +1606,9 @@ $('#catGrid').addEventListener('click',function(e){
   ui.addCat=b.dataset.cat;
   $$('#catGrid .cat').forEach(function(x){x.classList.toggle('active',x.dataset.cat===ui.addCat);});
   popEl(b,'selpop');
+  var isRideCat=ui.addType==='income'&&ui.addCat==='rides';
+  $('#pctRow').classList.toggle('on',isRideCat);
+  if(isRideCat)renderPctChips();
   updateRideHint();
 });
 
@@ -1581,6 +1637,7 @@ $('#saveTx').addEventListener('click',function(){
   var tx={id:uid(),type:ui.addType,cat:ui.addCat,amount:v,date:d,
     note:$('#txNote').value.trim(),ts:Date.now()};
   if(ui.addType==='income')tx.method=ui.method;
+  if(ui.addType==='income'&&ui.addCat==='rides')tx.pct=ui.ridePct;
   if(ui.pendingShift){
     var sh=state.shifts.find(function(x){return x.id===ui.pendingShift;});
     if(sh)tx.hours=Math.round(shiftDurMs(sh,sh.end||Date.now())/3600000*10)/10;
@@ -1914,7 +1971,7 @@ $('#csvBtn').addEventListener('click',function(){
   var q=function(x){return '"'+String(x==null?'':x).replace(/"/g,'""')+'"';};
   list.forEach(function(t){
     var tp=t.type==='income'?'הכנסה':(t.cat==='commission'?'עמלה':'הוצאה');
-    var netC=t.type==='income'&&t.cat==='rides'?(t.amount*(1-state.settings.pct/100)).toFixed(2):'';
+    var netC=t.type==='income'&&t.cat==='rides'?(t.amount*(1-ridePct(t)/100)).toFixed(2):'';
     rows.push([q(t.date),q(tp),q(METHODS[t.method]||''),q(catById(t.cat).label),
       q(t.amount.toFixed(2)),q(netC),q(t.hours||''),q(t.note||'')].join(','));
   });
