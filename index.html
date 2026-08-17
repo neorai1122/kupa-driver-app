@@ -636,11 +636,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div class="pct-row" id="pctRow">
         <span class="pct-lbl">עמלה לנסיעה הזו</span>
         <div class="pct-chips" id="pctChips">
-          <button data-pct="10">10%</button>
-          <button data-pct="20">20%</button>
-          <button data-pct="25">25%</button>
-          <button data-pct="30">30%</button>
-          <button data-pct="custom">אחר</button>
+          <button data-cp="10">10%</button>
+          <button data-cp="12">12%</button>
+          <button data-cp="25">25%</button>
+          <button data-cp="30">30%</button>
+          <button data-cp="custom">אחר</button>
         </div>
       </div>
       <div class="add-meta">
@@ -1547,9 +1547,9 @@ function renderAmt(){
   updateRideHint();
 }
 function renderPctChips(){
-  var presets=[10,20,25,30];
+  var presets=[10,12,25,30];
   $$('#pctChips button').forEach(function(x){
-    var p=x.dataset.pct;
+    var p=x.dataset.cp;
     if(p==='custom'){
       var isCustom=presets.indexOf(ui.ridePct)<0;
       x.classList.toggle('active',isCustom);
@@ -1580,8 +1580,8 @@ $('#methods').addEventListener('click',function(e){
   popEl(b,'selpop');
 });
 $('#pctChips').addEventListener('click',function(e){
-  var b=e.target.closest('[data-pct]');if(!b)return;
-  if(b.dataset.pct==='custom'){
+  var b=e.target.closest('[data-cp]');if(!b)return;
+  if(b.dataset.cp==='custom'){
     openSheet({title:'אחוז עמלה מותאם לנסיעה זו',unit:'%',decimals:0,initial:ui.ridePct||'',ok:'אישור'},function(v){
       if(v>0&&v<=100){
         ui.ridePct=Math.round(v);state.settings.lastRidePct=ui.ridePct;save();
@@ -1590,7 +1590,7 @@ $('#pctChips').addEventListener('click',function(e){
     });
     return;
   }
-  ui.ridePct=+b.dataset.pct;state.settings.lastRidePct=ui.ridePct;save();
+  ui.ridePct=+b.dataset.cp;state.settings.lastRidePct=ui.ridePct;save();
   renderPctChips();popEl(b,'selpop');updateRideHint();
 });
 
