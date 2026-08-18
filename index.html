@@ -757,6 +757,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <div class="set-val"><span class="num" id="rentVal">—</span>
             <button class="edit-btn" data-act="set-rent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
         </div>
+        <div class="set-row" id="billingDayRow">
+          <div class="r-lb">תאריך חיוב בחודש<div class="r-sub">היום שבו יורד לך התשלום בפועל</div></div>
+          <div class="set-val"><span class="num" id="billingDayVal">1</span>
+            <button class="edit-btn" data-act="set-billingday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
+        </div>
         <div class="set-row" id="insRow">
           <div class="r-lb">ביטוח רכב<div class="r-sub" id="insTypeLbl">לא הוגדר</div></div>
           <div class="set-val"><span class="num" id="insVal">—</span>
@@ -960,7 +965,7 @@ function loadRaw(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):nul
 function normState(d){
   d=d||{};
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
-    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null},d.settings||{});
+    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null,billingDay:1},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
@@ -1107,10 +1112,11 @@ function rentNote(){
 }
 function ensureRentExpense(){
   if(!state.settings.autoRent||!(state.settings.rent>0))return;
-  var d=new Date(),k=ymKey(d.getFullYear(),d.getMonth());
+  var d=new Date(),y=d.getFullYear(),m=d.getMonth(),k=ymKey(y,m);
   var exists=state.tx.some(function(t){return t.type==='expense'&&t.cat==='rent'&&t.date.slice(0,7)===k;});
   if(exists)return;
-  state.tx.push({id:uid(),type:'expense',cat:'rent',amount:state.settings.rent,date:k+'-01',note:rentNote(),ts:Date.now()});
+  var day=Math.min(state.settings.billingDay||1,daysInMonth(y,m));
+  state.tx.push({id:uid(),type:'expense',cat:'rent',amount:state.settings.rent,date:k+'-'+pad2(day),note:rentNote(),ts:Date.now()});
   save();
 }
 function ensureInsuranceExpense(){
@@ -1474,6 +1480,13 @@ document.addEventListener('click',function(e){
     openSheet({title:rentTitle,unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'שמירה'},function(v){
       state.settings.rent=Math.round(v);save();ensureRentExpense();
       renderSettings();renderHome();toast('עודכן בהצלחה');
+    });
+  }
+  else if(act==='set-billingday'){
+    openSheet({title:'באיזה תאריך בחודש יורד לך התשלום?',unit:'בחודש',decimals:0,initial:state.settings.billingDay||1,ok:'שמירה'},function(v){
+      var day=Math.round(v)||1;if(day<1)day=1;if(day>31)day=31;
+      state.settings.billingDay=day;save();
+      renderSettings();toast('עודכן — ישפיע מהחודש הבא');
     });
   }
   else if(act==='set-insurance'){
@@ -2128,6 +2141,8 @@ function renderSettings(){
   var isLeasing=state.settings.ownershipType==='leasing';
   $('#rentRow').style.display=isOwned?'none':'';
   $('#autoRentRow').style.display=isOwned?'none':'';
+  $('#billingDayRow').style.display=isOwned?'none':'';
+  $('#billingDayVal').textContent=state.settings.billingDay||1;
   var RENT_LBL={finance:'החזר מימון/הלוואה חודשי',leasing:'תשלום ליסינג חודשי (כולל הכל)'};
   $('#rentRowLbl').textContent=RENT_LBL[state.settings.ownershipType]||'שכירות רכב חודשית';
   $('#insRow').style.display=isLeasing?'none':'';
@@ -2204,7 +2219,8 @@ $('#shPad').addEventListener('click',function(e){
 $('#shOk').addEventListener('click',function(){
   $('#sheet').classList.remove('show');
   var v=parseFloat(shAmt);if(isNaN(v))v=0;
-  if(shCb)shCb(v);shCb=null;shAmt='';
+  var cb=shCb;shCb=null;shAmt='';
+  if(cb)cb(v);
 });
 $('#shCancel').addEventListener('click',function(){$('#sheet').classList.remove('show');shCb=null;shAmt='';});
 $('#sheet').addEventListener('click',function(e){
@@ -2284,7 +2300,7 @@ function wizChoiceBtn(val,title,sub){
 function wizShow(html){$('#wizCard').innerHTML=html;$('#wizModal').classList.add('show');}
 function wizClose(){$('#wizModal').classList.remove('show');wizOnChoice=null;}
 function openWizard(){
-  wizState={ownershipType:null,carMonthly:0,insuranceType:'',insuranceMonthly:0};
+  wizState={ownershipType:null,carMonthly:0,billingDay:state.settings.billingDay||1,insuranceType:'',insuranceMonthly:0};
   wizStep1();
 }
 function wizStep1(){
@@ -2308,6 +2324,13 @@ function wizStep2(type){
   var labels={rent:'כמה אתה משלם על שכירות הרכב בחודש?',finance:'כמה ההחזר החודשי על ההלוואה/מימון?',leasing:'כמה אתה משלם על הליסינג בחודש? (כולל הכל)'};
   openSheet({title:labels[type],unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'המשך'},function(v){
     wizState.carMonthly=Math.round(v)||0;
+    wizStep2b(type);
+  });
+}
+function wizStep2b(type){
+  openSheet({title:'באיזה תאריך בחודש יורד לך התשלום?',unit:'בחודש',decimals:0,initial:wizState.billingDay||1,ok:'המשך'},function(v){
+    var day=Math.round(v)||1;if(day<1)day=1;if(day>31)day=31;
+    wizState.billingDay=day;
     if(type==='leasing'){
       wizState.insuranceType='included';wizState.insuranceMonthly=0;
       wizFinish();
@@ -2340,6 +2363,7 @@ function wizStep4(){
 function wizFinish(){
   state.settings.ownershipType=wizState.ownershipType;
   state.settings.rent=wizState.carMonthly;
+  state.settings.billingDay=wizState.billingDay||1;
   state.settings.insuranceType=wizState.insuranceType||'';
   state.settings.insuranceMonthly=wizState.insuranceMonthly||0;
   state.settings.wizardDone=true;
