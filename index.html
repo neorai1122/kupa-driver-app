@@ -40,25 +40,24 @@ html[data-theme="dark"]{
   --shadow-lg:0 12px 40px rgba(0,0,0,.45);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+html{-webkit-tap-highlight-color:transparent}
 body{
   font-family:'Heebo',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
   background:var(--bg);color:var(--ink);
   overscroll-behavior-y:none;transition:background .25s,color .25s;
   -webkit-font-smoothing:antialiased;
   touch-action:pan-y;
-  overflow-x:hidden;
 }
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 button{font-family:inherit;border:0;background:none;color:inherit;cursor:pointer;touch-action:manipulation}
 input{font-family:inherit;font-size:16px;color:var(--ink)}
 svg{display:block}
-.app{max-width:520px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+.app{max-width:520px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;overflow-x:clip}
 
 /* ============ טופבר ============ */
 .topbar{
   position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;
-  padding:14px 20px 12px;
+  padding:calc(14px + env(safe-area-inset-top)) 20px 12px;
   background:color-mix(in srgb,var(--bg) 85%,transparent);
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--line2);
@@ -285,6 +284,9 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 .today-foot{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.55}
 .today-foot b{color:var(--ink)}
 .ride-hint{text-align:center;font-size:12.5px;color:var(--muted);min-height:20px;margin:8px 0 13px;font-weight:600}
+.amt-suggest{display:block;margin:-6px auto 13px;background:var(--accent-soft);color:var(--accent-ink);
+  border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700}
+.amt-suggest:active{transform:scale(.95)}
 .ride-hint b{color:var(--ink)}
 .mini-link{color:var(--ink);text-decoration:underline;font-weight:700;font-size:11.5px}
 
@@ -325,7 +327,7 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 .shift-banner.on{display:flex}
 .shift-banner svg{width:16px;height:16px;flex:none}
 .amount-box{display:flex;align-items:baseline;justify-content:center;gap:7px;padding:10px 0 14px;
-  position:sticky;top:63px;z-index:30;background:var(--bg);margin:-10px -18px 4px;
+  position:sticky;top:calc(63px + env(safe-area-inset-top));z-index:30;background:var(--bg);margin:-10px -18px 4px;
   border-bottom:1px solid transparent;transition:padding .28s cubic-bezier(.2,.7,.3,1),border-color .28s ease}
 .amount-box.stuck{padding:6px 0 7px;border-color:var(--line2)}
 .amount-box .cur{transition:font-size .28s cubic-bezier(.2,.7,.3,1)}
@@ -343,8 +345,8 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 @keyframes gcPop{0%{transform:scale(.3) rotate(-15deg);opacity:0}60%{transform:scale(1.15) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
 .goal-cel h3,.goal-cel p{text-align:center}
 .goal-cel p{color:var(--muted)}
-.selpop{animation:selPop .32s cubic-bezier(.34,1.7,.64,1)}
-@keyframes selPop{0%{transform:scale(1)}45%{transform:scale(1.1) translateY(-2px)}100%{transform:scale(1)}}
+.selpop{animation:selPop .32s cubic-bezier(.34,1.7,.64,1);position:relative;z-index:2}
+@keyframes selPop{0%{transform:scale(1);box-shadow:none}45%{transform:scale(1.055);box-shadow:0 4px 10px rgba(0,0,0,.16)}100%{transform:scale(1);box-shadow:none}}
 .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px}
 .cat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:10px 3px;
   display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:var(--muted);transition:.12s}
@@ -502,6 +504,14 @@ html[data-theme="dark"] .track{background:#2b2f34}
   background:var(--ink);color:var(--bg);font-weight:700;font-size:13px;padding:11px 20px;border-radius:999px;
   opacity:0;pointer-events:none;transition:.25s;z-index:120;box-shadow:0 8px 30px rgba(0,0,0,.22);white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.undo-toast{display:flex;align-items:center;gap:12px;padding:9px 10px 9px 20px}
+.undo-toast.show{pointer-events:auto}
+.undo-toast #undoBtn{background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:7px 14px;
+  font-weight:800;font-size:12.5px;flex:none}
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none;transition:background .3s}
+.sync-dot.ok{background:var(--green)}
+.sync-dot.warn{background:var(--accent);animation:heroBreathe 1.4s ease-in-out infinite}
+.sync-dot.off{background:var(--red)}
 .road-ask{position:fixed;inset:0;z-index:106;display:flex;align-items:flex-start;justify-content:center;
   padding:0 20px;padding-top:calc(78px + env(safe-area-inset-top));
   background:rgba(8,9,10,0);pointer-events:none;transition:background .35s ease}
@@ -708,6 +718,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div id="amtSentinel" style="height:1px"></div>
       <div class="amount-box"><span id="amtView" class="num">0</span><span class="cur">₪</span></div>
       <div class="ride-hint" id="rideHint"></div>
+      <button type="button" class="amt-suggest" id="amtSuggest" style="display:none"></button>
       <div class="methods" id="methods">
         <button data-m="cash" class="active">מזומן</button>
         <button data-m="bit">ביט</button>
@@ -928,6 +939,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <div class="set-val"><span class="num" id="syncCodeVal">—</span>
             <button class="edit-btn" id="syncCodeCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
         </div>
+        <div class="set-row">
+          <div class="r-lb">מצב סנכרון</div>
+          <div class="set-val"><span class="sync-dot off" id="syncDot"></span><span id="syncStatusTxt" style="font-size:12.5px;font-weight:700">—</span></div>
+        </div>
         <div class="data-btns">
           <button class="btn line" id="backupBtn">גיבוי — ייצוא כל הנתונים (JSON)</button>
           <button class="btn line" id="restoreBtn">שחזור מקובץ גיבוי</button>
@@ -965,6 +980,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="toast undo-toast" id="undoToast">
+  <span id="undoMsg"></span>
+  <button type="button" id="undoBtn">בטל</button>
+</div>
 
 <div class="road-ask" id="roadAsk">
   <div class="ra-card">
@@ -1059,6 +1078,17 @@ try{
   db=firebase.firestore();
 }catch(e){db=null;}
 var cloudPushTimer=null,cloudUnsub=null;
+var cloudStatus=db?'connecting':'unsupported';
+function renderSyncStatus(){
+  var dot=document.getElementById('syncDot'),txt=document.getElementById('syncStatusTxt');
+  if(!dot||!txt)return;
+  if(!state.settings.syncCode){dot.className='sync-dot off';txt.textContent='סנכרון לא הופעל';return;}
+  var map={unsupported:['off','אין חיבור לענן בדפדפן הזה'],connecting:['warn','מתחבר…'],
+    online:['ok','מחובר ומגובה ✓'],offline:['off','לא מחובר — נשמר רק במכשיר']};
+  var m=map[cloudStatus]||map.connecting;
+  dot.className='sync-dot '+m[0];
+  txt.textContent=m[1];
+}
 function cloudPush(){
   if(!db||!state.settings.syncCode)return;
   clearTimeout(cloudPushTimer);
@@ -1066,13 +1096,15 @@ function cloudPush(){
     db.collection(CLOUD_COLLECTION).doc(state.settings.syncCode).set({
       data:JSON.stringify(state),
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-    }).catch(function(){});
+    }).then(function(){cloudStatus='online';renderSyncStatus();})
+      .catch(function(){cloudStatus='offline';renderSyncStatus();});
   },1200);
 }
 function startCloudSync(){
   if(!db||!state.settings.syncCode||cloudUnsub)return;
   cloudUnsub=db.collection(CLOUD_COLLECTION).doc(state.settings.syncCode)
     .onSnapshot(function(snap){
+      cloudStatus='online';renderSyncStatus();
       if(!snap.exists)return;
       var d=snap.data();
       if(!d||!d.data)return;
@@ -1081,7 +1113,7 @@ function startCloudSync(){
       if(!remote||(remote.updatedAt||0)<=(state.updatedAt||0))return;
       state=normState(remote);
       applyTheme();renderSettings();refreshAll('עודכן ממכשיר אחר ✓');
-    },function(){});
+    },function(){cloudStatus='offline';renderSyncStatus();});
 }
 
 /* ==================== אחסון ==================== */
@@ -1100,7 +1132,7 @@ function normState(d){
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
   if(!Array.isArray(d.fund.log))d.fund.log=[];
-  d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{}},d.meta||{});
+  d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{},lastTx:null},d.meta||{});
   if(!d.meta.dismiss)d.meta.dismiss={};
   if(typeof d.updatedAt!=='number')d.updatedAt=0;
   return d;
@@ -1113,12 +1145,15 @@ function load(){
 var state=load();
 
 /* ==================== מה חדש ==================== */
-var APP_VER=5;
+var APP_VER=6;
 var WHATS_NEW=[
-  'אפשר לבחור באיזה תאריך בחודש יורד לך התשלום על הרכב (שכירות/מימון/ליסינג) — לא חייבים תמיד ה-1',
-  'אפשר להגדיר באיזו שעה מתחיל אצלך "יום חדש" (למשל 6 בבוקר) במקום חצות',
-  'נוספה קטגוריית הוצאה "תותים 🍓" לניכויים קטנים שיורדים לך מפעם לפעם',
-  'נסיעה ששולמה ישירות לסדרן — מסמנים את זה בהוספה, וזה יורד אוטומטית מהחוב בלי שתצטרך לחשב'
+  'תוקנה בעיית גלילה תקועה בחלק מהמכשירים (בעיקר סמסונג) ובעיית סכום שנעלם בגלילה',
+  'תוקן מרווח עליון באייפון כדי שהשם לא ייתקע מתחת לשעה',
+  'מחיקת תנועה אפשר עכשיו לבטל תוך כמה שניות — לא נעלם לצמיתות מיד',
+  'לחיצה ארוכה על כפתור ה-+ מוסיפה מיד את התנועה האחרונה שהזנת, בלי להקליד שוב',
+  'הצעת סכום אוטומטית לפי היסטוריה (למשל דלק) כשמוסיפים הוצאה חוזרת',
+  'חיווי "מצב סנכרון" חדש בהגדרות, כדי לדעת תמיד אם הנתונים מגובים',
+  'קיצורי דרך חדשים מהאייקון של האפליקציה: הוספת נסיעה או דלק ישר בלי לפתוח את המסך הראשי'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone)return;
@@ -1338,6 +1373,44 @@ document.addEventListener('pointerdown',function(e){
   b.appendChild(span);
   setTimeout(function(){span.remove();},600);
 });
+
+/* ==================== לחיצה ארוכה על + — חזרה על הפעולה האחרונה ==================== */
+function repeatLastTx(){
+  var lt=state.meta.lastTx;
+  if(!lt){toast('עוד אין תנועה קודמת לחזור עליה');return;}
+  var d=todayISO();
+  var tx={id:uid(),type:lt.type,cat:lt.cat,amount:lt.amount,date:d,note:lt.note||'',ts:Date.now()};
+  if(lt.type==='income')tx.method=lt.method;
+  if(lt.type==='income'&&lt.cat==='rides')tx.pct=lt.pct;
+  state.tx.push(tx);
+  if(lt.method==='direct'&&lt.type==='income'&&lt.cat==='rides'){
+    state.tx.push({id:uid(),type:'expense',cat:'commission',amount:lt.amount,date:d,
+      note:'כיסוי אוטומטי — שולם ישירות לסדרן',ts:Date.now()+1,linkedTx:tx.id});
+  }
+  save();refreshAll();
+  if(navigator.vibrate)try{navigator.vibrate([12,30,12]);}catch(e){}
+  toast('נוסף שוב: '+fmt(lt.amount)+' · '+catById(lt.cat).label+' ✓');
+}
+(function(){
+  var fab=document.querySelector('.tab-fab');
+  if(!fab)return;
+  var holdT=null,longFired=false;
+  fab.addEventListener('pointerdown',function(){
+    longFired=false;
+    holdT=setTimeout(function(){
+      longFired=true;
+      if(navigator.vibrate)try{navigator.vibrate(15);}catch(e){}
+      popEl(fab,'success-pop');
+      repeatLastTx();
+    },550);
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){
+    fab.addEventListener(ev,function(){clearTimeout(holdT);});
+  });
+  fab.addEventListener('click',function(e){
+    if(longFired){e.preventDefault();e.stopImmediatePropagation();longFired=false;}
+  },true);
+})();
 
 /* ==================== בית ==================== */
 function monthLabel(o){return dfMY.format(new Date(o.y,o.m,1));}
@@ -1602,9 +1675,16 @@ document.addEventListener('click',function(e){
   var del=e.target.closest('[data-del]');
   if(del){
     var id=del.dataset.del;
-    confirmBox('מחיקת תנועה','למחוק את התנועה? אי אפשר לשחזר.','מחיקה',function(){
-      state.tx=state.tx.filter(function(t){return t.id!==id;});
-      save();refreshAll('התנועה נמחקה');
+    confirmBox('מחיקת תנועה','למחוק את התנועה?','מחיקה',function(){
+      var idx=state.tx.findIndex(function(t){return t.id===id;});
+      if(idx<0)return;
+      var removed=state.tx[idx];
+      state.tx.splice(idx,1);
+      save();refreshAll();
+      showUndo('התנועה נמחקה',function(){
+        state.tx.splice(idx,0,removed);
+        save();refreshAll('שוחזר ✓');
+      });
     });
     return;
   }
@@ -1722,6 +1802,26 @@ function amtViewStr(){
   var i=(+p[0]||0).toLocaleString('he-IL');
   return p.length>1?i+'.'+p[1]:i;
 }
+function recentAvg(){
+  var matches=state.tx.filter(function(t){return t.type===ui.addType&&t.cat===ui.addCat;}).slice(-5);
+  if(matches.length<2)return 0;
+  return Math.round(matches.reduce(function(s,t){return s+t.amount;},0)/matches.length);
+}
+function updateAmtSuggest(){
+  var el=$('#amtSuggest');
+  if(!el)return;
+  if(ui.amt||ui.addCat==='rides'){el.style.display='none';return;}
+  var avg=recentAvg();
+  if(avg<=0){el.style.display='none';return;}
+  el.textContent='הצעה לפי היסטוריה: '+fmtInt(avg);
+  el.style.display='';
+}
+$('#amtSuggest').addEventListener('click',function(){
+  var avg=recentAvg();if(avg<=0)return;
+  ui.amt=String(avg);
+  renderAmt();
+  popEl($('#amtView'));
+});
 function renderAmt(){
   var v=$('#amtView');
   v.textContent=amtViewStr();
@@ -1737,6 +1837,7 @@ function renderAmt(){
   $('#methods').classList.toggle('faded',isRideCat&&ui.direct);
   if(isRideCat)renderPctChips();
   updateRideHint();
+  updateAmtSuggest();
 }
 function renderPctChips(){
   var presets=[10,12,25,30];
@@ -1814,6 +1915,7 @@ $('#catGrid').addEventListener('click',function(e){
   $('#methods').classList.toggle('faded',isRideCat&&ui.direct);
   if(isRideCat)renderPctChips();
   updateRideHint();
+  updateAmtSuggest();
 });
 
 function popEl(el,cls){cls=cls||'pop';el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);}
@@ -1853,6 +1955,7 @@ $('#saveTx').addEventListener('click',function(){
     state.tx.push({id:uid(),type:'expense',cat:'commission',amount:v,date:d,
       note:'כיסוי אוטומטי — שולם ישירות לסדרן',ts:Date.now()+1,linkedTx:tx.id});
   }
+  state.meta.lastTx={type:tx.type,cat:tx.cat,amount:tx.amount,method:tx.method,pct:tx.pct,note:tx.note};
 
   /* שיאים ויעד */
   var msgs=['נשמר ✓'];
@@ -2390,6 +2493,7 @@ $('#eraseBtn').addEventListener('click',function(){
 });
 function renderSettings(){
   $('#syncCodeVal').textContent=state.settings.syncCode||'לא הוגדר';
+  renderSyncStatus();
   $('#nameInput').value=state.settings.name||'';
   $('#phoneInput').value=state.settings.ownerPhone||'';
   $('#remindSwitch').checked=!!state.settings.remindOn;
@@ -2427,6 +2531,20 @@ function toast(msg){
   var t=$('#toast');t.textContent=msg;t.classList.add('show');
   clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},2400);
 }
+var undoT=null,undoCb=null;
+function showUndo(msg,cb){
+  undoCb=cb;
+  $('#undoMsg').textContent=msg;
+  $('#undoToast').classList.add('show');
+  clearTimeout(undoT);
+  undoT=setTimeout(function(){$('#undoToast').classList.remove('show');undoCb=null;},5000);
+}
+$('#undoBtn').addEventListener('click',function(){
+  clearTimeout(undoT);
+  $('#undoToast').classList.remove('show');
+  if(undoCb)undoCb();
+  undoCb=null;
+});
 
 /* ==================== שאלת כביש 6 אחרי נסיעה ==================== */
 var roadAskT=null;
@@ -2753,7 +2871,20 @@ setTimeout(function(){
 if(state.settings.syncCode){
   startCloudSync();
   if(!state.settings.wizardDone){setTimeout(openWizard,450);}
-  else{setTimeout(maybeShowWhatsNew,900);}
+  else{
+    setTimeout(maybeShowWhatsNew,900);
+    var shortcutParams=new URLSearchParams(location.search);
+    var shortcutCat=shortcutParams.get('add');
+    if(shortcutCat==='rides'||shortcutCat==='fuel'){
+      history.replaceState(null,'',location.pathname);
+      setTimeout(function(){
+        setSeg(shortcutCat==='fuel'?'expense':'income');
+        ui.addCat=shortcutCat;
+        buildCats();renderAmt();
+        go('add');
+      },500);
+    }
+  }
 }else{
   setTimeout(showCodeGate,700);
 }
