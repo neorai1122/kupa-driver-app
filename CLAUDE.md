@@ -43,6 +43,8 @@
 | `manifest.json` | מניפסט PWA |
 | `sw.js` | Service Worker (אופליין + עדכונים) |
 | `guide.html` | מדריך התקנה וענן בעברית |
+| `.github/workflows/deploy.yml` | דיפלוי ל-Pages + יצירת `bc-config.js` מ-secret |
+| `bc-config.js` | **לא בגיט** — allowlist של פיצ'ר ההפצה, נוצר רק ב-CI |
 | `icon-192/512/180/maskable.png` | אייקונים |
 
 ## אחסון וסנכרון ענן (קוד אישי)
@@ -106,3 +108,18 @@ carDailyCost() = (rent + insuranceMonthly) / workDays   (אם total>0)
 ## פריסה
 
 הפרויקט נפרס ל-GitHub Pages. המדריך המלא בקבצים: `guide.html` ו-`README.md`.
+
+**עדכון 2026-08-31: הפריסה עברה מ-"legacy" (branch) ל-"workflow" (GitHub Actions)** — `build_type` שונה דרך `gh api -X PUT repos/.../pages -f build_type=workflow`, כי פיצ'ר ההפצה (למטה) דורש קובץ שנוצר בזמן build מתוך secret ולא נמצא בגיט. `git push` ל-`main` עדיין מפעיל דיפלוי אוטומטית — עכשיו דרך `.github/workflows/deploy.yml`, לא דרך ה-API הישן של `pages/builds`. **אם אי פעם צריך לוודא שדיפלוי הסתיים, תבדקי `gh run list --workflow=deploy.yml` ולא את ה-Pages builds API הישן.**
+
+## פיצ'ר "הפצת נסיעה" (מוסתר — feature flag, נוסף 2026-08-31)
+
+פיצ'ר אישי ומוסתר לגמרי, נבנה במפורש כך שהוא **ידני בלבד — אין אוטומציה, אין שרת שולח הודעות**. המשתמש מעתיק הודעה ולוחץ שלח בעצמו בכל קבוצה, בדיוק כמו `shareSummary()` שכבר קיימת (wa.me). **אל תוסיפי שום דבר ששולח לבד** — זו הייתה דרישה מפורשת ומכוונת של המשתמש אחרי שסירבתי לבנות גרסה מבוססת-בוט (Baileys) בגלל הפרת תנאי שימוש של וואטסאפ.
+
+- **Feature flag** (`isBroadcastAllowed()`): בודק אם `state.settings.syncCode` נמצא ב-`window.BROADCAST_ALLOWLIST`. המשתנה הזה **לא בקוד המקור** — נטען מ-`bc-config.js` (`<script src="bc-config.js" onerror="...">` בראש ה-HTML, לפני הסקריפט הראשי). הקובץ **לא נמצא ב-git** (יש ב-`.gitignore`) ונוצר רק בזמן דיפלוי מ-GitHub Actions secret בשם `BROADCAST_ALLOWLIST` (רשימה מופרדת בפסיקים) — ראה `.github/workflows/deploy.yml`. **להוספת משתמש מורשה בעתיד**: לעדכן את ה-secret ב-GitHub (Settings → Secrets and variables → Actions → `BROADCAST_ALLOWLIST`) עם קודים נוספים מופרדים בפסיק, לא לגעת בקוד.
+  - **מגבלה אמיתית שהוסברה למשתמש**: זה אתר סטטי בלי שרת — גם עם המנגנון הזה, `bc-config.js` בפועל הוא קובץ ציבורי בכתובת ידועה. זה מוציא את הקוד מהיסטוריית git ומדפדפן הרפו הציבורי, אבל לא הופך אותו לסוד אמיתי. אל תבטיחי סודיות מוחלטת אם שואלים.
+  - לבדיקה מקומית: יוצרים `bc-config.js` ידני (מחוץ לגיט) עם הקוד האמיתי לבדיקות Playwright.
+- **UI מוסתר לגמרי**: `#bcTab` (טאב תחתון) ו-`#bcSettingsCard` (בהגדרות) מתחילים עם `display:none` ב-HTML, ונחשפים רק דרך JS ב-`applyFeatureFlags()` (נקראת מ-`renderSettings()`, שכבר רץ בעליית האפליקציה ואחרי `finishCodeGate()`). ב-`go(id)`: אם `id==='broadcast'` ו-`!isBroadcastAllowed()` — מפנה ל-`home` בשקט, כהגנה נוספת (לא אמיתית — מי שפותח devtools ומשנה classList ידנית עדיין יכול לראות; זו הגנת UI רגילה, לא אבטחה).
+- **State**: `state.bcGroups` (מערך `{id,name,link,fav}`), `state.bcHistory` (מערך `{id,text,ts}`, מוגבל ל-20 אחרונות), `state.bcSession` (`{text,sentIds}` — עוקב אחרי אילו קבוצות כבר "נשלח" עבור ההודעה הנוכחית; מתאפס אוטומטית כשהטקסט משתנה, או ידנית עם `#bcResetSent`). `state.settings.bcSignature` (ברירת מחדל: `'לבקש באישי בלבד'`).
+- **מנגנון שליחה** (`$('#bcGroupList')` click handler): מעתיק ללוח (`copyToClipboard()`, עם fallback ל-`execCommand('copy')` לדפדפנים ישנים) ואז `window.open(g.link)` לקישור ההזמנה של הקבוצה. **אין `wa.me` עם `?text=` לקבוצות** — זה עובד רק לצ'אט אישי, לא לקבוצה קיימת, ולכן חובה להעתיק+לפתוח בנפרד ולתת למשתמש להדביק.
+- קישורי קבוצה מאומתים ב-`bcFormSave` שמתחילים ב-`https://chat.whatsapp.com/` בלבד.
+- נבדק: משתמש לא ברשימה לא רואה כלום; ההודעה המועתקת כוללת את החתימה במלואה; פתיחת קבוצה פותחת את הקישור הנכון; הכול ב-Playwright מול Firestore אמיתי (קוד בדיקה נמחק בסוף).
