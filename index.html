@@ -16,7 +16,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="bc-config.js" onerror="window.BROADCAST_ALLOWLIST=window.BROADCAST_ALLOWLIST||[];"></script>
 <style>
 /* ============ פלטה ============ */
 :root{
@@ -558,31 +557,6 @@ html[data-theme="dark"] .track{background:#2b2f34}
 .pad.slim button{height:50px;font-size:19px}
 .sheet-btns{display:flex;gap:9px;margin-top:4px}
 .sheet-btns .btn{flex:1}
-
-/* ============ הפצת נסיעה ============ */
-#bcText{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:14px;
-  padding:12px 14px;font-size:14.5px;line-height:1.5;resize:vertical;min-height:110px}
-.bc-sig-preview{margin-top:8px;padding:9px 12px;background:var(--line2);border-radius:10px;
-  font-size:12px;color:var(--muted);font-weight:600}
-.bc-sig-preview b{color:var(--ink)}
-.bc-group-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line2)}
-.bc-group-row:last-child{border-bottom:0}
-.bc-gname{flex:1;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:5px;min-width:0}
-.bc-gname span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bc-gopen{background:var(--green-soft);color:var(--green);border-radius:999px;padding:7px 13px;
-  font-size:12px;font-weight:800;flex:none;transition:transform .15s}
-.bc-gopen:active{transform:scale(.93)}
-.bc-gopen.sent{background:var(--line2);color:var(--muted)}
-.bc-empty{color:var(--muted);font-size:12.5px;padding:10px 0;text-align:center}
-.bc-manage-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line2)}
-.bc-manage-row:last-child{border-bottom:0}
-.bc-manage-row .bc-mname{flex:1;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bc-star{color:var(--muted);flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:9px}
-.bc-star.on{color:var(--accent)}
-.bc-hist-row{padding:9px 0;border-bottom:1px dashed var(--line2);cursor:pointer}
-.bc-hist-row:last-child{border-bottom:0}
-.bc-hist-row .bc-htext{font-size:12.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
-.bc-hist-row .bc-hdate{font-size:11px;color:var(--muted);margin-top:2px}
 </style>
 </head>
 <body>
@@ -977,44 +951,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
         </div>
       </div>
 
-      <div class="card" id="bcSettingsCard" style="display:none">
-        <div class="card-title">הפצת נסיעה</div>
-        <div class="set-row">
-          <div class="r-lb">חתימה קבועה<div class="r-sub">מתווספת אוטומטית בסוף כל הודעה</div></div>
-        </div>
-        <input type="text" id="bcSigInput" placeholder="לבקש באישי בלבד" maxlength="60" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-top:4px">
-      </div>
-
       <div class="card">
         <button class="btn danger big" id="eraseBtn" style="width:100%">מחיקת כל התנועות</button>
       </div>
 
       <div class="about">קופת הנהג · גרסה 2.2<br>עובד אופליין · כל הנתונים אצלך<br>כל הנתונים נשמרים רק במכשיר שלך · ללא שרת, ללא הרשמה</div>
-    </section>
-
-    <!-- ================= הפצת נסיעה (מוסתר, feature flag) ================= -->
-    <section class="screen" id="s-broadcast">
-      <div class="rep-title" style="margin-bottom:14px">הפצת נסיעה</div>
-
-      <div class="card">
-        <div class="card-title">ההודעה</div>
-        <textarea id="bcText" rows="5" placeholder="לדוגמה:&#10;נסיעה מאשדוד לבני ברק&#10;היום 18:00&#10;מחיר: 60 ש״ח&#10;איסוף: ליד הקניון"></textarea>
-        <div class="bc-sig-preview" id="bcSigPreview"></div>
-        <button class="btn line big" id="bcCopyBtn" style="margin-top:12px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-          העתקת ההודעה</button>
-      </div>
-
-      <div class="card">
-        <div class="card-title">קבוצות<button class="btn line sm" id="bcManageBtn">ניהול קבוצות</button></div>
-        <div id="bcGroupList"></div>
-        <button class="btn line sm" id="bcResetSent" style="margin-top:10px;width:100%">איפוס סימוני "נשלח" (הפצה חדשה)</button>
-      </div>
-
-      <div class="card">
-        <div class="card-title">היסטוריית הודעות</div>
-        <div id="bcHistList"></div>
-      </div>
     </section>
   </main>
 
@@ -1034,9 +975,6 @@ html[data-theme="dark"] .track{background:#2b2f34}
     </button>
     <button class="tab" data-go="settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2"/><circle cx="10" cy="16" r="2"/></svg>הגדרות
-    </button>
-    <button class="tab" data-go="broadcast" id="bcTab" style="display:none">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h1l4 4v-4h6a2 2 0 0 0 2-2v-2"/><path d="M18 8a4 4 0 0 0-4-4H8a4 4 0 0 0 0 8"/></svg>הפצה
     </button>
   </nav>
 </div>
@@ -1080,33 +1018,6 @@ html[data-theme="dark"] .track{background:#2b2f34}
     <h3>הגעת ליעד החודשי!</h3>
     <p>כל הכבוד, ממשיכים ככה</p>
     <button type="button" class="btn ink" id="gcOk" style="width:100%;margin-top:10px">מעולה</button>
-  </div>
-</div>
-
-<div class="modal" id="bcManageModal">
-  <div class="modal-card" style="max-width:380px">
-    <h3>ניהול קבוצות</h3>
-    <div id="bcManageList" style="margin-top:10px;max-height:50vh;overflow-y:auto"></div>
-    <button type="button" class="btn line" id="bcAddGroupBtn" style="width:100%;margin-top:12px">+ הוספת קבוצה</button>
-    <div class="modal-btns"><button type="button" class="btn ink" id="bcManageClose" style="flex:1">סגירה</button></div>
-  </div>
-</div>
-
-<div class="modal" id="bcGroupForm">
-  <div class="modal-card">
-    <h3 id="bcFormTitle">קבוצה חדשה</h3>
-    <div class="set-row" style="display:block;padding:8px 0">
-      <div class="r-lb" style="margin-bottom:6px">שם הקבוצה</div>
-      <input type="text" id="bcFormName" placeholder="למשל: נהגי אשדוד" maxlength="40" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px">
-    </div>
-    <div class="set-row" style="display:block;padding:8px 0">
-      <div class="r-lb" style="margin-bottom:6px">קישור הזמנה לקבוצה</div>
-      <input type="text" id="bcFormLink" placeholder="https://chat.whatsapp.com/..." dir="ltr" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;text-align:left">
-    </div>
-    <div class="modal-btns">
-      <button type="button" class="btn line" id="bcFormCancel" style="flex:1">ביטול</button>
-      <button type="button" class="btn ink" id="bcFormSave" style="flex:1">שמירה</button>
-    </div>
   </div>
 </div>
 
@@ -1216,24 +1127,18 @@ function loadRaw(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):nul
 function normState(d){
   d=d||{};
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
-    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null,billingDay:1,dayStartHour:0,lastSeenVer:0,soundOn:false,
-    bcSignature:'לבקש באישי בלבד'},d.settings||{});
+    ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null,billingDay:1,dayStartHour:0,lastSeenVer:0,soundOn:false
+    },d.settings||{});
+  delete d.settings.bcSignature;
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
   if(!Array.isArray(d.fund.log))d.fund.log=[];
   d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{},lastTx:null},d.meta||{});
   if(!d.meta.dismiss)d.meta.dismiss={};
-  if(!Array.isArray(d.bcGroups))d.bcGroups=[];
-  if(!Array.isArray(d.bcHistory))d.bcHistory=[];
-  if(!d.bcSession||typeof d.bcSession!=='object')d.bcSession={text:'',sentIds:[]};
-  if(!Array.isArray(d.bcSession.sentIds))d.bcSession.sentIds=[];
+  delete d.bcGroups;delete d.bcHistory;delete d.bcSession;
   if(typeof d.updatedAt!=='number')d.updatedAt=0;
   return d;
-}
-function isBroadcastAllowed(){
-  var list=window.BROADCAST_ALLOWLIST;
-  return Array.isArray(list)&&list.indexOf(state.settings.syncCode)>-1;
 }
 function load(){
   var d=loadRaw(KEY)||loadRaw(OLD);
@@ -1440,7 +1345,6 @@ function slidePill(pill,active){
 function movePill(){slidePill($('#tabPill'),document.querySelector('.tab.active'));}
 function moveSegPill(){slidePill($('#segPill'),document.querySelector('#typeSeg .active'));}
 function go(id){
-  if(id==='broadcast'&&!isBroadcastAllowed())id='home';
   ui.screen=id;
   $$('.screen').forEach(function(s){s.classList.remove('active');});
   $('#s-'+id).classList.add('active');
@@ -1450,7 +1354,6 @@ function go(id){
   if(id==='home')renderHome();
   if(id==='list')renderList();
   if(id==='reports')renderReports();
-  if(id==='broadcast')renderBroadcast();
   window.scrollTo({top:0});
   movePill();
 }
@@ -2594,8 +2497,6 @@ $('#eraseBtn').addEventListener('click',function(){
 function renderSettings(){
   $('#syncCodeVal').textContent=state.settings.syncCode||'לא הוגדר';
   renderSyncStatus();
-  applyFeatureFlags();
-  $('#bcSigInput').value=state.settings.bcSignature||'';
   $('#nameInput').value=state.settings.name||'';
   $('#phoneInput').value=state.settings.ownerPhone||'';
   $('#remindSwitch').checked=!!state.settings.remindOn;
@@ -2951,215 +2852,6 @@ window.addEventListener('resize',function(){
     if(ui.screen==='home')drawWeek();
     if(ui.screen==='reports')renderReports();
   },160);
-});
-
-/* ==================== הפצת נסיעה (feature flag — מוסתר חוץ מהרשימה) ==================== */
-function escapeHtml(s){
-  return String(s==null?'':s).replace(/[&<>"']/g,function(c){
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-  });
-}
-function applyFeatureFlags(){
-  var allowed=isBroadcastAllowed();
-  var tab=$('#bcTab'),card=$('#bcSettingsCard');
-  if(tab)tab.style.display=allowed?'':'none';
-  if(card)card.style.display=allowed?'':'none';
-}
-function bcSigText(){return (state.settings.bcSignature||'').trim()||'לבקש באישי בלבד';}
-function bcFullMessage(){
-  var body=($('#bcText').value||'').trim();
-  if(!body)return '';
-  return body+'\n\n'+bcSigText();
-}
-function renderBcSigPreview(){
-  $('#bcSigPreview').innerHTML='מתווסף אוטומטית בסוף: <b>'+escapeHtml(bcSigText())+'</b>';
-}
-function sortedBcGroups(){
-  return state.bcGroups.slice().sort(function(a,b){return (b.fav?1:0)-(a.fav?1:0);});
-}
-function renderBcGroups(){
-  var list=$('#bcGroupList');if(!list)return;
-  var groups=sortedBcGroups();
-  if(!groups.length){
-    list.innerHTML='<div class="bc-empty">עוד אין קבוצות — לחץ על "ניהול קבוצות" כדי להוסיף</div>';
-    return;
-  }
-  var sentIds=state.bcSession.sentIds||[];
-  list.innerHTML=groups.map(function(g){
-    var sent=sentIds.indexOf(g.id)>-1;
-    return '<div class="bc-group-row">'+
-      '<span class="bc-gname">'+(g.fav?'⭐ ':'')+'<span>'+escapeHtml(g.name)+'</span></span>'+
-      '<button type="button" class="bc-gopen'+(sent?' sent':'')+'" data-gid="'+g.id+'">'+(sent?'נשלח ✓':'פתח ושלח')+'</button>'+
-      '</div>';
-  }).join('');
-}
-function renderBcHistory(){
-  var list=$('#bcHistList');if(!list)return;
-  if(!state.bcHistory.length){
-    list.innerHTML='<div class="bc-empty">עוד אין הודעות בהיסטוריה</div>';
-    return;
-  }
-  list.innerHTML=state.bcHistory.slice().reverse().map(function(h){
-    return '<div class="bc-hist-row" data-hid="'+h.id+'">'+
-      '<div class="bc-htext">'+escapeHtml(h.text.split('\n')[0])+'</div>'+
-      '<div class="bc-hdate">'+new Date(h.ts).toLocaleString('he-IL')+'</div></div>';
-  }).join('');
-}
-function renderBroadcast(){
-  if(!isBroadcastAllowed())return;
-  renderBcSigPreview();
-  renderBcGroups();
-  renderBcHistory();
-}
-$('#bcText').addEventListener('input',renderBcSigPreview);
-async function copyToClipboard(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    return true;
-  }catch(e){
-    try{
-      var ta=document.createElement('textarea');
-      ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
-      document.body.appendChild(ta);ta.select();
-      document.execCommand('copy');
-      ta.remove();
-      return true;
-    }catch(e2){return false;}
-  }
-}
-function bcSaveToHistory(text){
-  var recent=state.bcHistory[state.bcHistory.length-1];
-  if(recent&&recent.text===text)return;
-  state.bcHistory.push({id:uid(),text:text,ts:Date.now()});
-  if(state.bcHistory.length>20)state.bcHistory=state.bcHistory.slice(-20);
-}
-$('#bcCopyBtn').addEventListener('click',async function(){
-  var full=bcFullMessage();
-  if(!full){toast('קודם כותבים הודעה');return;}
-  var ok=await copyToClipboard(full);
-  if(ok){
-    bcSaveToHistory(($('#bcText').value||'').trim());
-    if(state.bcSession.text!==($('#bcText').value||'').trim()){
-      state.bcSession={text:($('#bcText').value||'').trim(),sentIds:[]};
-      renderBcGroups();
-    }
-    save();
-    renderBcHistory();
-    toast('ההודעה הועתקה ✓');
-  }else{
-    toast('לא הצלחתי להעתיק — נסה שוב');
-  }
-});
-$('#bcGroupList').addEventListener('click',async function(e){
-  var b=e.target.closest('[data-gid]');if(!b)return;
-  var g=state.bcGroups.find(function(x){return x.id===b.dataset.gid;});
-  if(!g)return;
-  var full=bcFullMessage();
-  if(!full){toast('קודם כותבים הודעה למעלה');return;}
-  await copyToClipboard(full);
-  var curText=($('#bcText').value||'').trim();
-  if(state.bcSession.text!==curText)state.bcSession={text:curText,sentIds:[]};
-  bcSaveToHistory(curText);
-  if(state.bcSession.sentIds.indexOf(g.id)<0)state.bcSession.sentIds.push(g.id);
-  save();
-  renderBcGroups();
-  renderBcHistory();
-  window.open(g.link,'_blank');
-});
-$('#bcResetSent').addEventListener('click',function(){
-  state.bcSession={text:($('#bcText').value||'').trim(),sentIds:[]};
-  save();renderBcGroups();
-  toast('סימוני השליחה אופסו');
-});
-$('#bcHistList').addEventListener('click',function(e){
-  var row=e.target.closest('[data-hid]');if(!row)return;
-  var h=state.bcHistory.find(function(x){return x.id===row.dataset.hid;});
-  if(!h)return;
-  $('#bcText').value=h.text;
-  renderBcSigPreview();
-  toast('ההודעה נטענה לתיבה');
-});
-/* --- ניהול קבוצות --- */
-var bcEditingId=null;
-function renderBcManageList(){
-  var list=$('#bcManageList');
-  var groups=sortedBcGroups();
-  if(!groups.length){
-    list.innerHTML='<div class="bc-empty">אין עדיין קבוצות</div>';
-    return;
-  }
-  list.innerHTML=groups.map(function(g){
-    return '<div class="bc-manage-row">'+
-      '<button type="button" class="bc-star'+(g.fav?' on':'')+'" data-fav="'+g.id+'">'+
-        '<svg viewBox="0 0 24 24" width="17" height="17" fill="'+(g.fav?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 17l-5.6 3.1 1.4-6.3-4.8-4.3 6.4-.6z"/></svg></button>'+
-      '<span class="bc-mname">'+escapeHtml(g.name)+'</span>'+
-      '<button type="button" class="edit-btn" data-edit="'+g.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button>'+
-      '<button type="button" class="edit-btn" data-rm="'+g.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/></svg></button>'+
-      '</div>';
-  }).join('');
-}
-$('#bcManageBtn').addEventListener('click',function(){
-  renderBcManageList();
-  $('#bcManageModal').classList.add('show');
-});
-$('#bcManageClose').addEventListener('click',function(){$('#bcManageModal').classList.remove('show');});
-$('#bcManageModal').addEventListener('click',function(e){if(e.target.id==='bcManageModal')$('#bcManageModal').classList.remove('show');});
-$('#bcManageList').addEventListener('click',function(e){
-  var fav=e.target.closest('[data-fav]');
-  if(fav){
-    var g=state.bcGroups.find(function(x){return x.id===fav.dataset.fav;});
-    if(g){g.fav=!g.fav;save();renderBcManageList();renderBcGroups();}
-    return;
-  }
-  var edit=e.target.closest('[data-edit]');
-  if(edit){
-    var g2=state.bcGroups.find(function(x){return x.id===edit.dataset.edit;});
-    if(!g2)return;
-    bcEditingId=g2.id;
-    $('#bcFormTitle').textContent='עריכת קבוצה';
-    $('#bcFormName').value=g2.name;
-    $('#bcFormLink').value=g2.link;
-    $('#bcGroupForm').classList.add('show');
-    return;
-  }
-  var rm=e.target.closest('[data-rm]');
-  if(rm){
-    var id=rm.dataset.rm;
-    confirmBox('מחיקת קבוצה','למחוק את הקבוצה מהרשימה?','מחיקה',function(){
-      state.bcGroups=state.bcGroups.filter(function(x){return x.id!==id;});
-      save();renderBcManageList();renderBcGroups();
-    });
-  }
-});
-$('#bcAddGroupBtn').addEventListener('click',function(){
-  bcEditingId=null;
-  $('#bcFormTitle').textContent='קבוצה חדשה';
-  $('#bcFormName').value='';
-  $('#bcFormLink').value='';
-  $('#bcGroupForm').classList.add('show');
-});
-$('#bcFormCancel').addEventListener('click',function(){$('#bcGroupForm').classList.remove('show');});
-$('#bcGroupForm').addEventListener('click',function(e){if(e.target.id==='bcGroupForm')$('#bcGroupForm').classList.remove('show');});
-$('#bcFormSave').addEventListener('click',function(){
-  var name=($('#bcFormName').value||'').trim();
-  var link=($('#bcFormLink').value||'').trim();
-  if(!name){toast('צריך שם לקבוצה');return;}
-  if(!/^https:\/\/chat\.whatsapp\.com\//.test(link)){toast('קישור לא תקין — צריך להתחיל ב-chat.whatsapp.com');return;}
-  if(bcEditingId){
-    var g=state.bcGroups.find(function(x){return x.id===bcEditingId;});
-    if(g){g.name=name;g.link=link;}
-  }else{
-    state.bcGroups.push({id:uid(),name:name,link:link,fav:false});
-  }
-  save();
-  $('#bcGroupForm').classList.remove('show');
-  renderBcManageList();renderBcGroups();
-  toast('נשמר ✓');
-});
-/* חתימת הפצה בהגדרות */
-$('#bcSigInput').addEventListener('change',function(){
-  state.settings.bcSignature=($('#bcSigInput').value||'').trim();
-  save();
 });
 
 /* ==================== הפעלה ==================== */
