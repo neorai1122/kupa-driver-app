@@ -941,6 +941,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
           </div>
         </div>
         <div class="set-row">
+          <div class="r-lb">החודש שלך מתחיל ביום<div class="r-sub">לא חייבים שה"חודש" יתחיל תמיד ב-1</div></div>
+          <div class="set-val"><span class="num" id="monthStartVal">1</span>
+            <button class="edit-btn" data-act="set-monthstart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
+        </div>
+        <div class="set-row">
           <div class="r-lb">תזכורת סגירת יום<div class="r-sub">אם לא נרשמה הכנסה עד השעה</div></div>
           <label class="switch"><input type="checkbox" id="remindSwitch"><span class="track"></span></label>
         </div>
@@ -1093,6 +1098,21 @@ html[data-theme="dark"] .track{background:#2b2f34}
   </div>
 </div>
 
+<div class="modal" id="monthCycleModal">
+  <div class="modal-card">
+    <div class="gc-badge">📅</div>
+    <h3>מתי מתחיל אצלך "החודש"?</h3>
+    <p style="margin-top:6px;color:var(--muted);font-size:13px;line-height:1.5">
+      עד היום כל "חודש" באפליקציה תמיד התחיל ב-1. אם אתה עובד לפי תאריך אחר (תשלומים, משמרות, מה שבא לך) —
+      אפשר לבחור כאן יום התחלה משלך. זה <b>לא נוגע בשום תנועה שכבר יש לך</b>, רק משנה איך מסכמים אותן קדימה.
+    </p>
+    <div class="modal-btns" style="margin-top:16px">
+      <button type="button" class="btn line" id="mcOther" style="flex:1">אני רוצה תאריך אחר</button>
+      <button type="button" class="btn ink" id="mcDefault" style="flex:1">1 בחודש מתאים לי</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="bcManageModal">
   <div class="modal-card" style="max-width:380px">
     <h3>ניהול קבוצות</h3>
@@ -1228,7 +1248,7 @@ function normState(d){
   d=d||{};
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
     ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null,billingDay:1,dayStartHour:0,lastSeenVer:0,soundOn:false,
-    bcSignature:'לבקש באישי בלבד',botUrl:'',botKey:''},d.settings||{});
+    bcSignature:'לבקש באישי בלבד',botUrl:'',botKey:'',monthStartDay:1,monthCycleSet:false},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
@@ -1254,25 +1274,41 @@ function load(){
 var state=load();
 
 /* ==================== מה חדש ==================== */
-var APP_VER=6;
+var APP_VER=7;
 var WHATS_NEW=[
-  'תוקנה בעיית גלילה תקועה בחלק מהמכשירים (בעיקר סמסונג) ובעיית סכום שנעלם בגלילה',
-  'תוקן מרווח עליון באייפון כדי שהשם לא ייתקע מתחת לשעה',
-  'מחיקת תנועה אפשר עכשיו לבטל תוך כמה שניות — לא נעלם לצמיתות מיד',
-  'לחיצה ארוכה על כפתור ה-+ מוסיפה מיד את התנועה האחרונה שהזנת, בלי להקליד שוב',
-  'הצעת סכום אוטומטית לפי היסטוריה (למשל דלק) כשמוסיפים הוצאה חוזרת',
-  'חיווי "מצב סנכרון" חדש בהגדרות, כדי לדעת תמיד אם הנתונים מגובים',
-  'קיצורי דרך חדשים מהאייקון של האפליקציה: הוספת נסיעה או דלק ישר בלי לפתוח את המסך הראשי'
+  'אפשר לבחור באיזה יום בחודש "החודש" שלך מתחיל (בהגדרות) — לא חייבים תמיד ה-1',
+  'תשלום שכירות/ביטוח חודשי שיורד לך כבר לא מתערבב עם "היום שלך" — הוא נספר רק בסיכום החודשי, נשאר תמיד במסך התנועות המלא'
 ];
 function maybeShowWhatsNew(){
-  if(!state.settings.wizardDone)return;
-  if((state.settings.lastSeenVer||0)>=APP_VER)return;
+  if(!state.settings.wizardDone){return;}
+  if((state.settings.lastSeenVer||0)>=APP_VER){maybeShowMonthCycle();return;}
   $('#wnList').innerHTML=WHATS_NEW.map(function(x){return '<li>'+x+'</li>';}).join('');
   $('#whatsNewModal').classList.add('show');
 }
+function maybeShowMonthCycle(){
+  if(!state.settings.wizardDone)return;
+  if(state.settings.monthCycleSet)return;
+  $('#monthCycleModal').classList.add('show');
+}
+function applyNewMonthStart(day){
+  state.settings.monthStartDay=day;state.settings.monthCycleSet=true;save();
+  var cyc0=cycleOf(todayISO());ui.hm={y:cyc0.y,m:cyc0.m};ui.lm={y:cyc0.y,m:cyc0.m};ui.rm={y:cyc0.y,m:cyc0.m};
+  refreshAll(day===1?'סבבה, נשאר ככה':'עודכן — כל התצוגות התעדכנו לפי המחזור החדש');
+}
+$('#mcDefault').addEventListener('click',function(){
+  $('#monthCycleModal').classList.remove('show');
+  applyNewMonthStart(1);
+});
+$('#mcOther').addEventListener('click',function(){
+  $('#monthCycleModal').classList.remove('show');
+  openDayPicker({title:'באיזה יום בחודש אתה רוצה שה"חודש" שלך יתחיל?',initial:state.settings.monthStartDay||1},function(day){
+    applyNewMonthStart(day);
+  });
+});
 function closeWhatsNew(){
   state.settings.lastSeenVer=APP_VER;save();
   $('#whatsNewModal').classList.remove('show');
+  setTimeout(maybeShowMonthCycle,400);
 }
 
 var CATS={
@@ -1314,7 +1350,24 @@ function shiftISO(iso,days){var p=iso.split('-');return isoOf(new Date(+p[0],+p[
 function ymKey(y,m){return y+'-'+pad2(m+1);}
 function dObj(iso){var p=iso.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
 function daysInMonth(y,m){return new Date(y,m+1,0).getDate();}
-function monthTx(y,m){var k=ymKey(y,m);return state.tx.filter(function(t){return t.date.slice(0,7)===k;});}
+/* מחזור חודשי אישי — "חודש" יכול להתחיל בכל יום, לא רק ב-1 */
+function cycleStartDate(y,m){
+  var sd=Math.min(state.settings.monthStartDay||1,daysInMonth(y,m));
+  return new Date(y,m,sd);
+}
+function cycleStartISO(y,m){return isoOf(cycleStartDate(y,m));}
+function cycleEndISO(y,m){return cycleStartISO(y,m+1);}
+function cycleDayCount(y,m){return Math.round((cycleStartDate(y,m+1)-cycleStartDate(y,m))/86400000);}
+function cycleOf(iso){
+  var d=dObj(iso),y=d.getFullYear(),m=d.getMonth();
+  var sd=Math.min(state.settings.monthStartDay||1,daysInMonth(y,m));
+  if(d.getDate()<sd){m--;if(m<0){m=11;y--;}}
+  return{y:y,m:m};
+}
+function monthTx(y,m){
+  var s=cycleStartISO(y,m),e=cycleEndISO(y,m);
+  return state.tx.filter(function(t){return t.date>=s&&t.date<e;});
+}
 function ridePct(t){return t.pct!=null?t.pct:state.settings.pct;}
 function sums(list){
   var inc=0,com=0,exp=0,rides=0,due=0;
@@ -1379,8 +1432,8 @@ function hoursOnDay(iso){
   return h/3600000;
 }
 function hoursInMonth(y,m){
-  var k=ymKey(y,m),nowTs=Date.now(),h=0;
-  state.shifts.forEach(function(s){if(shiftDay(s).slice(0,7)===k)h+=shiftDurMs(s,nowTs);});
+  var s0=cycleStartISO(y,m),e0=cycleEndISO(y,m),nowTs=Date.now(),h=0;
+  state.shifts.forEach(function(s){var d=shiftDay(s);if(d>=s0&&d<e0)h+=shiftDurMs(s,nowTs);});
   return h/3600000;
 }
 function fmtHours(h){
@@ -1415,7 +1468,7 @@ function ensureRentExpense(){
   var exists=state.tx.some(function(t){return t.type==='expense'&&t.cat==='rent'&&t.date.slice(0,7)===k;});
   if(exists)return;
   var day=Math.min(state.settings.billingDay||1,daysInMonth(y,m));
-  state.tx.push({id:uid(),type:'expense',cat:'rent',amount:state.settings.rent,date:k+'-'+pad2(day),note:rentNote(),ts:Date.now()});
+  state.tx.push({id:uid(),type:'expense',cat:'rent',amount:state.settings.rent,date:k+'-'+pad2(day),note:rentNote(),ts:Date.now(),lumpAuto:true});
   save();
 }
 function ensureInsuranceExpense(){
@@ -1423,7 +1476,7 @@ function ensureInsuranceExpense(){
   var d=new Date(),k=ymKey(d.getFullYear(),d.getMonth());
   var exists=state.tx.some(function(t){return t.type==='expense'&&t.cat==='insurance'&&t.date.slice(0,7)===k;});
   if(exists)return;
-  state.tx.push({id:uid(),type:'expense',cat:'insurance',amount:state.settings.insuranceMonthly,date:k+'-01',note:'ביטוח חודשי',ts:Date.now()});
+  state.tx.push({id:uid(),type:'expense',cat:'insurance',amount:state.settings.insuranceMonthly,date:k+'-01',note:'ביטוח חודשי',ts:Date.now(),lumpAuto:true});
   save();
 }
 function carDailyCost(){
@@ -1433,10 +1486,11 @@ function carDailyCost(){
 
 /* ==================== ניווט ==================== */
 var now=new Date();
+var curCycle=cycleOf(todayISO());
 var ui={screen:'home',addType:'income',addCat:'rides',amt:'',method:state.settings.lastMethod||'cash',direct:false,
   ridePct:state.settings.lastRidePct||state.settings.pct,
-  hm:{y:now.getFullYear(),m:now.getMonth()},lm:{y:now.getFullYear(),m:now.getMonth()},
-  rm:{y:now.getFullYear(),m:now.getMonth()},filter:'all',pendingShift:null,day:todayISO()};
+  hm:{y:curCycle.y,m:curCycle.m},lm:{y:curCycle.y,m:curCycle.m},
+  rm:{y:curCycle.y,m:curCycle.m},filter:'all',pendingShift:null,day:todayISO()};
 
 function slidePill(pill,active){
   if(!pill)return;
@@ -1524,7 +1578,15 @@ function repeatLastTx(){
 })();
 
 /* ==================== בית ==================== */
-function monthLabel(o){return dfMY.format(new Date(o.y,o.m,1));}
+function monthLabel(o){
+  if((state.settings.monthStartDay||1)<=1)return dfMY.format(new Date(o.y,o.m,1));
+  var start=cycleStartDate(o.y,o.m),end=new Date(cycleStartDate(o.y,o.m+1).getTime()-86400000);
+  return dfDM.format(start)+' – '+dfDM.format(end);
+}
+function monthLabelShort(o){
+  if((state.settings.monthStartDay||1)<=1)return dfMY.format(new Date(o.y,o.m,1)).split(' ')[0];
+  return dfDM.format(cycleStartDate(o.y,o.m));
+}
 function dayLabel(iso){
   if(iso===todayISO())return 'היום שלך';
   if(iso===shiftISO(todayISO(),-1))return 'אתמול';
@@ -1584,7 +1646,7 @@ function renderHome(){
     chip.innerHTML=(up
       ?'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l7 12H5z"/></svg>'
       :'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20 5 8h14z"/></svg>')+
-      Math.abs(Math.round(d))+'% מול '+dfMY.format(new Date(py,pm,1)).split(' ')[0];
+      Math.abs(Math.round(d))+'% מול '+monthLabelShort({y:py,m:pm});
   }else chip.style.display='none';
 
   animateNum($('#hInc'),s.inc,fmt);
@@ -1595,7 +1657,7 @@ function renderHome(){
   var td=ui.day;
   $('#dLbl').textContent=dayLabel(td);
   $('#dNext').disabled=td>=todayISO();
-  var dTx=state.tx.filter(function(x){return x.date===td;});
+  var dTx=state.tx.filter(function(x){return x.date===td&&!x.lumpAuto;});
   var dS=sums(dTx);
   var dDue=sadranDue(dS,pct);
   var dNetIn=dS.inc-dDue;
@@ -1619,6 +1681,12 @@ function renderHome(){
     if(dS.com>0)footHtml+=' · שולם בפועל: '+fmt(dS.com);
   }else{
     footHtml='כדאי להגדיר <b>שכירות רכב חודשית</b> ולראות כאן כמה הרכב עולה ביום · <button class="mini-link" data-act="open-settings">להגדרות</button>';
+  }
+  var lumpToday=state.tx.filter(function(x){return x.date===td&&x.lumpAuto;});
+  if(lumpToday.length){
+    footHtml+='<br><span style="opacity:.7">גם ירד היום '+
+      lumpToday.map(function(x){return catById(x.cat).label+' '+fmt(x.amount);}).join(', ')+
+      ' — זה נספר בחישוב החודשי למעלה, לא במאזן היומי כאן</span>';
   }
   $('#tFoot').innerHTML=footHtml;
 
@@ -1646,8 +1714,8 @@ function renderHome(){
   /* קרן */
   animateNum($('#fundNum'),state.fund.balance,fmt);
   var rec=Math.max(0,net)*state.settings.fundPct/100;
-  var mk=ymKey(ui.hm.y,ui.hm.m);
-  var doneM=state.fund.log.filter(function(l){return l.delta>0&&new Date(l.ts).getFullYear()===ui.hm.y&&new Date(l.ts).getMonth()===ui.hm.m;})
+  var fundS=cycleStartISO(ui.hm.y,ui.hm.m),fundE=cycleEndISO(ui.hm.y,ui.hm.m);
+  var doneM=state.fund.log.filter(function(l){var li=isoOf(new Date(l.ts));return l.delta>0&&li>=fundS&&li<fundE;})
     .reduce(function(a,l){return a+l.delta;},0);
   $('#fundSub').textContent=rec>0
     ?('מומלץ להפריש '+fmt(rec)+' החודש ('+state.settings.fundPct+'% מהנטו) · הופקד '+fmt(doneM))
@@ -1679,8 +1747,10 @@ function renderGoal(net){
   }
   var p=Math.max(0,Math.min(1,net/g));
   var off=RING_C*(1-p);
-  var daysLeft=daysInMonth(ui.hm.y,ui.hm.m)-new Date().getDate();
-  var sameMonth=ymKey(ui.hm.y,ui.hm.m)===ymKey(now.getFullYear(),now.getMonth());
+  var todayIso0=todayISO();
+  var cycS=cycleStartISO(ui.hm.y,ui.hm.m),cycE=cycleEndISO(ui.hm.y,ui.hm.m);
+  var sameMonth=todayIso0>=cycS&&todayIso0<cycE;
+  var daysLeft=sameMonth?Math.round((dObj(cycE)-dObj(todayIso0))/86400000):cycleDayCount(ui.hm.y,ui.hm.m);
   var reached=net>=g;
   card.innerHTML='<div class="mini-head"><span class="lbl">יעד חודשי</span>'+
     '<button class="edit-btn" data-act="set-goal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>'+
@@ -1854,6 +1924,13 @@ document.addEventListener('click',function(e){
     openDayPicker({title:'באיזה תאריך בחודש יורד לך התשלום?',initial:state.settings.billingDay||1},function(day){
       state.settings.billingDay=day;save();
       renderSettings();toast('עודכן — ישפיע מהחודש הבא');
+    });
+  }
+  else if(act==='set-monthstart'){
+    openDayPicker({title:'באיזה יום בחודש אתה רוצה שה"חודש" שלך יתחיל?',initial:state.settings.monthStartDay||1},function(day){
+      state.settings.monthStartDay=day;state.settings.monthCycleSet=true;save();
+      var cyc0=cycleOf(todayISO());ui.hm={y:cyc0.y,m:cyc0.m};ui.lm={y:cyc0.y,m:cyc0.m};ui.rm={y:cyc0.y,m:cyc0.m};
+      renderSettings();refreshAll('עודכן — כל התצוגות התעדכנו לפי המחזור החדש');
     });
   }
   else if(act==='set-insurance'){
@@ -2087,7 +2164,7 @@ $('#saveTx').addEventListener('click',function(){
   }
   save();
 
-  ui.hm.y=+d.slice(0,4);ui.hm.m=+d.slice(5,7)-1;ui.day=d;
+  var cyc0=cycleOf(d);ui.hm.y=cyc0.y;ui.hm.m=cyc0.m;ui.day=d;
   ui.amt='';$('#txNote').value='';
   ui.direct=false;$('#directSwitch').checked=false;$('#methods').classList.remove('faded');
   var sbtn=$('#saveTx');
@@ -2180,7 +2257,8 @@ function renderReports(){
   /* שבוע מול שבוע */
   var dow=new Date().getDay();
   var w0=shiftISO(todayISO(),-dow);
-  var sameMonth=w0.slice(0,7)===ymKey(ui.rm.y,ui.rm.m)||todayISO().slice(0,7)===ymKey(ui.rm.y,ui.rm.m);
+  var rmS=cycleStartISO(ui.rm.y,ui.rm.m),rmE=cycleEndISO(ui.rm.y,ui.rm.m);
+  var sameMonth=(w0>=rmS&&w0<rmE)||(todayISO()>=rmS&&todayISO()<rmE);
   var wl=$('#weekLine');
   if(sameMonth){
     var rangeSum=function(a,b){return sums(state.tx.filter(function(t){return t.date>=a&&t.date<=b;})).inc;};
@@ -2226,14 +2304,16 @@ function heatColor(net,maxAbs){
 }
 function renderHeatmap(pct){
   var grid=$('#heatGrid');if(!grid)return;
-  var y=ui.rm.y,m=ui.rm.m,n=daysInMonth(y,m),k=ymKey(y,m),today=todayISO();
-  var nets=[],i,iso,dTx,dS,net,maxAbs=1;
-  for(i=1;i<=n;i++){
-    iso=k+'-'+pad2(i);
+  var y=ui.rm.y,m=ui.rm.m,today=todayISO();
+  var start=cycleStartDate(y,m),n=cycleDayCount(y,m);
+  var nets=[],i,iso,dt,dTx,dS,net,maxAbs=1;
+  for(i=0;i<n;i++){
+    dt=new Date(start.getTime()+i*86400000);
+    iso=isoOf(dt);
     dTx=state.tx.filter(function(x){return x.date===iso;});
     dS=sums(dTx);
     net=dS.inc-sadranDue(dS,pct)-dS.exp;
-    nets.push({day:i,iso:iso,net:net});
+    nets.push({day:dt.getDate(),iso:iso,net:net});
     maxAbs=Math.max(maxAbs,Math.abs(net));
   }
   grid.innerHTML=nets.map(function(o){
@@ -2316,11 +2396,15 @@ function drawMonth(){
   var g=setupCanvas(c);if(!g)return;
   var wrap=$('#monthChartWrap');if(wrap)wrap.classList.add('loaded');
   var ctx=g.ctx,w=g.w,h=g.h;
-  var n=daysInMonth(ui.rm.y,ui.rm.m);
-  var k=ymKey(ui.rm.y,ui.rm.m);
-  var maxI=1,maxE=1,arr=[],i,s;
-  for(i=1;i<=n;i++){s=daySums(k+'-'+pad2(i));arr.push(s);
-    maxI=Math.max(maxI,s.inc);maxE=Math.max(maxE,s.exp);}
+  var cycStart=cycleStartDate(ui.rm.y,ui.rm.m);
+  var n=cycleDayCount(ui.rm.y,ui.rm.m);
+  var dayNums=[],maxI=1,maxE=1,arr=[],i,s,dt,iso;
+  for(i=0;i<n;i++){
+    dt=new Date(cycStart.getTime()+i*86400000);iso=isoOf(dt);
+    dayNums.push(dt.getDate());
+    s=daySums(iso);arr.push(s);
+    maxI=Math.max(maxI,s.inc);maxE=Math.max(maxE,s.exp);
+  }
   var mid=h*0.5,top=6,bot=18;
   var up=mid-top-5,down=h-bot-mid-5;
   var slot=w/n,bw=Math.max(2,Math.min(8,slot*0.55));
@@ -2341,9 +2425,9 @@ function drawMonth(){
       if(eh>0.5){rrUp(ctx,cx-bw/2,mid+eh,bw,eh,2);ctx.fill();}
     }
     ctx.fillStyle=MUTED;ctx.font='9.5px Heebo, Arial';ctx.textAlign='center';
-    [1,5,10,15,20,25,n].forEach(function(d){
-      if(d>n)return;
-      ctx.fillText(String(d),slot*(d-1)+slot/2,h-4);
+    [0,4,9,14,19,24,n-1].forEach(function(idx){
+      if(idx<0||idx>=n)return;
+      ctx.fillText(String(dayNums[idx]),slot*idx+slot/2,h-4);
     });
     if(e<1)requestAnimationFrame(frame);
   }
@@ -2619,6 +2703,7 @@ function renderSettings(){
   $('#rentVal').textContent=state.settings.rent?fmtInt(state.settings.rent):'לא הוגדר';
   $('#wdVal').textContent=state.settings.workDays;
   $('#dshInput').value=pad2(state.settings.dayStartHour||0)+':00';
+  $('#monthStartVal').textContent=state.settings.monthStartDay||1;
   $('#autoRent').checked=!!state.settings.autoRent;
   $('#autoIns').checked=!!state.settings.autoIns;
   var OWN_LBL={rent:'שכירות',finance:'מימון / הלוואה',leasing:'ליסינג (הכל כלול)',owned:'בבעלותי, בלי תשלום חודשי'};
@@ -2799,6 +2884,7 @@ $('#cgGo').addEventListener('click',function(){
     if(cgMode==='new'){
       if(snap.exists){cgSetLoading(false);cgSetErr('הקוד הזה כבר תפוס — נסה קוד אחר');return;}
       state.settings.lastSeenVer=APP_VER;
+      state.settings.monthCycleSet=true;
       return ref.set({data:JSON.stringify(state),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
         .then(function(){finishCodeGate(code);});
     }else{
