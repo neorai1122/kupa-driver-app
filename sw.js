@@ -1,5 +1,5 @@
 /* קופת הנהג — Service Worker: עבודה מלאה אופליין */
-var CACHE = 'kupa-v3-11';
+var CACHE = 'kupa-v3-12';
 var ASSETS = [
   './',
   './index.html',

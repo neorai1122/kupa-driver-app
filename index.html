@@ -343,6 +343,16 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 .num.record-glow{animation:recordGlow 2.4s ease-out}
 @keyframes recordGlow{0%{text-shadow:0 0 0 rgba(242,176,30,0)}20%{text-shadow:0 0 14px rgba(242,176,30,.85)}100%{text-shadow:0 0 0 rgba(242,176,30,0)}}
 .gc-badge{font-size:52px;text-align:center;margin-bottom:6px;animation:gcPop .6s cubic-bezier(.34,1.56,.64,1)}
+.voice-mic{width:64px;height:64px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);
+  display:grid;place-items:center;margin:0 auto 14px;position:relative}
+.voice-mic svg{width:26px;height:26px}
+.voice-mic::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--accent);
+  opacity:0;animation:voicePulse 1.6s ease-out infinite}
+.voice-mic.ok{background:var(--green-soft);color:var(--green)}
+.voice-mic.ok::after{display:none}
+.voice-mic.fail{background:var(--red-soft);color:var(--red)}
+.voice-mic.fail::after{display:none}
+@keyframes voicePulse{0%{transform:scale(.85);opacity:.6}100%{transform:scale(1.35);opacity:0}}
 @keyframes gcPop{0%{transform:scale(.3) rotate(-15deg);opacity:0}60%{transform:scale(1.15) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
 .goal-cel h3,.goal-cel p{text-align:center}
 .goal-cel p{color:var(--muted)}
@@ -607,10 +617,15 @@ html[data-theme="dark"] .track{background:#2b2f34}
 <div class="app">
   <header class="topbar">
     <div class="brand"><span class="brand-mark">₪</span><span>קופת הנהג</span></div>
-    <button class="icon-btn" id="themeBtn" title="מצב לילה">
-      <svg id="icMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
-      <svg id="icSun" class="ic-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-    </button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="icon-btn" id="voiceBtn" title="כסף קולי" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M9 22h6"/></svg>
+      </button>
+      <button class="icon-btn" id="themeBtn" title="מצב לילה">
+        <svg id="icMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+        <svg id="icSun" class="ic-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
   </header>
 
   <main>
@@ -817,6 +832,23 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--accent)"></span>סדרן <span data-pct>30</span>%</div><div class="m-vl num" id="rCom">₪0</div></div>
         <div class="metric"><div class="m-lb">נטו לשעה</div><div class="m-vl num" id="rPerHour">—</div></div>
         <div class="metric"><div class="m-lb">ימי עבודה</div><div class="m-vl num" id="rDays">0</div></div>
+      </div>
+
+      <div class="card" id="carNewsCard">
+        <div class="card-title">חדשות רכב וכביש</div>
+        <div class="set-row">
+          <div class="r-lb">מחיר בנזין 95 (שירות עצמי)<div class="r-sub" id="fuelPriceUpdated">מעודכן לספטמבר 2026</div></div>
+          <div class="set-val"><span class="num" id="fuelPriceVal">₪8.25</span></div>
+        </div>
+        <p style="margin-top:4px;color:var(--muted);font-size:11px">אין באינטרנט מקור אוטומטי ורשמי למחיר הדלק בזמן אמת — המספר הזה מתעדכן ידנית מדי חודש, לא לבד.</p>
+        <div class="rep-actions" style="margin-top:12px">
+          <button class="btn line" id="trafficLinkBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h1l4 4v-4h6a2 2 0 0 0 2-2v-2"/><path d="M18 8a4 4 0 0 0-4-4H8a4 4 0 0 0 0 8"/></svg>
+            תנועה חיה בכבישים</button>
+          <button class="btn line" id="motLinkBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            הודעות משרד התחבורה</button>
+        </div>
       </div>
       <div class="week-line" id="weekLine"></div>
 
@@ -1098,6 +1130,42 @@ html[data-theme="dark"] .track{background:#2b2f34}
   </div>
 </div>
 
+<div class="modal" id="voiceModal">
+  <div class="modal-card" id="voiceCard" style="text-align:center">
+    <div id="voiceListening">
+      <div class="voice-mic" id="voiceMicIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M9 22h6"/></svg>
+      </div>
+      <h3 id="voiceStatus">מקשיב...</h3>
+      <p style="color:var(--muted);font-size:12.5px;margin-top:4px">למשל: "הכנסה 250 שקל ביט" או "הוצאה 50 דלק"</p>
+      <button type="button" class="btn line" id="voiceCancel" style="width:100%;margin-top:16px">ביטול</button>
+    </div>
+    <div id="voiceConfirm" style="display:none">
+      <div class="voice-mic ok" id="voiceOkIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h3 id="voiceResultTitle">זיהיתי:</h3>
+      <div id="voiceResultBody" style="font-size:15px;font-weight:700;margin-top:6px"></div>
+      <p id="voiceRawText" style="color:var(--muted);font-size:11.5px;margin-top:8px"></p>
+      <div class="modal-btns" style="margin-top:16px">
+        <button type="button" class="btn line" id="voiceEdit" style="flex:1">לערוך</button>
+        <button type="button" class="btn ink" id="voiceSave" style="flex:1">שמירה</button>
+      </div>
+    </div>
+    <div id="voiceFail" style="display:none">
+      <div class="voice-mic fail" id="voiceFailIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </div>
+      <h3>לא הצלחתי להבין</h3>
+      <p id="voiceFailMsg" style="color:var(--muted);font-size:12.5px;margin-top:4px">נסה שוב ותגיד את הסכום בבירור</p>
+      <div class="modal-btns" style="margin-top:16px">
+        <button type="button" class="btn line" id="voiceFailClose" style="flex:1">סגירה</button>
+        <button type="button" class="btn ink" id="voiceRetry" style="flex:1">נסה שוב</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="monthCycleModal">
   <div class="modal-card">
     <div class="gc-badge">📅</div>
@@ -1274,10 +1342,11 @@ function load(){
 var state=load();
 
 /* ==================== מה חדש ==================== */
-var APP_VER=7;
+var APP_VER=8;
 var WHATS_NEW=[
-  'אפשר לבחור באיזה יום בחודש "החודש" שלך מתחיל (בהגדרות) — לא חייבים תמיד ה-1',
-  'תשלום שכירות/ביטוח חודשי שיורד לך כבר לא מתערבב עם "היום שלך" — הוא נספר רק בסיכום החודשי, נשאר תמיד במסך התנועות המלא'
+  'תוקן באג ותיק: סימן המינוס במספרים שליליים הופיע לפעמים במקום הלא נכון',
+  'חדש: "כסף קולי" — כפתור מיקרופון למעלה, אומרים למשל "הכנסה 250 ביט" והוא ממלא לבד',
+  'נוסף כרטיס "חדשות רכב וכביש" בדוחות — מחיר דלק עדכני + קישורים מהירים לתנועה בכבישים ולמשרד התחבורה'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
@@ -1381,12 +1450,14 @@ function sums(list){
   return{inc:inc,com:com,exp:exp,rides:rides,due:due,expAll:com+exp};
 }
 function sadranDue(s){return s.due||0;}
+var LRI='⁦',PDI='⁩';
+function bidiNum(s){return LRI+s+PDI;}
 function fmt(n){
   if(n<0&&Math.abs(n)<0.005)n=0;
   var s=n<0?'−':'';
-  return s+'₪'+Math.abs(n).toLocaleString('he-IL',{maximumFractionDigits:2});
+  return bidiNum(s+'₪'+Math.abs(n).toLocaleString('he-IL',{maximumFractionDigits:2}));
 }
-function fmtInt(n){return '₪'+Math.round(Math.abs(n)).toLocaleString('he-IL');}
+function fmtInt(n){return bidiNum('₪'+Math.round(Math.abs(n)).toLocaleString('he-IL'));}
 var numAnimState={};
 var pendingRecordGlow=false;
 function animateNum(el,to,fmtFn){
@@ -1650,8 +1721,8 @@ function renderHome(){
   }else chip.style.display='none';
 
   animateNum($('#hInc'),s.inc,fmt);
-  animateNum($('#hCom'),sadranDue(s,pct),function(v){return '−'+fmt(v);});
-  animateNum($('#hExp'),s.exp,function(v){return '−'+fmt(v);});
+  animateNum($('#hCom'),sadranDue(s,pct),function(v){return bidiNum('−'+fmt(v));});
+  animateNum($('#hExp'),s.exp,function(v){return bidiNum('−'+fmt(v));});
 
   /* ===== כרטיס "היום שלך" ===== */
   var td=ui.day;
@@ -1663,11 +1734,11 @@ function renderHome(){
   var dNetIn=dS.inc-dDue;
   var car=carDailyCost();
   var bal=dNetIn-dS.exp-car;
-  $('#tRides').textContent=(dNetIn>=0?'+':'')+fmt(dNetIn);
-  $('#tExp').textContent='−'+fmt(dS.exp);
-  $('#tCar').textContent=car>0?'−'+fmtInt(car):'—';
+  $('#tRides').textContent=bidiNum((dNetIn>=0?'+':'')+fmt(dNetIn));
+  $('#tExp').textContent=bidiNum('−'+fmt(dS.exp));
+  $('#tCar').textContent=car>0?bidiNum('−'+fmtInt(car)):'—';
   var tn=$('#tNet');
-  tn.textContent=(bal>=0?'+':'')+fmt(bal);
+  tn.textContent=bidiNum((bal>=0?'+':'')+fmt(bal));
   tn.style.color=bal>=0?'var(--green)':'var(--red)';
   if(pendingRecordGlow&&td===todayISO()){pendingRecordGlow=false;popEl(tn,'record-glow');}
   $('#tCarCost').textContent=car>0?carCostBasisLbl()+': '+fmtInt(car)+' ליום':'';
@@ -1844,7 +1915,7 @@ function txRow(t){
     '<div class="tx-ic">'+c.icon+'</div>'+
     '<div class="tx-mid"><div class="tx-cat">'+c.label+'</div><div class="tx-note">'+bits.join(' · ')+'</div></div>'+
     '<div class="tx-amt-wrap">'+
-      '<div class="tx-amt num '+(isIn?'in':'out')+'">'+(isIn?'+':'−')+fmt(t.amount)+'</div>'+
+      '<div class="tx-amt num '+(isIn?'in':'out')+'">'+bidiNum((isIn?'+':'−')+fmt(t.amount))+'</div>'+
       (isRide?'<div class="tx-net num">נטו '+fmtInt(netAmt)+'</div>':'')+
     '</div>'+
     '<button class="tx-del" data-del="'+t.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>'+
@@ -1960,6 +2031,116 @@ function quickAdd(type,cat,amount,note){
   if(note)$('#txNote').value=note;
 }
 
+/* ==================== כסף קולי ==================== */
+function parseVoiceCommand(text){
+  text=(text||'').trim();
+  var out={type:null,cat:null,amount:null,method:null,pct:null,raw:text};
+  var pctMatch=text.match(/(\d{1,3})\s*(?:%|אחוז)/);
+  var textForAmount=text;
+  if(pctMatch)textForAmount=text.replace(pctMatch[0],' ');
+  var amtMatch=textForAmount.match(/(\d+(?:[.,]\d+)?)/);
+  if(amtMatch)out.amount=parseFloat(amtMatch[1].replace(',','.'));
+  var EXP_KEYS=[[/דלק|תדלוק/,'fuel'],[/תחזוקה|טיפול/,'maintenance'],[/רחיצה|שטיפה/,'wash'],
+    [/ביטוח/,'insurance'],[/אגרה|כביש\s*6|כביש\s*שש/,'tolls'],[/תותים/,'totim'],
+    [/אוכל/,'food'],[/עמלה|לסדרן/,'commission']];
+  var INC_KEYS=[[/טיפ/,'tips'],[/החזר/,'refund'],[/נסיעה|נסיעות/,'rides']];
+  var expCat=null,incCat=null;
+  EXP_KEYS.forEach(function(p){if(!expCat&&p[0].test(text))expCat=p[1];});
+  INC_KEYS.forEach(function(p){if(!incCat&&p[0].test(text))incCat=p[1];});
+  var saysExpense=/הוצאה/.test(text),saysIncome=/הכנסה/.test(text);
+  if(saysExpense||(expCat&&!saysIncome&&!incCat)){
+    out.type='expense';out.cat=expCat||'other_ex';
+  }else{
+    out.type='income';out.cat=incCat||'rides';
+  }
+  if(out.type==='income'){
+    if(/ביט/.test(text))out.method='bit';
+    else if(/מזומן/.test(text))out.method='cash';
+    else if(/אשראי/.test(text))out.method='credit';
+    else if(/העברה/.test(text))out.method='bank';
+  }
+  if(out.cat==='rides'&&pctMatch)out.pct=Math.max(1,Math.min(100,parseInt(pctMatch[1],10)));
+  return out;
+}
+var voiceRec=null,voiceParsed=null;
+function voiceSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
+function showVoicePane(id){
+  ['voiceListening','voiceConfirm','voiceFail'].forEach(function(p){$('#'+p).style.display=p===id?'':'none';});
+}
+function openVoiceModal(){
+  showVoicePane('voiceListening');
+  $('#voiceStatus').textContent='מקשיב...';
+  $('#voiceModal').classList.add('show');
+  startVoiceListening();
+}
+function closeVoiceModal(){
+  $('#voiceModal').classList.remove('show');
+  if(voiceRec){try{voiceRec.stop();}catch(e){}}
+}
+function startVoiceListening(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showVoiceFail('הדפדפן הזה לא תומך בזיהוי קולי');return;}
+  try{
+    voiceRec=new SR();
+    voiceRec.lang='he-IL';
+    voiceRec.interimResults=false;
+    voiceRec.maxAlternatives=1;
+    voiceRec.onresult=function(e){
+      var text=e.results[0][0].transcript;
+      handleVoiceResult(text);
+    };
+    voiceRec.onerror=function(e){
+      var msgs={'not-allowed':'אין הרשאה למיקרופון — אפשר את זה בהגדרות הדפדפן','no-speech':'לא שמעתי כלום, נסה שוב','network':'בעיית רשת, נסה שוב'};
+      showVoiceFail(msgs[e.error]||'משהו השתבש, נסה שוב');
+    };
+    voiceRec.onend=function(){};
+    voiceRec.start();
+  }catch(e){showVoiceFail('לא הצלחתי להפעיל את המיקרופון');}
+}
+function showVoiceFail(msg){
+  showVoicePane('voiceFail');
+  $('#voiceFailMsg').textContent=msg||'נסה שוב ותגיד את הסכום בבירור';
+}
+function handleVoiceResult(text){
+  var p=parseVoiceCommand(text);
+  if(!p.amount||p.amount<=0){
+    showVoiceFail('לא הצלחתי לזהות סכום — נסה שוב ותגיד מספר ברור');
+    return;
+  }
+  voiceParsed=p;
+  var catLbl=catById(p.cat).label;
+  var bits=[p.type==='income'?'הכנסה':'הוצאה',fmtInt(p.amount),catLbl];
+  if(p.method)bits.push(METHODS[p.method]);
+  if(p.pct!=null)bits.push('עמלה '+p.pct+'%');
+  $('#voiceResultBody').textContent=bits.join(' · ');
+  $('#voiceRawText').textContent='"'+text+'"';
+  showVoicePane('voiceConfirm');
+}
+$('#voiceBtn').addEventListener('click',openVoiceModal);
+$('#voiceCancel').addEventListener('click',closeVoiceModal);
+$('#voiceFailClose').addEventListener('click',closeVoiceModal);
+$('#voiceRetry').addEventListener('click',function(){showVoicePane('voiceListening');$('#voiceStatus').textContent='מקשיב...';startVoiceListening();});
+$('#voiceModal').addEventListener('click',function(e){if(e.target.id==='voiceModal')closeVoiceModal();});
+$('#voiceEdit').addEventListener('click',function(){
+  var p=voiceParsed;if(!p)return;
+  closeVoiceModal();
+  quickAdd(p.type,p.cat,p.amount);
+  if(p.method){ui.method=p.method;$$('#methods button').forEach(function(x){x.classList.toggle('active',x.dataset.m===p.method);});}
+  if(p.pct!=null&&p.cat==='rides'){ui.ridePct=p.pct;renderPctChips();}
+  updateRideHint();
+});
+$('#voiceSave').addEventListener('click',function(){
+  var p=voiceParsed;if(!p)return;
+  closeVoiceModal();
+  setSeg(p.type);ui.addCat=p.cat;buildCats();
+  ui.amt=String(p.amount);renderAmt();
+  ui.direct=false;
+  if(p.method){ui.method=p.method;state.settings.lastMethod=p.method;}
+  if(p.pct!=null&&p.cat==='rides')ui.ridePct=p.pct;
+  $('#txDate').value=todayISO();
+  $('#saveTx').click();
+});
+
 /* ==================== וואטסאפ ==================== */
 function shareSummary(){
   var isRep=ui.screen==='reports';
@@ -1981,6 +2162,9 @@ function shareSummary(){
   var url='https://wa.me/'+(phone?phone+'?':'?')+'text='+encodeURIComponent(lines.join('\n'));
   window.open(url,'_blank');
 }
+var trafficLinkBtnEl=$('#trafficLinkBtn'),motLinkBtnEl=$('#motLinkBtn');
+if(trafficLinkBtnEl)trafficLinkBtnEl.addEventListener('click',function(){window.open('https://www.google.com/maps','_blank');});
+if(motLinkBtnEl)motLinkBtnEl.addEventListener('click',function(){window.open('https://www.gov.il/he/departments/ministry_of_transport_and_road_safety','_blank');});
 
 /* ==================== הוספה ==================== */
 function amtVal(){var v=parseFloat(ui.amt);return isNaN(v)?0:v;}
@@ -2198,8 +2382,8 @@ function renderList(){
   var list=monthTx(ui.lm.y,ui.lm.m).sort(function(a,b){
     if(a.date!==b.date)return a.date<b.date?1:-1;return (b.ts||0)-(a.ts||0);});
   var s=sums(list);
-  $('#mtUp').textContent='+'+fmt(s.inc);
-  $('#mtDown').textContent='−'+fmt(s.expAll);
+  $('#mtUp').textContent=bidiNum('+'+fmt(s.inc));
+  $('#mtDown').textContent=bidiNum('−'+fmt(s.expAll));
   var el=$('#fullList');
   var filtered=list.filter(passFilter);
   if(!filtered.length){
@@ -2210,7 +2394,7 @@ function renderList(){
   function flush(){
     if(!buffer.length)return;
     html+='<div class="day-g"><div class="day-h"><span>'+dfWD.format(dObj(curDay))+'</span><b class="num">'+
-      (dayNet>=0?'+':'−')+fmtInt(dayNet)+'</b></div>'+buffer.join('')+'</div>';
+      bidiNum((dayNet>=0?'+':'−')+fmtInt(dayNet))+'</b></div>'+buffer.join('')+'</div>';
     buffer=[];
   }
   filtered.forEach(function(t){
@@ -3341,6 +3525,7 @@ $('#bcImportBotBtn').addEventListener('click',async function(){
 });
 
 /* ==================== הפעלה ==================== */
+if(voiceSupported())$('#voiceBtn').style.display='';
 applyTheme();
 applyDaypart();
 renderSettings();
@@ -3372,6 +3557,9 @@ if(state.settings.syncCode){
         buildCats();renderAmt();
         go('add');
       },500);
+    }else if(shortcutParams.get('voice')==='1'&&voiceSupported()){
+      history.replaceState(null,'',location.pathname);
+      setTimeout(openVoiceModal,500);
     }
   }
 }else{

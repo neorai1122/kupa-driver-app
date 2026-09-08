@@ -27,6 +27,12 @@
       "short_name": "דלק",
       "url": "./index.html?add=fuel",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "כסף קולי",
+      "short_name": "קולי",
+      "url": "./index.html?voice=1",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
