@@ -1493,6 +1493,7 @@ function cloudPush(){
       }).then(function(){cloudStatus='online';renderSyncStatus();pendingLocalPush=false;})
         .catch(function(){cloudStatus='offline';renderSyncStatus();pendingLocalPush=false;});
       pushPublicShare();
+      pushDailyBackup();
     };
     var localLooksEmpty=state.tx.length===0&&state.shifts.length===0;
     if(!firstPushChecked&&localLooksEmpty){
@@ -1516,6 +1517,15 @@ function cloudPush(){
       doPush();
     }
   },1200);
+}
+function pushDailyBackup(){
+  if(!db||!state.settings.syncCode)return;
+  var day=todayISO();
+  db.collection('dailyBackups').doc(state.settings.syncCode+'_'+day).set({
+    data:JSON.stringify(state),
+    day:day,
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(){});
 }
 function pushPublicShare(){
   if(!db||!state.settings.shareOn||!state.meta.shareId)return;
