@@ -138,7 +138,12 @@ svg{display:block}
 
 main{flex:1;padding:18px 18px 132px}
 .screen{display:none}
-.screen.active{display:block}
+.screen.active{display:block;animation:screenIn .32s cubic-bezier(.22,1,.36,1) both}
+@media (prefers-reduced-motion: reduce){.screen.active{animation:none}}
+@keyframes screenIn{0%{opacity:0;transform:translateY(8px) scale(.99)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.card{animation:cardIn .4s cubic-bezier(.22,1,.36,1) both}
+@media (prefers-reduced-motion: reduce){.card{animation:none}}
+@keyframes cardIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes cardRise{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
 .screen.active>*{animation:cardRise .34s cubic-bezier(.16,.84,.44,1) both}
@@ -387,6 +392,32 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 @keyframes voicePulse{0%{transform:scale(.85);opacity:.6}100%{transform:scale(1.35);opacity:0}}
 @keyframes gcPop{0%{transform:scale(.3) rotate(-15deg);opacity:0}60%{transform:scale(1.15) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
 .mood-face{display:inline-block;margin-inline-start:6px;font-size:19px;transition:transform .3s;vertical-align:-2px}
+.voice-tag-check{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.voice-tag-check input{width:17px;height:17px;accent-color:var(--accent)}
+.j-task{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line2);animation:jIn .35s ease both}
+.j-task:last-of-type{border-bottom:0}
+.j-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--line2);flex:none;display:grid;place-items:center;transition:.2s;cursor:pointer}
+.j-check svg{width:14px;height:14px;opacity:0;transform:scale(.5);transition:.2s;color:#fff}
+.j-task.done .j-check{background:var(--green);border-color:var(--green)}
+.j-task.done .j-check svg{opacity:1;transform:scale(1)}
+.j-text{flex:1;font-size:13.5px;font-weight:600}
+.j-amt{font-size:12px;color:var(--muted);font-weight:700}
+.j-tag{font-size:9.5px;font-weight:800;background:var(--accent-soft);color:var(--accent-ink);border-radius:6px;padding:2px 6px;margin-inline-start:6px;vertical-align:1px}
+.j-del{color:var(--muted);flex:none;width:26px;height:26px;display:grid;place-items:center;border-radius:8px;cursor:pointer}
+.j-del:active{background:var(--line2)}
+.j-empty{color:var(--muted);font-size:12.5px;padding:10px 0;text-align:center}
+.journal-add-row{display:flex;gap:8px;margin-top:12px}
+.journal-add-row input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;font-family:inherit;color:var(--ink)}
+.journal-add-row button{width:40px;height:40px;border-radius:12px;background:var(--ink);color:var(--card);flex:none;display:grid;place-items:center;transition:transform .12s}
+.journal-add-row button:active{transform:scale(.9)}
+@keyframes jIn{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+.j-tl-row{display:flex;gap:10px;padding:8px 0;animation:jIn .35s ease both}
+.j-tl-dot{width:8px;height:8px;border-radius:50%;background:var(--line2);margin-top:5px;flex:none}
+.j-tl-dot.in{background:var(--green)}
+.j-tl-dot.out{background:var(--red)}
+.j-tl-dot.task{background:var(--accent)}
+.j-tl-time{font-size:10.5px;color:var(--muted);min-width:38px;font-variant-numeric:tabular-nums}
+.j-tl-body{flex:1;font-size:12.5px;font-weight:600}
 .goal-cel h3,.goal-cel p{text-align:center}
 .goal-cel p{color:var(--muted)}
 .goal-cel{position:relative;z-index:2}
@@ -547,6 +578,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
 .tab svg{width:20px;height:20px;transition:transform .32s cubic-bezier(.34,1.56,.64,1)}
 .tab.active{color:var(--ink)}
 .tab.active svg{transform:scale(1.14) translateY(-1px)}
+.tab-badge-wrap{position:relative;display:inline-flex}
+.tab-badge{position:absolute;top:-4px;left:-7px;min-width:14px;height:14px;border-radius:7px;background:var(--red);
+  color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 3px;
+  box-shadow:0 0 0 2px var(--card)}
 .tab-fab{width:52px;height:52px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
   display:grid;place-items:center;margin-top:-26px;flex:none;
   box-shadow:0 8px 22px rgba(242,176,30,.4);border:4px solid var(--bg);
@@ -892,6 +927,35 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div id="fullList"></div>
     </section>
 
+    <!-- ================= יומן ================= -->
+    <section class="screen" id="s-journal">
+      <div class="head">
+        <div>
+          <div class="greet">יומן</div>
+          <div class="sub">כל מה שקורה היום, במקום אחד</div>
+        </div>
+      </div>
+
+      <div class="card journal-open-card" id="journalOpenCard">
+        <div class="card-title">דברים פתוחים</div>
+        <div id="journalOpenList"></div>
+        <div class="journal-add-row">
+          <input type="text" id="journalAddInput" placeholder="הוספת משימה — למשל: להעביר 200 לביט" maxlength="120">
+          <button type="button" id="journalAddBtn" aria-label="הוספה">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>ציר היום</span>
+          <button class="btn line sm" id="journalSpeakBtn">🔊 השמעת היום</button>
+        </div>
+        <div id="journalTimeline"></div>
+      </div>
+    </section>
+
     <!-- ================= דוחות ================= -->
     <section class="screen" id="s-reports">
       <div class="rep-head">
@@ -1066,6 +1130,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <label class="switch"><input type="checkbox" id="remindSwitch"><span class="track"></span></label>
         </div>
         <div class="set-row">
+          <div class="r-lb">שעה חכמה במקום קבועה<div class="r-sub">לומד מתי אתה בדרך כלל מסיים לרשום, ושולח בול אז — במקום שעה שרירותית</div></div>
+          <label class="switch"><input type="checkbox" id="smartCloseSwitch"><span class="track"></span></label>
+        </div>
+        <div class="set-row" id="remindTimeRow">
           <div class="r-lb">שעת התזכורת</div>
           <input type="time" id="remindTime" value="21:30">
         </div>
@@ -1186,6 +1254,9 @@ html[data-theme="dark"] .track{background:#2b2f34}
     <button class="tab" data-go="list">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 6h.01M4 12h.01M4 18h.01M9 6h11M9 12h11M9 18h11"/></svg>תנועות
     </button>
+    <button class="tab" data-go="journal">
+      <span class="tab-badge-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="tab-badge" id="journalBadge" style="display:none"></span></span>יומן
+    </button>
     <button class="tab-fab" data-go="add" aria-label="הוספה">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     </button>
@@ -1251,8 +1322,23 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M9 22h6"/></svg>
       </div>
       <h3 id="voiceStatus">מקשיב...</h3>
-      <p style="color:var(--muted);font-size:12.5px;margin-top:4px">למשל: "הכנסה 250 שקל ביט" או "הוצאה 50 דלק"</p>
+      <p style="color:var(--muted);font-size:12.5px;margin-top:4px">למשל: "הכנסה 250 שקל ביט", "הוצאה 50 דלק", או "תזכיר לי להעביר 200 לביט"</p>
       <button type="button" class="btn line" id="voiceCancel" style="width:100%;margin-top:16px">ביטול</button>
+    </div>
+    <div id="voiceTaskConfirm" style="display:none">
+      <div class="voice-mic ok" style="color:var(--accent);background:var(--accent-soft)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <h3>משימה ליומן:</h3>
+      <div id="voiceTaskBody" style="font-size:15px;font-weight:700;margin-top:6px"></div>
+      <label class="voice-tag-check">
+        <input type="checkbox" id="voiceTagPassthrough">
+        <span>זה כסף עובר — לא באמת שלי</span>
+      </label>
+      <div class="modal-btns" style="margin-top:12px">
+        <button type="button" class="btn line" id="voiceTaskCancel" style="flex:1">ביטול</button>
+        <button type="button" class="btn ink" id="voiceTaskSave" style="flex:1">שמירה ליומן</button>
+      </div>
     </div>
     <div id="voiceConfirm" style="display:none">
       <div class="voice-mic ok" id="voiceOkIcon">
@@ -1444,9 +1530,10 @@ function normState(d){
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
     ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null,billingDay:1,dayStartHour:0,lastSeenVer:0,soundOn:false,
     bcSignature:'לבקש באישי בלבד',botUrl:'',botKey:'',monthStartDay:1,monthCycleSet:false,
-    morningOn:false,morningTime:'08:00',lockOn:false,shareOn:false,carModeOn:true},d.settings||{});
+    morningOn:false,morningTime:'08:00',lockOn:false,shareOn:false,carModeOn:true,smartCloseOn:true},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
+  if(!Array.isArray(d.journal))d.journal=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
   if(!Array.isArray(d.fund.log))d.fund.log=[];
   d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{},lastTx:null,morningShown:'',milestones:{},
@@ -1503,8 +1590,11 @@ if(state.settings.lockOn&&state.meta.lockPin){
 }
 
 /* ==================== מה חדש ==================== */
-var APP_VER=10;
+var APP_VER=11;
 var WHATS_NEW=[
+  'חדש: טאב "יומן" — משימות קוליות ("תזכיר לי להעביר לביט"), ציר זמן יומי, ותזכורות חכמות שלומדות מתי אתה בדרך כלל פנוי',
+  'שופר: זיהוי קולי אמין יותר בכל דפדפן, כולל הודעה ברורה אם הדפדפן (כמו Samsung Internet) לא תומך',
+  'שופר: אנימציות חלקות יותר בכל מעבר בין מסכים',
   'חדש: "הסיפור שלי" בהגדרות — סיכום אישי ומעוצב של כל מה שהשגת מתחילת הדרך',
   'חדש: מצב תצוגה לרכב — מניחים את הטלפון לרוחב ורואים מסך ענק עם מספרי היום',
   'חדש: נעילת פרטיות ושיתוף עם המשפחה (קישור צפייה בלבד), בהגדרות',
@@ -1700,6 +1790,11 @@ function bestDayEver(){
   return best;
 }
 function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0;}return h;}
+function escHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
 function sameDateLastYear(iso){
   var d=dObj(iso);
   return isoOf(new Date(d.getFullYear()-1,d.getMonth(),d.getDate()));
@@ -1791,6 +1886,7 @@ function go(id){
     requestAnimationFrame(function(){requestAnimationFrame(moveSegPill);});}
   if(id==='home')renderHome();
   if(id==='list')renderList();
+  if(id==='journal')renderJournal();
   if(id==='reports')renderReports();
   if(id==='broadcast')renderBroadcast();
   window.scrollTo({top:0});
@@ -2271,6 +2367,15 @@ function quickAdd(type,cat,amount,note){
 /* ==================== כסף קולי ==================== */
 function parseVoiceCommand(text){
   text=(text||'').trim();
+  var TASK_TRIG=/^(תזכיר לי|תזכירי לי|לא לשכוח|לא תשכח|צריך ל|צריכה ל|חייב ל|משימה[:\s])/;
+  var taskMatch=text.match(TASK_TRIG);
+  if(taskMatch){
+    var cleaned=text.replace(TASK_TRIG,'').trim();
+    var amtM=cleaned.match(/(\d+(?:[.,]\d+)?)/);
+    var isPassthrough=/להעביר|העברה|לשלוח לו|לתת לו/.test(cleaned)&&/ביט|מישהו|לו|לה|לקוח/.test(cleaned);
+    return{isTask:true,text:cleaned||text,amount:amtM?parseFloat(amtM[1].replace(',','.')):null,
+      tag:isPassthrough?'passthrough':null,raw:text};
+  }
   var out={type:null,cat:null,amount:null,method:null,pct:null,raw:text};
   var pctMatch=text.match(/(\d{1,3})\s*(?:%|אחוז)/);
   var textForAmount=text;
@@ -2301,8 +2406,9 @@ function parseVoiceCommand(text){
 }
 var voiceRec=null,voiceParsed=null;
 function voiceSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
+function isSamsungInternet(){return /SamsungBrowser/i.test(navigator.userAgent||'');}
 function showVoicePane(id){
-  ['voiceListening','voiceConfirm','voiceFail'].forEach(function(p){$('#'+p).style.display=p===id?'':'none';});
+  ['voiceListening','voiceTaskConfirm','voiceConfirm','voiceFail'].forEach(function(p){$('#'+p).style.display=p===id?'':'none';});
 }
 function openVoiceModal(){
   showVoicePane('voiceListening');
@@ -2316,21 +2422,37 @@ function closeVoiceModal(){
 }
 function startVoiceListening(){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){showVoiceFail('הדפדפן הזה לא תומך בזיהוי קולי');return;}
+  if(!SR){
+    if(isSamsungInternet())showVoiceFail('בדפדפן Samsung Internet הזיהוי הקולי לרוב לא נתמך — לתוצאה הכי אמינה, תפתח את קופת הנהג דרך כרום באותו טלפון');
+    else showVoiceFail('הדפדפן הזה לא תומך בזיהוי קולי');
+    return;
+  }
   try{
     voiceRec=new SR();
     voiceRec.lang='he-IL';
     voiceRec.interimResults=false;
     voiceRec.maxAlternatives=1;
+    var gotResult=false;
     voiceRec.onresult=function(e){
+      gotResult=true;
       var text=e.results[0][0].transcript;
       handleVoiceResult(text);
     };
     voiceRec.onerror=function(e){
-      var msgs={'not-allowed':'אין הרשאה למיקרופון — אפשר את זה בהגדרות הדפדפן','no-speech':'לא שמעתי כלום, נסה שוב','network':'בעיית רשת, נסה שוב'};
+      var msgs={
+        'not-allowed':'אין הרשאה למיקרופון — צריך לאשר גישה למיקרופון בהגדרות הדפדפן ולנסות שוב',
+        'no-speech':'לא שמעתי כלום, נסה שוב וקרוב יותר למיקרופון',
+        'network':'בעיית רשת — זיהוי קולי דורש חיבור לאינטרנט',
+        'audio-capture':'לא נמצא מיקרופון פעיל בטלפון',
+        'service-not-allowed':isSamsungInternet()?'הדפדפן הזה לא מאפשר זיהוי קולי — נסה לפתוח דרך כרום':'השירות הקולי חסום כרגע, נסה שוב'
+      };
       showVoiceFail(msgs[e.error]||'משהו השתבש, נסה שוב');
     };
-    voiceRec.onend=function(){};
+    voiceRec.onend=function(){
+      if(!gotResult&&$('#voiceListening').style.display!=='none'){
+        showVoiceFail(isSamsungInternet()?'לא הצלחתי לשמוע — בדפדפן הזה זיהוי קולי לפעמים לא יציב, כדאי לנסות דרך כרום':'לא הצלחתי לשמוע, נסה שוב');
+      }
+    };
     voiceRec.start();
   }catch(e){showVoiceFail('לא הצלחתי להפעיל את המיקרופון');}
 }
@@ -2340,8 +2462,15 @@ function showVoiceFail(msg){
 }
 function handleVoiceResult(text){
   var p=parseVoiceCommand(text);
+  if(p.isTask){
+    voiceParsed=p;
+    $('#voiceTaskBody').textContent=p.text+(p.amount?' · '+fmtInt(p.amount):'');
+    $('#voiceTagPassthrough').checked=p.tag==='passthrough';
+    showVoicePane('voiceTaskConfirm');
+    return;
+  }
   if(!p.amount||p.amount<=0){
-    showVoiceFail('לא הצלחתי לזהות סכום — נסה שוב ותגיד מספר ברור');
+    showVoiceFail('לא הצלחתי לזהות סכום — נסה שוב ותגיד מספר ברור, או תגיד "תזכיר לי..." בשביל משימה ליומן');
     return;
   }
   voiceParsed=p;
@@ -2377,6 +2506,20 @@ $('#voiceSave').addEventListener('click',function(){
   $('#txDate').value=todayISO();
   $('#saveTx').click();
 });
+$('#voiceTaskCancel').addEventListener('click',closeVoiceModal);
+$('#voiceTaskSave').addEventListener('click',function(){
+  var p=voiceParsed;if(!p)return;
+  var tag=$('#voiceTagPassthrough').checked?'passthrough':null;
+  addJournalItem(p.text,p.amount,tag);
+  closeVoiceModal();
+  toast('נשמר ליומן ✓');
+});
+function addJournalItem(text,amount,tag){
+  state.journal.push({id:uid(),text:text,amount:amount||null,tag:tag||null,done:false,ts:Date.now(),doneTs:null});
+  save();
+  if(ui.screen==='journal')renderJournal();
+  updateJournalBadge();
+}
 
 /* ==================== וואטסאפ ==================== */
 function shareSummary(){
@@ -3145,6 +3288,10 @@ $('#remindSwitch').addEventListener('change',function(){
 $('#remindTime').addEventListener('change',function(){
   state.settings.remindTime=$('#remindTime').value||'21:30';save();renderHome();
 });
+$('#smartCloseSwitch').addEventListener('change',function(){
+  state.settings.smartCloseOn=$('#smartCloseSwitch').checked;save();renderSettings();
+  toast(state.settings.smartCloseOn?'שעה חכמה הופעלה':'עברת לשעה קבועה');
+});
 $('#morningSwitch').addEventListener('change',function(){
   state.settings.morningOn=$('#morningSwitch').checked;save();
   if(state.settings.morningOn&&'Notification' in window&&Notification.permission==='default'){
@@ -3350,6 +3497,8 @@ function renderSettings(){
   $('#remindTime').value=state.settings.remindTime||'21:30';
   $('#morningSwitch').checked=!!state.settings.morningOn;
   $('#morningTime').value=state.settings.morningTime||'08:00';
+  $('#smartCloseSwitch').checked=!!state.settings.smartCloseOn;
+  $('#remindTimeRow').style.display=state.settings.smartCloseOn?'none':'';
   $('#lockSwitch').checked=!!state.settings.lockOn;
   $('#shareSwitch').checked=!!state.settings.shareOn;
   $('#shareLinkRow').style.display=(state.settings.shareOn&&state.meta.shareId)?'':'none';
@@ -3672,13 +3821,16 @@ function checkNotify(){
   if(state.meta.notified===today)return;
   var haveIncome=state.tx.some(function(t){return t.date===today&&t.type==='income';});
   if(haveIncome)return;
-  var hh=(state.settings.remindTime||'21:30').split(':');
+  var hh=effectiveCloseHourMinute();
   var d=new Date();
-  var past=d.getHours()>+hh[0]||(d.getHours()===+hh[0]&&d.getMinutes()>=+hh[1]);
+  var past=d.getHours()>hh[0]||(d.getHours()===hh[0]&&d.getMinutes()>=hh[1]);
   if(!past)return;
   state.meta.notified=today;save();
+  var openTasks=state.journal.filter(function(j){return !j.done;}).length;
+  var body='עוד לא נסגר היום — רושמים את ההכנסה ב-10 שניות';
+  if(openTasks>0)body+=' · ויש '+openTasks+' דברים פתוחים ביומן';
   if('Notification' in window&&Notification.permission==='granted'){
-    try{new Notification('קופת הנהג',{body:'עוד לא נסגר היום — רושמים את ההכנסה ב-10 שניות'});}catch(e){}
+    try{new Notification('קופת הנהג',{body:body});}catch(e){}
   }
   if(ui.screen==='home')renderHome();
 }
@@ -3710,6 +3862,8 @@ function checkMorning(){
     var wdNames=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
     body+=' · לפי ההיסטוריה שלך, '+chance+'% סיכוי ליום מעל הממוצע שלך ביום '+wdNames[d.getDay()];
   }
+  var openOld=state.journal.filter(function(j){return !j.done&&(Date.now()-j.ts)>12*3600000;}).length;
+  if(openOld>0)body+=' · משהו נשאר פתוח ביומן מאתמול';
   if('Notification' in window&&Notification.permission==='granted'){
     try{new Notification('בוקר טוב ☀️',{body:body});}catch(e){}
   }
@@ -3781,6 +3935,115 @@ function checkOverwork(){
       try{new Notification('שווה לשים לב 💙',{body:'השבוע עבדת '+fmtHours(thisWeek)+', יותר מהרגיל שלך ('+fmtHours(avgPast)+' בממוצע) — תזכור לנוח כשאפשר'});}catch(e){}
     }
   }
+}
+
+/* ==================== יומן ==================== */
+function updateJournalBadge(){
+  var n=state.journal.filter(function(j){return !j.done;}).length;
+  var b=$('#journalBadge');
+  if(b){b.style.display=n>0?'':'none';b.textContent=n>9?'9+':n;}
+}
+function renderJournal(){
+  var openTasks=state.journal.filter(function(j){return !j.done;});
+  var list=$('#journalOpenList');
+  if(!openTasks.length){
+    list.innerHTML='<div class="j-empty">אין דברים פתוחים כרגע — נקי ✓</div>';
+  }else{
+    list.innerHTML=openTasks.slice().sort(function(a,b){return b.ts-a.ts;}).map(function(j,i){
+      return '<div class="j-task" data-jid="'+j.id+'" style="animation-delay:'+(i*0.04)+'s">'+
+        '<span class="j-check" data-jact="toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>'+
+        '<span class="j-text">'+escHtml(j.text)+(j.tag==='passthrough'?'<span class="j-tag">כסף עובר</span>':'')+'</span>'+
+        (j.amount?'<span class="j-amt">'+fmtInt(j.amount)+'</span>':'')+
+        '<span class="j-del" data-jact="del"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span>'+
+      '</div>';
+    }).join('');
+  }
+  renderJournalTimeline();
+  updateJournalBadge();
+}
+function renderJournalTimeline(){
+  var today=todayISO();
+  var rows=[];
+  state.tx.filter(function(t){return t.date===today&&!t.lumpAuto;}).forEach(function(t){
+    rows.push({ts:t.ts||0,dot:t.type==='income'?'in':'out',
+      body:(t.type==='income'?'+':'−')+fmtInt(t.amount)+' · '+catById(t.cat).label});
+  });
+  state.journal.filter(function(j){return isoOf(new Date(j.ts))===today;}).forEach(function(j){
+    rows.push({ts:j.ts,dot:'task',body:'משימה: '+j.text});
+  });
+  state.journal.filter(function(j){return j.done&&j.doneTs&&isoOf(new Date(j.doneTs))===today;}).forEach(function(j){
+    rows.push({ts:j.doneTs,dot:'task',body:'✓ הושלם: '+j.text});
+  });
+  rows.sort(function(a,b){return b.ts-a.ts;});
+  var el=$('#journalTimeline');
+  if(!rows.length){el.innerHTML='<div class="j-empty">עוד לא קרה כלום היום</div>';return;}
+  el.innerHTML=rows.map(function(r,i){
+    return '<div class="j-tl-row" style="animation-delay:'+(i*0.03)+'s">'+
+      '<span class="j-tl-dot '+r.dot+'"></span>'+
+      '<span class="j-tl-time">'+(r.ts?dfTM.format(new Date(r.ts)):'')+'</span>'+
+      '<span class="j-tl-body">'+escHtml(r.body)+'</span>'+
+    '</div>';
+  }).join('');
+}
+$('#journalOpenList').addEventListener('click',function(e){
+  var row=e.target.closest('.j-task');if(!row)return;
+  var id=row.dataset.jid;
+  var j=state.journal.find(function(x){return x.id===id;});
+  if(!j)return;
+  if(e.target.closest('[data-jact="toggle"]')){
+    j.done=true;j.doneTs=Date.now();save();
+    popEl(row,'success-pop');
+    setTimeout(function(){renderJournal();updateJournalBadge();},260);
+  }else if(e.target.closest('[data-jact="del"]')){
+    state.journal=state.journal.filter(function(x){return x.id!==id;});
+    save();renderJournal();
+  }
+});
+$('#journalAddBtn').addEventListener('click',function(){
+  var v=$('#journalAddInput').value.trim();
+  if(!v){toast('כתוב קודם מה להוסיף');return;}
+  var amtM=v.match(/(\d+(?:[.,]\d+)?)/);
+  var isPassthrough=/להעביר|העברה/.test(v)&&/ביט|מישהו|לו|לה/.test(v);
+  addJournalItem(v,amtM?parseFloat(amtM[1].replace(',','.')):null,isPassthrough?'passthrough':null);
+  $('#journalAddInput').value='';
+  toast('נוסף ליומן ✓');
+});
+$('#journalAddInput').addEventListener('keydown',function(e){
+  if(e.key==='Enter')$('#journalAddBtn').click();
+});
+$('#journalSpeakBtn').addEventListener('click',function(){
+  var today=todayISO();
+  var dS=sums(state.tx.filter(function(x){return x.date===today&&!x.lumpAuto;}));
+  var net=netOf(dS,state.settings.pct);
+  var openTasks=state.journal.filter(function(j){return !j.done;});
+  var txt='סיכום היום. הכנסות '+speakNum(dS.inc)+', הוצאות '+speakNum(dS.exp)+
+    ', מאזן '+(net>=0?'פלוס ':'מינוס ')+speakNum(net)+'. ';
+  if(openTasks.length)txt+='יש לך '+openTasks.length+' דברים פתוחים ביומן: '+openTasks.map(function(j){return j.text;}).join(', ')+'.';
+  else txt+='אין דברים פתוחים ביומן, הכל מסודר.';
+  speak(txt);
+});
+function computeAdaptiveCloseHour(){
+  var byDay={};
+  state.tx.forEach(function(t){
+    if(!t.ts)return;
+    var h=new Date(t.ts).getHours()+new Date(t.ts).getMinutes()/60;
+    if(!(t.date in byDay)||h>byDay[t.date])byDay[t.date]=h;
+  });
+  var vals=Object.keys(byDay).map(function(k){return byDay[k];});
+  if(vals.length<5)return null;
+  vals.sort(function(a,b){return a-b;});
+  return vals[Math.floor(vals.length/2)];
+}
+function effectiveCloseHourMinute(){
+  if(state.settings.smartCloseOn){
+    var adaptive=computeAdaptiveCloseHour();
+    if(adaptive!=null){
+      var h=Math.min(23,Math.floor(adaptive)+1);
+      return[h,Math.round((adaptive%1)*60)];
+    }
+  }
+  var hh=(state.settings.remindTime||'21:30').split(':');
+  return[+hh[0],+hh[1]];
 }
 
 /* ==================== מצב תצוגה לרכב ==================== */
@@ -4133,6 +4396,7 @@ checkNotify();
 checkMorning();
 checkWeekly();
 checkOverwork();
+updateJournalBadge();
 if(state.settings.wizardDone&&state.meta.morningGreeted!==todayISO()){
   state.meta.morningGreeted=todayISO();save();
   setTimeout(function(){speak(greetWord()+(state.settings.name?', '+state.settings.name:''));},1200);
