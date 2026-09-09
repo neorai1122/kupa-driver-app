@@ -1478,9 +1478,10 @@ function renderSyncStatus(){
   dot.className='sync-dot '+m[0];
   txt.textContent=m[1];
 }
-var firstPushChecked=false;
+var firstPushChecked=false,pendingLocalPush=false;
 function cloudPush(){
   if(!db||!state.settings.syncCode)return;
+  pendingLocalPush=true;
   clearTimeout(cloudPushTimer);
   cloudPushTimer=setTimeout(function(){
     var ref=db.collection(CLOUD_COLLECTION).doc(state.settings.syncCode);
@@ -1489,8 +1490,8 @@ function cloudPush(){
       ref.set({
         data:JSON.stringify(state),
         updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-      }).then(function(){cloudStatus='online';renderSyncStatus();})
-        .catch(function(){cloudStatus='offline';renderSyncStatus();});
+      }).then(function(){cloudStatus='online';renderSyncStatus();pendingLocalPush=false;})
+        .catch(function(){cloudStatus='offline';renderSyncStatus();pendingLocalPush=false;});
       pushPublicShare();
     };
     var localLooksEmpty=state.tx.length===0&&state.shifts.length===0;
@@ -1504,6 +1505,7 @@ function cloudPush(){
           try{remote=JSON.parse(d.data);}catch(e){}
           if(remote&&((Array.isArray(remote.tx)&&remote.tx.length>0)||(Array.isArray(remote.shifts)&&remote.shifts.length>0))){
             state=normState(remote);
+            pendingLocalPush=false;
             applyTheme();renderSettings();refreshAll('שוחזרו הנתונים שלך מהענן אוטומטית ✓');
             return;
           }
@@ -1533,12 +1535,20 @@ function startCloudSync(){
     .onSnapshot(function(snap){
       cloudStatus='online';renderSyncStatus();
       if(!snap.exists)return;
+      /* קריטי: אם יש עריכה מקומית טרייה שעדיין בדרך לענן (בתוך ה-debounce או תוך כדי כתיבה),
+         אסור בשום אופן לקבל כאן snapshot נכנס — גם אם הוא "נראה חדש יותר" לפי updatedAt.
+         זה בדיוק המרוץ שגרם לאיבוד תנועות אמיתיות: snapshot ישן/מתחרה נכנס בין ה-push המקומי
+         לביצוע שלו בפועל, ודורס בשקט תנועה שכבר נשמרה מקומית. */
+      if(pendingLocalPush)return;
       var d=snap.data();
       if(!d||!d.data)return;
       var remote;
       try{remote=JSON.parse(d.data);}catch(e){return;}
       if(!remote||(remote.updatedAt||0)<=(state.updatedAt||0))return;
       state=normState(remote);
+      /* חובה לשמור מיד ל-localStorage — לא רק לזיכרון — אחרת אם המכשיר ייסגר לפני
+         עריכה מקומית הבאה, בפתיחה הבאה ייטען שוב הגיבוי המקומי הישן שלא כולל את זה. */
+      try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){mem=JSON.stringify(state);}
       applyTheme();renderSettings();refreshAll('עודכן ממכשיר אחר ✓');
     },function(){cloudStatus='offline';renderSyncStatus();});
 }
@@ -1616,12 +1626,10 @@ if(state.settings.lockOn&&state.meta.lockPin){
 }
 
 /* ==================== מה חדש ==================== */
-var APP_VER=12;
+var APP_VER=13;
 var WHATS_NEW=[
-  'חדש: טאב "יומן" — משימות קוליות ("תזכיר לי להעביר לביט"), ציר זמן יומי, ותזכורות חכמות שלומדות מתי אתה בדרך כלל פנוי',
-  'שופר: זיהוי קולי אמין יותר בכל דפדפן, כולל הודעה ברורה אם הדפדפן (כמו Samsung Internet) לא תומך',
-  'שופר: אנימציות חלקות יותר בכל מעבר בין מסכים',
-  'תוקן: הגנה נוספת על הגיבוי בענן, כדי שנתונים לעולם לא יימחקו בטעות'
+  'תוקן באג חשוב: מרוץ בין שמירה מקומית לעדכון מהענן שיכול היה לגרום לאובדן תנועות שנרשמו ממש עכשיו',
+  'תוקן: עדכון שמתקבל ממכשיר אחר נשמר עכשיו גם באחסון המקומי, לא רק על המסך'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
