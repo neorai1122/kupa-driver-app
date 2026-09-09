@@ -356,6 +356,13 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 @keyframes gcPop{0%{transform:scale(.3) rotate(-15deg);opacity:0}60%{transform:scale(1.15) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
 .goal-cel h3,.goal-cel p{text-align:center}
 .goal-cel p{color:var(--muted)}
+.goal-cel{position:relative;z-index:2}
+.coin-rain{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.coin-rain .coin{position:absolute;top:-30px;animation-name:coinFall;animation-timing-function:cubic-bezier(.3,.6,.7,1);animation-fill-mode:forwards;will-change:transform,opacity}
+@keyframes coinFall{
+  0%{transform:translateY(0) rotate(0deg);opacity:1}
+  100%{transform:translateY(90vh) rotate(360deg);opacity:0}
+}
 .selpop{animation:selPop .32s cubic-bezier(.34,1.7,.64,1);position:relative;z-index:2}
 @keyframes selPop{0%{transform:scale(1);box-shadow:none}45%{transform:scale(1.055);box-shadow:0 4px 10px rgba(0,0,0,.16)}100%{transform:scale(1);box-shadow:none}}
 .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px}
@@ -986,6 +993,14 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <input type="time" id="remindTime" value="21:30">
         </div>
         <div class="set-row">
+          <div class="r-lb">בוקר טוב יומי<div class="r-sub">התראה בבוקר עם סיכום אתמול והמטרה להיום</div></div>
+          <label class="switch"><input type="checkbox" id="morningSwitch"><span class="track"></span></label>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">שעת הבוקר טוב</div>
+          <input type="time" id="morningTime" value="08:00">
+        </div>
+        <div class="set-row">
           <div class="r-lb">מצב לילה<div class="r-sub">נוח למשמרות לילה</div></div>
           <label class="switch"><input type="checkbox" id="darkSwitch"><span class="track"></span></label>
         </div>
@@ -1122,10 +1137,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
 </div>
 
 <div class="modal" id="goalCelebrate">
+  <div class="coin-rain" id="coinRain"></div>
   <div class="modal-card goal-cel">
-    <div class="gc-badge">🎯</div>
-    <h3>הגעת ליעד החודשי!</h3>
-    <p>כל הכבוד, ממשיכים ככה</p>
+    <div class="gc-badge" id="celBadge">🎯</div>
+    <h3 id="celTitle">הגעת ליעד החודשי!</h3>
+    <p id="celSub">כל הכבוד, ממשיכים ככה</p>
     <button type="button" class="btn ink" id="gcOk" style="width:100%;margin-top:10px">מעולה</button>
   </div>
 </div>
@@ -1316,12 +1332,14 @@ function normState(d){
   d=d||{};
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
     ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null,billingDay:1,dayStartHour:0,lastSeenVer:0,soundOn:false,
-    bcSignature:'לבקש באישי בלבד',botUrl:'',botKey:'',monthStartDay:1,monthCycleSet:false},d.settings||{});
+    bcSignature:'לבקש באישי בלבד',botUrl:'',botKey:'',monthStartDay:1,monthCycleSet:false,
+    morningOn:false,morningTime:'08:00'},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
   if(!Array.isArray(d.fund.log))d.fund.log=[];
-  d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{},lastTx:null},d.meta||{});
+  d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{},lastTx:null,morningShown:'',milestones:{}},d.meta||{});
+  if(!d.meta.milestones||typeof d.meta.milestones!=='object')d.meta.milestones={};
   if(!d.meta.dismiss)d.meta.dismiss={};
   if(!Array.isArray(d.bcGroups))d.bcGroups=[];
   if(!Array.isArray(d.bcHistory))d.bcHistory=[];
@@ -1342,8 +1360,11 @@ function load(){
 var state=load();
 
 /* ==================== מה חדש ==================== */
-var APP_VER=8;
+var APP_VER=9;
 var WHATS_NEW=[
+  'חדש: "בוקר טוב" — התראה יומית עם סיכום אתמול והמרחק ליעד (בהגדרות)',
+  'חדש: מנוע אבני דרך אוטומטי — האפליקציה מזהה ומחגגת רגעים משמעותיים (סכומים עגולים, רצפים, שיאים אישיים)',
+  'חדש: חגיגת מטבעות אמיתית — אנימציה וקול בכל פעם שקורה משהו גדול',
   'תוקן באג ותיק: סימן המינוס במספרים שליליים הופיע לפעמים במקום הלא נכון',
   'חדש: "כסף קולי" — כפתור מיקרופון למעלה, אומרים למשל "הכנסה 250 ביט" והוא ממלא לבד',
   'נוסף כרטיס "חדשות רכב וכביש" בדוחות — מחיר דלק עדכני + קישורים מהירים לתנועה בכבישים ולמשרד התחבורה'
@@ -2346,6 +2367,7 @@ $('#saveTx').addEventListener('click',function(){
     var net=netOf(sums(monthTx(ui.hm.y,ui.hm.m)),state.settings.pct);
     if(net>=g){hitGoal=true;state.meta.goalToast=mk;}
   }
+  var milestone=checkMilestones(tx,d);
   save();
 
   var cyc0=cycleOf(d);ui.hm.y=cyc0.y;ui.hm.m=cyc0.m;ui.day=d;
@@ -2358,10 +2380,52 @@ $('#saveTx').addEventListener('click',function(){
   setTimeout(function(){
     toast(msgs.join(' · '));
     go('home');
-    if(hitGoal){setTimeout(function(){$('#goalCelebrate').classList.add('show');},400);}
-    else if(tx.type==='income')setTimeout(function(){showRoadAsk(tx.date);},450);
+    if(hitGoal){
+      setTimeout(function(){celebrate('🎯','הגעת ליעד החודשי!','כל הכבוד, ממשיכים ככה');},400);
+    }else if(milestone){
+      setTimeout(function(){celebrate(milestone.emoji,milestone.title,milestone.sub);},400);
+    }else if(newRecord){
+      setTimeout(function(){celebrate('🏆','יום שיא חדש!','ההכנסה הכי גבוהה שהייתה לך ביום אחד');},400);
+    }else if(tx.type==='income')setTimeout(function(){showRoadAsk(tx.date);},450);
   },340);
 });
+function checkMilestones(tx,d){
+  var ms=state.meta.milestones;
+  var lifetimeInc=state.tx.reduce(function(a,t){return a+(t.type==='income'?t.amount:0);},0);
+  var THRESH=[1000000,500000,250000,100000,50000,25000,10000,5000,1000];
+  for(var i=0;i<THRESH.length;i++){
+    var th=THRESH[i];
+    if(lifetimeInc>=th&&!ms['life_'+th]){
+      ms['life_'+th]=true;
+      return{emoji:'💰',title:'עברת '+fmtInt(th)+' מצטבר!',sub:'מתחילת השימוש באפליקציה — הישג אמיתי'};
+    }
+  }
+  var streak=currentStreak();
+  var SDAYS=[100,60,30,14,7];
+  for(var j=0;j<SDAYS.length;j++){
+    var sd=SDAYS[j];
+    if(streak>=sd&&!ms['streak_'+sd]){
+      ms['streak_'+sd]=true;
+      return{emoji:'🔥',title:'רצף של '+sd+' ימים!',sub:'לא פספסת יום אחד — זו משמעת אמיתית'};
+    }
+  }
+  if(tx.type==='income'&&d===todayISO()){
+    var wd=new Date(d+'T12:00:00').getDay();
+    var byDay={};
+    state.tx.forEach(function(t){
+      if(t.type==='income'&&new Date(t.date+'T12:00:00').getDay()===wd)byDay[t.date]=(byDay[t.date]||0)+t.amount;
+    });
+    var todaySum=byDay[d]||0,prevBest=0;
+    Object.keys(byDay).forEach(function(k){if(k!==d)prevBest=Math.max(prevBest,byDay[k]);});
+    var key='wd_'+wd;
+    if(prevBest>0&&todaySum>prevBest&&ms[key]!==d){
+      ms[key]=d;
+      var names=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+      return{emoji:'⭐',title:'היום הכי טוב שלך ביום '+names[wd]+'!',sub:'שיא אישי ליום הזה בשבוע, מאז שהתחלת להשתמש באפליקציה'};
+    }
+  }
+  return null;
+}
 
 /* ==================== רשימה ==================== */
 $('#filterChips').addEventListener('click',function(e){
@@ -2823,6 +2887,16 @@ $('#remindSwitch').addEventListener('change',function(){
 $('#remindTime').addEventListener('change',function(){
   state.settings.remindTime=$('#remindTime').value||'21:30';save();renderHome();
 });
+$('#morningSwitch').addEventListener('change',function(){
+  state.settings.morningOn=$('#morningSwitch').checked;save();
+  if(state.settings.morningOn&&'Notification' in window&&Notification.permission==='default'){
+    try{Notification.requestPermission();}catch(e){}
+  }
+  toast(state.settings.morningOn?'בוקר טוב יומי הופעל':'בוקר טוב יומי כבוי');
+});
+$('#morningTime').addEventListener('change',function(){
+  state.settings.morningTime=$('#morningTime').value||'08:00';save();
+});
 function applyDaypart(){
   var h=new Date().getHours();
   var part=h<6?'night':h<12?'morning':h<18?'noon':h<22?'evening':'night';
@@ -2859,6 +2933,50 @@ function playSaveSound(){
     setTimeout(function(){ctx.close();},450);
   }catch(e){}
 }
+function playCelebrationSound(){
+  if(!state.settings.soundOn)return;
+  try{
+    var Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+    var ctx=new Ctx();
+    [660,880,1100,1320].forEach(function(freq,i){
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='triangle';
+      var t=ctx.currentTime+i*0.09;
+      o.frequency.setValueAtTime(freq,t);
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.exponentialRampToValueAtTime(.22,t+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.24);
+      o.connect(g);g.connect(ctx.destination);
+      o.start(t);o.stop(t+.26);
+    });
+    setTimeout(function(){ctx.close();},900);
+  }catch(e){}
+}
+function spawnCoinRain(){
+  var host=$('#coinRain');if(!host)return;
+  host.innerHTML='';
+  if(prefersReducedMotion())return;
+  var n=22;
+  for(var i=0;i<n;i++){
+    var c=document.createElement('span');
+    c.className='coin';
+    c.textContent=Math.random()<0.5?'🪙':'₪';
+    c.style.left=(Math.random()*96)+'%';
+    c.style.animationDelay=(Math.random()*0.35)+'s';
+    c.style.animationDuration=(1.3+Math.random()*0.9)+'s';
+    c.style.fontSize=(15+Math.random()*15)+'px';
+    host.appendChild(c);
+  }
+  setTimeout(function(){host.innerHTML='';},2600);
+}
+function celebrate(emoji,title,sub){
+  $('#celBadge').textContent=emoji;
+  $('#celTitle').textContent=title;
+  $('#celSub').textContent=sub||'';
+  spawnCoinRain();
+  playCelebrationSound();
+  $('#goalCelebrate').classList.add('show');
+}
 $('#soundSwitch').addEventListener('change',function(){
   state.settings.soundOn=$('#soundSwitch').checked;save();
   if(state.settings.soundOn)playSaveSound();
@@ -2882,6 +3000,8 @@ function renderSettings(){
   $('#remindSwitch').checked=!!state.settings.remindOn;
   $('#soundSwitch').checked=!!state.settings.soundOn;
   $('#remindTime').value=state.settings.remindTime||'21:30';
+  $('#morningSwitch').checked=!!state.settings.morningOn;
+  $('#morningTime').value=state.settings.morningTime||'08:00';
   $('#fundPct').textContent=state.settings.fundPct;
   $('#goalVal').textContent=state.settings.goal?fmtInt(state.settings.goal):'לא הוגדר';
   $('#rentVal').textContent=state.settings.rent?fmtInt(state.settings.rent):'לא הוגדר';
@@ -3192,8 +3312,8 @@ setInterval(function(){
   if(act&&el)el.textContent=fmtHours(shiftDurMs(act,Date.now())/3600000);
 },2000);
 
-setInterval(checkNotify,60000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden)checkNotify();});
+setInterval(function(){checkNotify();checkMorning();},60000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){checkNotify();checkMorning();}});
 function checkNotify(){
   if(!state.settings.remindOn)return;
   var today=todayISO();
@@ -3209,6 +3329,32 @@ function checkNotify(){
     try{new Notification('קופת הנהג',{body:'עוד לא נסגר היום — רושמים את ההכנסה ב-10 שניות'});}catch(e){}
   }
   if(ui.screen==='home')renderHome();
+}
+function checkMorning(){
+  if(!state.settings.morningOn)return;
+  var today=todayISO();
+  if(state.meta.morningShown===today)return;
+  var hh=(state.settings.morningTime||'08:00').split(':');
+  var d=new Date();
+  var past=d.getHours()>+hh[0]||(d.getHours()===+hh[0]&&d.getMinutes()>=+hh[1]);
+  if(!past)return;
+  state.meta.morningShown=today;save();
+  var yest=shiftISO(today,-1);
+  var yS=sums(state.tx.filter(function(t){return t.date===yest;}));
+  var yNet=netOf(yS,state.settings.pct);
+  var cyc=cycleOf(today);
+  var mNet=netOf(sums(monthTx(cyc.y,cyc.m)),state.settings.pct);
+  var g=state.settings.goal;
+  var body='אתמול נטו: '+fmt(yNet);
+  if(g>0){
+    var left=Math.max(0,g-mNet);
+    body+=left>0?(' · עד היעד החודשי עוד '+fmt(left)):' · היעד החודשי כבר הושג! 🎯';
+  }
+  var streak=currentStreak();
+  if(streak>=2)body+=' · רצף '+streak+' ימים ברציפות';
+  if('Notification' in window&&Notification.permission==='granted'){
+    try{new Notification('בוקר טוב ☀️',{body:body});}catch(e){}
+  }
 }
 
 /* ==================== כללי ==================== */
@@ -3535,6 +3681,7 @@ renderHome();
 buildCats();
 renderAmt();
 checkNotify();
+checkMorning();
 requestAnimationFrame(function(){requestAnimationFrame(movePill);});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(movePill).catch(function(){});
 setTimeout(movePill,600);
