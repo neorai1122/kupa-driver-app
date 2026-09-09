@@ -563,7 +563,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
 .about{text-align:center;color:var(--muted);font-size:11.5px;margin-top:22px;line-height:1.8}
 
 /* ============ טאב-בר צף ============ */
-.tabbar{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:50;
+.tabbar{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateZ(0);will-change:transform;z-index:50;
   width:min(496px,calc(100% - 24px));
   background:color-mix(in srgb,var(--card) 92%,transparent);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
@@ -621,7 +621,8 @@ html[data-theme="dark"] .track{background:#2b2f34}
   background:rgba(8,9,10,.45);backdrop-filter:blur(4px)}
 .modal.show{display:flex}
 .modal-card{background:var(--card);border-radius:20px;padding:22px 20px;width:100%;max-width:330px;
-  box-shadow:var(--shadow-lg);animation:rise .22s ease}
+  box-shadow:var(--shadow-lg);animation:rise .22s ease;
+  max-height:85dvh;overflow-y:auto}
 .modal-card h3{font-size:16px;font-weight:800;margin-bottom:7px}
 .modal-card p{font-size:13px;color:var(--muted);line-height:1.6}
 .modal-btns{display:flex;gap:8px;margin-top:18px}
@@ -1477,16 +1478,41 @@ function renderSyncStatus(){
   dot.className='sync-dot '+m[0];
   txt.textContent=m[1];
 }
+var firstPushChecked=false;
 function cloudPush(){
   if(!db||!state.settings.syncCode)return;
   clearTimeout(cloudPushTimer);
   cloudPushTimer=setTimeout(function(){
-    db.collection(CLOUD_COLLECTION).doc(state.settings.syncCode).set({
-      data:JSON.stringify(state),
-      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-    }).then(function(){cloudStatus='online';renderSyncStatus();})
-      .catch(function(){cloudStatus='offline';renderSyncStatus();});
-    pushPublicShare();
+    var ref=db.collection(CLOUD_COLLECTION).doc(state.settings.syncCode);
+    var doPush=function(){
+      firstPushChecked=true;
+      ref.set({
+        data:JSON.stringify(state),
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      }).then(function(){cloudStatus='online';renderSyncStatus();})
+        .catch(function(){cloudStatus='offline';renderSyncStatus();});
+      pushPublicShare();
+    };
+    var localLooksEmpty=state.tx.length===0&&state.shifts.length===0;
+    if(!firstPushChecked&&localLooksEmpty){
+      /* מגן חד-פעמי: אם המכשיר הזה נטען עם state ריק (localStorage שנוקה וכו')
+         לפני שהספקנו לקבל את הענן, אסור לדרוס נתונים אמיתיים שכבר קיימים שם. */
+      ref.get().then(function(snap){
+        firstPushChecked=true;
+        if(snap.exists){
+          var d=snap.data(),remote=null;
+          try{remote=JSON.parse(d.data);}catch(e){}
+          if(remote&&((Array.isArray(remote.tx)&&remote.tx.length>0)||(Array.isArray(remote.shifts)&&remote.shifts.length>0))){
+            state=normState(remote);
+            applyTheme();renderSettings();refreshAll('שוחזרו הנתונים שלך מהענן אוטומטית ✓');
+            return;
+          }
+        }
+        doPush();
+      }).catch(function(){firstPushChecked=true;doPush();});
+    }else{
+      doPush();
+    }
   },1200);
 }
 function pushPublicShare(){
@@ -1590,23 +1616,12 @@ if(state.settings.lockOn&&state.meta.lockPin){
 }
 
 /* ==================== מה חדש ==================== */
-var APP_VER=11;
+var APP_VER=12;
 var WHATS_NEW=[
   'חדש: טאב "יומן" — משימות קוליות ("תזכיר לי להעביר לביט"), ציר זמן יומי, ותזכורות חכמות שלומדות מתי אתה בדרך כלל פנוי',
   'שופר: זיהוי קולי אמין יותר בכל דפדפן, כולל הודעה ברורה אם הדפדפן (כמו Samsung Internet) לא תומך',
   'שופר: אנימציות חלקות יותר בכל מעבר בין מסכים',
-  'חדש: "הסיפור שלי" בהגדרות — סיכום אישי ומעוצב של כל מה שהשגת מתחילת הדרך',
-  'חדש: מצב תצוגה לרכב — מניחים את הטלפון לרוחב ורואים מסך ענק עם מספרי היום',
-  'חדש: נעילת פרטיות ושיתוף עם המשפחה (קישור צפייה בלבד), בהגדרות',
-  'חדש: מפת חום "מתי אני הכי חזק" בדוחות — יום בשבוע מול שעה ביום',
-  'חדש: הערה קטנה כשעברת יום מקביל אשתקד, עידוד ביום חלש, וסיכום שבועי אוטומטי',
-  'חדש: כפתור השמעה קולית של סיכום היום, וברכת בוקר בקול',
-  'חדש: "בוקר טוב" — התראה יומית עם סיכום אתמול והמרחק ליעד (בהגדרות)',
-  'חדש: מנוע אבני דרך אוטומטי — האפליקציה מזהה ומחגגת רגעים משמעותיים (סכומים עגולים, רצפים, שיאים אישיים)',
-  'חדש: חגיגת מטבעות אמיתית — אנימציה וקול בכל פעם שקורה משהו גדול',
-  'תוקן באג ותיק: סימן המינוס במספרים שליליים הופיע לפעמים במקום הלא נכון',
-  'חדש: "כסף קולי" — כפתור מיקרופון למעלה, אומרים למשל "הכנסה 250 ביט" והוא ממלא לבד',
-  'נוסף כרטיס "חדשות רכב וכביש" בדוחות — מחיר דלק עדכני + קישורים מהירים לתנועה בכבישים ולמשרד התחבורה'
+  'תוקן: הגנה נוספת על הגיבוי בענן, כדי שנתונים לעולם לא יימחקו בטעות'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
