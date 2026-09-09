@@ -83,6 +83,38 @@ svg{display:block}
 
 /* ============ שער קוד אישי ============ */
 #codeGate{position:fixed;inset:0;z-index:250;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px}
+#lockGate{position:fixed;inset:0;z-index:260;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px}
+#lockGate.show{display:flex}
+#carModeOverlay{position:fixed;inset:0;z-index:270;background:var(--hero);display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:24px;text-align:center}
+#carModeOverlay.show{display:flex}
+.cm-net{font-size:64px;font-weight:800;color:#fff;letter-spacing:-1px}
+.cm-lbl{font-size:14px;color:rgba(255,255,255,.6);margin-top:4px}
+.cm-row{display:flex;gap:16px;margin-top:28px}
+.cm-mini{background:rgba(255,255,255,.08);border-radius:16px;padding:14px 22px;min-width:100px}
+.cm-mini b{display:block;font-size:24px;font-weight:800;color:#fff}
+.cm-mini span{font-size:11.5px;color:rgba(255,255,255,.55)}
+.cm-hint{position:absolute;bottom:28px;font-size:12px;color:rgba(255,255,255,.4)}
+#storyModal{position:fixed;inset:0;z-index:280;background:linear-gradient(160deg,#1a1b1e,#111214);display:none;
+  align-items:center;justify-content:center;padding:0}
+#storyModal.show{display:flex}
+.story-dots{position:absolute;top:calc(14px + env(safe-area-inset-top));left:16px;right:16px;display:flex;gap:5px;z-index:2}
+.story-dots span{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.22);overflow:hidden}
+.story-dots span.done i,.story-dots span.active i{display:block;height:100%;background:#F2B01E;border-radius:3px}
+.story-dots span i{display:block;height:100%;width:0;background:#F2B01E}
+.story-dots span.done i{width:100%}
+.story-close{position:absolute;top:calc(14px + env(safe-area-inset-top) + 18px);left:16px;z-index:2;
+  width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);color:#fff;display:grid;place-items:center}
+.story-body{width:100%;max-width:400px;padding:80px 26px 40px;text-align:center;color:#fff;
+  animation:storyIn .35s ease}
+@keyframes storyIn{0%{opacity:0;transform:scale(.96)}100%{opacity:1;transform:scale(1)}}
+.story-body .s-emoji{font-size:46px;margin-bottom:14px}
+.story-body h2{font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.35}
+.story-body .s-big{font-size:46px;font-weight:800;color:#F2B01E;margin:14px 0;letter-spacing:-1px}
+.story-body p{font-size:14px;color:rgba(255,255,255,.65);line-height:1.6}
+.story-tap{position:absolute;top:0;bottom:0;width:38%;z-index:1}
+.story-tap-r{right:0}
+.story-tap-l{left:0}
 #codeGate.show{display:flex}
 .cg-card{width:min(360px,100%);animation:cardRise .4s cubic-bezier(.16,.84,.44,1) both}
 .cg-mark{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-size:28px;font-weight:800;color:var(--accent-ink);
@@ -354,6 +386,7 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 .voice-mic.fail::after{display:none}
 @keyframes voicePulse{0%{transform:scale(.85);opacity:.6}100%{transform:scale(1.35);opacity:0}}
 @keyframes gcPop{0%{transform:scale(.3) rotate(-15deg);opacity:0}60%{transform:scale(1.15) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+.mood-face{display:inline-block;margin-inline-start:6px;font-size:19px;transition:transform .3s;vertical-align:-2px}
 .goal-cel h3,.goal-cel p{text-align:center}
 .goal-cel p{color:var(--muted)}
 .goal-cel{position:relative;z-index:2}
@@ -391,6 +424,10 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 .heat-cell{aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;
   font-size:10px;font-weight:700;color:var(--muted);transition:transform .15s}
 .heat-cell:active{transform:scale(.9)}
+.wh-grid{display:grid;grid-template-columns:28px repeat(6,1fr);gap:4px;margin-top:6px}
+.wh-grid .wh-hd{font-size:8.5px;color:var(--muted);text-align:center;align-self:end;padding-bottom:2px}
+.wh-grid .wh-row-lb{font-size:9.5px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.wh-cell{aspect-ratio:1.15;border-radius:6px}
 .pct-lbl{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:7px}
 .pct-chips{display:flex;gap:6px}
 .pct-chips button{flex:1;padding:9px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);
@@ -621,6 +658,37 @@ html[data-theme="dark"] .track{background:#2b2f34}
   </div>
 </div>
 
+<div id="lockGate">
+  <div class="cg-card">
+    <div class="cg-mark">🔒</div>
+    <div class="cg-title">קופת הנהג נעולה</div>
+    <div class="cg-sub">הקלד את הקוד בן 4 הספרות שלך</div>
+    <input type="tel" id="lockInput" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off" style="text-align:center;letter-spacing:10px;font-size:24px">
+    <div class="cg-err" id="lockErr"></div>
+    <button class="btn amber big" id="lockGo">כניסה</button>
+  </div>
+</div>
+
+<div id="storyModal">
+  <div class="story-dots" id="storyDots"></div>
+  <button class="story-close" id="storyClose" aria-label="סגירה">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+  </button>
+  <div class="story-body" id="storyBody"></div>
+  <div class="story-tap story-tap-r" id="storyTapNext"></div>
+  <div class="story-tap story-tap-l" id="storyTapPrev"></div>
+</div>
+
+<div id="carModeOverlay">
+  <div class="cm-net num" id="cmNet">₪0</div>
+  <div class="cm-lbl">מאזן היום</div>
+  <div class="cm-row">
+    <div class="cm-mini"><b class="num" id="cmHours">0:00</b><span>שעות היום</span></div>
+    <div class="cm-mini"><b class="num" id="cmStreak">0</b><span>ימי רצף</span></div>
+  </div>
+  <div class="cm-hint">סובב את הטלפון לאורך כדי לצאת</div>
+</div>
+
 <div class="app">
   <header class="topbar">
     <div class="brand"><span class="brand-mark">₪</span><span>קופת הנהג</span></div>
@@ -642,7 +710,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
 
       <div class="head">
         <div>
-          <div class="greet" id="greet">בוקר טוב</div>
+          <div class="greet"><span id="greet">בוקר טוב</span><span class="mood-face" id="moodFace" style="display:none"></span></div>
           <div class="sub"><span id="todayLine"></span><span class="streak-chip" id="streakChip" style="display:none">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
             רצף <span id="streakDays"></span> ימים</span></div>
@@ -675,7 +743,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
             <span id="dLbl">היום שלך</span>
             <button id="dNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
           </span>
-          <span class="lbl num" id="tCarCost"></span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span class="lbl num" id="tCarCost"></span>
+            <button class="edit-btn" id="speakDayBtn" data-act="speak-day" title="השמעה בקול" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></button>
+          </span>
         </div>
         <div class="daycard-body" id="dayCardBody">
           <div class="t-row"><span>נסיעות — נטו אחרי סדרן</span><b class="num" id="tRides">₪0</b></div>
@@ -877,6 +948,12 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <div class="legend" style="margin-top:10px"><span><span class="dot" style="background:rgba(46,125,82,.7)"></span> יום טוב</span><span><span class="dot" style="background:rgba(181,69,46,.7)"></span> יום חלש</span></div>
       </div>
 
+      <div class="card" id="whHeatCard" style="display:none">
+        <div class="card-title">מתי אני הכי חזק</div>
+        <div class="wh-grid" id="whGrid"></div>
+        <p style="margin-top:10px;color:var(--muted);font-size:11px">לפי כל ההיסטוריה שלך — יום בשבוע מול שעה ביום, צבע חזק יותר = הכנסה ממוצעת גבוהה יותר</p>
+      </div>
+
       <div class="card">
         <div class="card-title">לאן הולך הכסף</div>
         <div class="donut-wrap">
@@ -1026,6 +1103,27 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <button class="btn line" id="restoreBtn">שחזור מקובץ גיבוי</button>
           <input type="file" id="restoreFile" accept="application/json,.json" hidden>
           <button class="btn line" id="demoBtn">טעינת נתוני דמו להתרשמות</button>
+          <button class="btn amber" id="storyBtn">✨ הסיפור שלי</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">פרטיות ושיתוף</div>
+        <div class="set-row">
+          <div class="r-lb">נעילת האפליקציה<div class="r-sub">קוד קטן לפני שנכנסים — לא לשים לב מי מסתכל בטלפון שלך</div></div>
+          <label class="switch"><input type="checkbox" id="lockSwitch"><span class="track"></span></label>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">שיתוף עם המשפחה<div class="r-sub">קישור צפייה בלבד — רק "איך הולך היום", בלי מספרים רגישים</div></div>
+          <label class="switch"><input type="checkbox" id="shareSwitch"><span class="track"></span></label>
+        </div>
+        <div class="set-row" id="shareLinkRow" style="display:none">
+          <div class="r-lb">הקישור לשיתוף</div>
+          <div class="set-val"><button class="edit-btn" id="shareLinkCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+        </div>
+        <div class="set-row">
+          <div class="r-lb">מצב תצוגה לרכב<div class="r-sub">מניחים את הטלפון לרוחב ורואים מסך ענק עם המספרים של היום</div></div>
+          <label class="switch"><input type="checkbox" id="carModeSwitch"><span class="track"></span></label>
         </div>
       </div>
 
@@ -1302,7 +1400,20 @@ function cloudPush(){
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     }).then(function(){cloudStatus='online';renderSyncStatus();})
       .catch(function(){cloudStatus='offline';renderSyncStatus();});
+    pushPublicShare();
   },1200);
+}
+function pushPublicShare(){
+  if(!db||!state.settings.shareOn||!state.meta.shareId)return;
+  var today=todayISO();
+  var dS=sums(state.tx.filter(function(t){return t.date===today&&!t.lumpAuto;}));
+  var net=netOf(dS,state.settings.pct);
+  var hours=hoursOnDay(today);
+  var streak=currentStreak();
+  db.collection('publicShare').doc(state.meta.shareId).set({
+    name:state.settings.name||'',net:net,hours:Math.round(hours*10)/10,streak:streak,
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(){});
 }
 function startCloudSync(){
   if(!db||!state.settings.syncCode||cloudUnsub)return;
@@ -1333,12 +1444,13 @@ function normState(d){
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
     ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null,billingDay:1,dayStartHour:0,lastSeenVer:0,soundOn:false,
     bcSignature:'לבקש באישי בלבד',botUrl:'',botKey:'',monthStartDay:1,monthCycleSet:false,
-    morningOn:false,morningTime:'08:00'},d.settings||{});
+    morningOn:false,morningTime:'08:00',lockOn:false,shareOn:false,carModeOn:true},d.settings||{});
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
   if(!Array.isArray(d.fund.log))d.fund.log=[];
-  d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{},lastTx:null,morningShown:'',milestones:{}},d.meta||{});
+  d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{},lastTx:null,morningShown:'',milestones:{},
+    morningGreeted:'',weekShown:'',overworkWeek:'',lockPin:'',shareId:''},d.meta||{});
   if(!d.meta.milestones||typeof d.meta.milestones!=='object')d.meta.milestones={};
   if(!d.meta.dismiss)d.meta.dismiss={};
   if(!Array.isArray(d.bcGroups))d.bcGroups=[];
@@ -1359,9 +1471,46 @@ function load(){
 }
 var state=load();
 
+/* ==================== נעילת פרטיות ==================== */
+var lockGateMode='unlock';
+function showLockGate(mode){
+  lockGateMode=mode;
+  var t=$('#lockGate .cg-title'),s=$('#lockGate .cg-sub');
+  if(mode==='setup'){t.textContent='יצירת קוד נעילה';s.textContent='בחר קוד בן 4 ספרות — תצטרך אותו כדי להיכנס לאפליקציה';}
+  else{t.textContent='קופת הנהג נעולה';s.textContent='הקלד את הקוד בן 4 הספרות שלך';}
+  $('#lockInput').value='';$('#lockErr').textContent='';
+  $('#lockGate').classList.add('show');
+  setTimeout(function(){$('#lockInput').focus();},50);
+}
+function hideLockGate(){$('#lockGate').classList.remove('show');}
+$('#lockGo').addEventListener('click',function(){
+  var v=$('#lockInput').value.trim();
+  if(!/^\d{4}$/.test(v)){$('#lockErr').textContent='צריך בדיוק 4 ספרות';return;}
+  if(lockGateMode==='setup'){
+    state.meta.lockPin=v;state.settings.lockOn=true;save();
+    hideLockGate();toast('נעילה הופעלה ✓');renderSettings();
+  }else{
+    if(v===state.meta.lockPin){
+      try{sessionStorage.setItem('kupaUnlocked','1');}catch(e){}
+      hideLockGate();
+    }else{$('#lockErr').textContent='קוד שגוי — נסה שוב';$('#lockInput').value='';}
+  }
+});
+if(state.settings.lockOn&&state.meta.lockPin){
+  var alreadyUnlocked=false;
+  try{alreadyUnlocked=sessionStorage.getItem('kupaUnlocked')==='1';}catch(e){}
+  if(!alreadyUnlocked)showLockGate('unlock');
+}
+
 /* ==================== מה חדש ==================== */
-var APP_VER=9;
+var APP_VER=10;
 var WHATS_NEW=[
+  'חדש: "הסיפור שלי" בהגדרות — סיכום אישי ומעוצב של כל מה שהשגת מתחילת הדרך',
+  'חדש: מצב תצוגה לרכב — מניחים את הטלפון לרוחב ורואים מסך ענק עם מספרי היום',
+  'חדש: נעילת פרטיות ושיתוף עם המשפחה (קישור צפייה בלבד), בהגדרות',
+  'חדש: מפת חום "מתי אני הכי חזק" בדוחות — יום בשבוע מול שעה ביום',
+  'חדש: הערה קטנה כשעברת יום מקביל אשתקד, עידוד ביום חלש, וסיכום שבועי אוטומטי',
+  'חדש: כפתור השמעה קולית של סיכום היום, וברכת בוקר בקול',
   'חדש: "בוקר טוב" — התראה יומית עם סיכום אתמול והמרחק ליעד (בהגדרות)',
   'חדש: מנוע אבני דרך אוטומטי — האפליקציה מזהה ומחגגת רגעים משמעותיים (סכומים עגולים, רצפים, שיאים אישיים)',
   'חדש: חגיגת מטבעות אמיתית — אנימציה וקול בכל פעם שקורה משהו גדול',
@@ -1550,6 +1699,42 @@ function bestDayEver(){
   var best=0;Object.keys(by).forEach(function(k){best=Math.max(best,by[k]);});
   return best;
 }
+function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0;}return h;}
+function sameDateLastYear(iso){
+  var d=dObj(iso);
+  return isoOf(new Date(d.getFullYear()-1,d.getMonth(),d.getDate()));
+}
+function avgDailyNet(){
+  var days={};
+  state.tx.forEach(function(t){if(!t.lumpAuto)days[t.date]=1;});
+  var keys=Object.keys(days);
+  if(!keys.length)return 0;
+  var total=0;
+  keys.forEach(function(d){
+    var s=sums(state.tx.filter(function(t){return t.date===d&&!t.lumpAuto;}));
+    total+=netOf(s,state.settings.pct);
+  });
+  return total/keys.length;
+}
+function updateAppBadge(streak){
+  try{
+    if(!('setAppBadge' in navigator))return;
+    if(streak>=2)navigator.setAppBadge(streak);
+    else navigator.clearAppBadge();
+  }catch(e){}
+}
+var daySummaryCache=null;
+function speak(text){
+  try{
+    if(!state.settings.soundOn)return;
+    if(!('speechSynthesis' in window))return;
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text);
+    u.lang='he-IL';u.rate=1;u.pitch=1;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function speakNum(n){return Math.round(Math.abs(n)).toLocaleString('he-IL')+' שקל';}
 function rentNote(){
   var NOTES={finance:'החזר מימון/הלוואה',leasing:'תשלום ליסינג'};
   return NOTES[state.settings.ownershipType]||'שכירות חודשית';
@@ -1610,6 +1795,7 @@ function go(id){
   if(id==='broadcast')renderBroadcast();
   window.scrollTo({top:0});
   movePill();
+  if(typeof updateCarMode==='function')updateCarMode();
 }
 $$('[data-go]').forEach(function(b){b.addEventListener('click',function(){go(b.dataset.go);});});
 window.addEventListener('resize',movePill);
@@ -1722,6 +1908,7 @@ function renderHome(){
   var streak=currentStreak();
   $('#streakChip').style.display=streak>=2?'':'none';
   $('#streakDays').textContent=streak;
+  updateAppBadge(streak);
 
   animateNum($('#netNum'),net,fmt);
 
@@ -1780,6 +1967,26 @@ function renderHome(){
       lumpToday.map(function(x){return catById(x.cat).label+' '+fmt(x.amount);}).join(', ')+
       ' — זה נספר בחישוב החודשי למעלה, לא במאזן היומי כאן</span>';
   }
+  var lyIso=sameDateLastYear(td);
+  var lyInc=sums(state.tx.filter(function(x){return x.date===lyIso&&x.type==='income';})).inc;
+  if(lyInc>0){
+    footHtml+='<br><span style="opacity:.7">🕰️ לפני שנה בדיוק ביום הזה עשית '+fmt(lyInc)+'</span>';
+  }
+  var moodEl=$('#moodFace'),speakBtn=$('#speakDayBtn');
+  daySummaryCache={date:td,inc:dNetIn,exp:dS.exp,car:car,net:bal};
+  if(td===todayISO()){
+    speakBtn.style.display='';
+    var avg=avgDailyNet();
+    if(avg>0&&dS.inc>0){
+      if(bal>=avg*1.15){moodEl.textContent='🤩';moodEl.style.display='';}
+      else if(bal>=avg*0.6){moodEl.textContent='🙂';moodEl.style.display='';}
+      else{
+        moodEl.textContent='💪';moodEl.style.display='';
+        var ENC=['יש ימים כאלה — מחר יום חדש','לא כל יום חייב להיות שיא, ממשיכים','יום רגוע גם הוא יום עבודה, כל הכבוד שיצאת'];
+        footHtml+='<br><span style="opacity:.7">'+ENC[hashStr(td)%ENC.length]+'</span>';
+      }
+    }else moodEl.style.display='none';
+  }else{speakBtn.style.display='none';moodEl.style.display='none';}
   $('#tFoot').innerHTML=footHtml;
 
   renderGoal(net);
@@ -1822,6 +2029,7 @@ function renderHome(){
 
   renderNudges(s,debt);
   drawWeek();
+  if(typeof updateCarMode==='function')updateCarMode();
 }
 
 /* ---------- יעד חודשי ---------- */
@@ -1979,6 +2187,14 @@ document.addEventListener('click',function(e){
     quickAdd('expense','commission',due>0?due:null);
   }
   else if(act==='wa-share'){shareSummary();}
+  else if(act==='speak-day'){
+    if(!daySummaryCache)return;
+    var dsc=daySummaryCache;
+    var txt='ההכנסות היום '+speakNum(dsc.inc)+', ההוצאות '+speakNum(dsc.exp)+
+      (dsc.car>0?', עלות הרכב '+speakNum(dsc.car):'')+
+      ', והמאזן הסופי '+(dsc.net>=0?'פלוס ':'מינוס ')+speakNum(dsc.net)+'.';
+    speak(txt);
+  }
   else if(act==='start-shift'){
     state.shifts.push({id:uid(),start:Date.now(),end:null});
     save();renderHome();toast('משמרת החלה — נסיעה טובה');
@@ -2543,6 +2759,48 @@ function renderReports(){
   drawMonth();
   drawDonut(s);
   renderHeatmap(pct);
+  renderWeekHourHeat();
+}
+function renderWeekHourHeat(){
+  var card=$('#whHeatCard'),grid=$('#whGrid');if(!grid)return;
+  var HOURS=[[0,4],[4,8],[8,12],[12,16],[16,20],[20,24]];
+  var DAYS=['א','ב','ג','ד','ה','ו','ש'];
+  var buckets={};
+  var any=false;
+  state.tx.forEach(function(t){
+    if(t.type!=='income'||!t.ts)return;
+    var dt=new Date(t.ts);
+    var wd=dt.getDay(),hr=dt.getHours();
+    var hb=Math.floor(hr/4);
+    var key=wd+'_'+hb;
+    buckets[key]=buckets[key]||{sum:0,n:0};
+    buckets[key].sum+=t.amount;buckets[key].n++;
+    any=true;
+  });
+  if(!any){card.style.display='none';return;}
+  card.style.display='';
+  var maxAvg=1;
+  Object.keys(buckets).forEach(function(k){
+    var b=buckets[k],avg=b.sum/b.n;
+    maxAvg=Math.max(maxAvg,avg);
+  });
+  var html='<div></div>'+HOURS.map(function(h){return '<div class="wh-hd">'+h[0]+'</div>';}).join('');
+  for(var d=0;d<7;d++){
+    html+='<div class="wh-row-lb">'+DAYS[d]+'</div>';
+    for(var h=0;h<6;h++){
+      var b=buckets[d+'_'+h];
+      var bg='var(--line2)';
+      var title=DAYS[d]+' · '+HOURS[h][0]+':00–'+HOURS[h][1]+':00';
+      if(b){
+        var avg=b.sum/b.n;
+        var t=Math.min(1,avg/maxAvg);
+        bg='rgba(46,125,82,'+(0.12+t*0.68).toFixed(2)+')';
+        title+=' · ממוצע '+fmtInt(avg);
+      }
+      html+='<div class="wh-cell" style="background:'+bg+'" title="'+title+'"></div>';
+    }
+  }
+  grid.innerHTML=html;
 }
 function heatColor(net,maxAbs){
   if(maxAbs<=0||Math.abs(net)<0.5)return '';
@@ -2897,6 +3155,33 @@ $('#morningSwitch').addEventListener('change',function(){
 $('#morningTime').addEventListener('change',function(){
   state.settings.morningTime=$('#morningTime').value||'08:00';save();
 });
+$('#lockSwitch').addEventListener('change',function(){
+  if($('#lockSwitch').checked){
+    $('#lockSwitch').checked=false;
+    showLockGate('setup');
+  }else{
+    state.settings.lockOn=false;save();toast('נעילה כבויה');
+  }
+});
+$('#shareSwitch').addEventListener('change',function(){
+  state.settings.shareOn=$('#shareSwitch').checked;
+  if(state.settings.shareOn&&!state.meta.shareId){
+    state.meta.shareId=uid()+Math.random().toString(36).slice(2,8);
+  }
+  save();renderSettings();
+  if(state.settings.shareOn)toast('שיתוף המשפחה הופעל');else toast('שיתוף המשפחה כבוי');
+});
+$('#carModeSwitch').addEventListener('change',function(){
+  state.settings.carModeOn=$('#carModeSwitch').checked;save();
+  if(!state.settings.carModeOn)$('#carModeOverlay').classList.remove('show');
+});
+$('#shareLinkCopy').addEventListener('click',function(){
+  var url=location.origin+location.pathname.replace(/index\.html$/,'')+'share.html?id='+state.meta.shareId;
+  if(navigator.share){navigator.share({title:'קופת הנהג',url:url}).catch(function(){});}
+  else{
+    navigator.clipboard.writeText(url).then(function(){toast('הקישור הועתק ✓');}).catch(function(){});
+  }
+});
 function applyDaypart(){
   var h=new Date().getHours();
   var part=h<6?'night':h<12?'morning':h<18?'noon':h<22?'evening':'night';
@@ -2988,6 +3273,69 @@ $('#eraseBtn').addEventListener('click',function(){
     save();refreshAll('הכל נוקה');
   });
 });
+/* ==================== הסיפור שלי ==================== */
+var storyIdx=0,storySlides=[];
+function computeLongestStreak(){
+  var set={};state.tx.forEach(function(t){if(t.type==='income')set[t.date]=1;});
+  var dates=Object.keys(set).sort();
+  var longest=0,cur=0,prev=null;
+  dates.forEach(function(d){
+    if(prev&&shiftISO(prev,1)===d)cur++;else cur=1;
+    longest=Math.max(longest,cur);prev=d;
+  });
+  return longest;
+}
+function buildStorySlides(){
+  var slides=[];
+  var incomeTx=state.tx.filter(function(t){return t.type==='income';});
+  var days={};incomeTx.forEach(function(t){days[t.date]=(days[t.date]||0)+t.amount;});
+  var dayKeys=Object.keys(days);
+  var totalDays=dayKeys.length;
+  var totalInc=incomeTx.reduce(function(a,t){return a+t.amount;},0);
+  var totalNet=netOf(sums(state.tx),state.settings.pct);
+  var best=0,bestDate='';
+  dayKeys.forEach(function(d){if(days[d]>best){best=days[d];bestDate=d;}});
+  var longestStreak=computeLongestStreak();
+  var catTotals={};
+  state.tx.forEach(function(t){if(t.type==='expense'&&t.cat!=='commission')catTotals[t.cat]=(catTotals[t.cat]||0)+t.amount;});
+  var topCat=null,topCatV=0;
+  Object.keys(catTotals).forEach(function(k){if(catTotals[k]>topCatV){topCatV=catTotals[k];topCat=k;}});
+
+  slides.push({emoji:'✨',title:'הסיפור שלך בקופת הנהג',big:totalDays+' ימי עבודה',sub:'מאז שהתחלת להשתמש באפליקציה'});
+  if(totalInc>0)slides.push({emoji:'💰',title:'סך ההכנסות שרשמת',big:fmtInt(totalInc),sub:'כל שקל שהרווחת נספר כאן'});
+  slides.push({emoji:'📊',title:'הנטו האמיתי שלך',big:fmtInt(Math.max(0,totalNet)),sub:'אחרי עמלת סדרן והוצאות, מתחילת הדרך'});
+  if(best>0)slides.push({emoji:'🏆',title:'היום הכי חזק שלך',big:fmtInt(best),sub:dfDM.format(dObj(bestDate))});
+  if(longestStreak>=2)slides.push({emoji:'🔥',title:'הרצף הכי ארוך שלך',big:longestStreak+' ימים ברציפות',sub:'בלי לפספס אף יום'});
+  if(topCat)slides.push({emoji:'🧾',title:'ההוצאה הכי גדולה שלך',big:catById(topCat).label,sub:fmtInt(topCatV)+' עד עכשיו'});
+  slides.push({emoji:'🙌',title:'ממשיכים ככה',big:'',sub:'תודה שאתה כאן כל יום, זה נראה בנתונים'});
+  return slides;
+}
+function renderStorySlide(){
+  var s=storySlides[storyIdx];
+  var body=$('#storyBody');
+  body.classList.remove('story-body');void body.offsetWidth;body.classList.add('story-body');
+  body.innerHTML='<div class="s-emoji">'+s.emoji+'</div><h2>'+s.title+'</h2>'+
+    (s.big?'<div class="s-big">'+s.big+'</div>':'')+'<p>'+s.sub+'</p>';
+  $('#storyDots').innerHTML=storySlides.map(function(_,i){
+    return '<span class="'+(i<storyIdx?'done':i===storyIdx?'active':'')+'"><i></i></span>';
+  }).join('');
+}
+function openStory(){
+  storySlides=buildStorySlides();
+  storyIdx=0;
+  renderStorySlide();
+  $('#storyModal').classList.add('show');
+}
+function closeStory(){$('#storyModal').classList.remove('show');}
+$('#storyBtn').addEventListener('click',openStory);
+$('#storyClose').addEventListener('click',closeStory);
+$('#storyTapNext').addEventListener('click',function(){
+  if(storyIdx<storySlides.length-1){storyIdx++;renderStorySlide();}else closeStory();
+});
+$('#storyTapPrev').addEventListener('click',function(){
+  if(storyIdx>0){storyIdx--;renderStorySlide();}
+});
+
 function renderSettings(){
   $('#syncCodeVal').textContent=state.settings.syncCode||'לא הוגדר';
   renderSyncStatus();
@@ -3002,6 +3350,10 @@ function renderSettings(){
   $('#remindTime').value=state.settings.remindTime||'21:30';
   $('#morningSwitch').checked=!!state.settings.morningOn;
   $('#morningTime').value=state.settings.morningTime||'08:00';
+  $('#lockSwitch').checked=!!state.settings.lockOn;
+  $('#shareSwitch').checked=!!state.settings.shareOn;
+  $('#shareLinkRow').style.display=(state.settings.shareOn&&state.meta.shareId)?'':'none';
+  $('#carModeSwitch').checked=!!state.settings.carModeOn;
   $('#fundPct').textContent=state.settings.fundPct;
   $('#goalVal').textContent=state.settings.goal?fmtInt(state.settings.goal):'לא הוגדר';
   $('#rentVal').textContent=state.settings.rent?fmtInt(state.settings.rent):'לא הוגדר';
@@ -3312,8 +3664,8 @@ setInterval(function(){
   if(act&&el)el.textContent=fmtHours(shiftDurMs(act,Date.now())/3600000);
 },2000);
 
-setInterval(function(){checkNotify();checkMorning();},60000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden){checkNotify();checkMorning();}});
+setInterval(function(){checkNotify();checkMorning();checkWeekly();checkOverwork();},60000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){checkNotify();checkMorning();checkWeekly();checkOverwork();}});
 function checkNotify(){
   if(!state.settings.remindOn)return;
   var today=todayISO();
@@ -3352,10 +3704,107 @@ function checkMorning(){
   }
   var streak=currentStreak();
   if(streak>=2)body+=' · רצף '+streak+' ימים ברציפות';
+  var avg=avgDailyNet();
+  var chance=weekdaySuccessChance(d.getDay(),avg);
+  if(chance!=null){
+    var wdNames=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+    body+=' · לפי ההיסטוריה שלך, '+chance+'% סיכוי ליום מעל הממוצע שלך ביום '+wdNames[d.getDay()];
+  }
   if('Notification' in window&&Notification.permission==='granted'){
     try{new Notification('בוקר טוב ☀️',{body:body});}catch(e){}
   }
 }
+function weekdaySuccessChance(wd,avg){
+  if(!(avg>0))return null;
+  var byDay={};
+  state.tx.forEach(function(t){if(!t.lumpAuto)byDay[t.date]=1;});
+  var vals=[];
+  Object.keys(byDay).forEach(function(d){
+    if(new Date(d+'T12:00:00').getDay()===wd){
+      var s=sums(state.tx.filter(function(t){return t.date===d&&!t.lumpAuto;}));
+      vals.push(netOf(s,state.settings.pct));
+    }
+  });
+  if(vals.length<3)return null;
+  var hits=vals.filter(function(v){return v>=avg;}).length;
+  return Math.round(hits/vals.length*100);
+}
+function weekStartISO(iso){
+  return shiftISO(iso,-dObj(iso).getDay());
+}
+function checkWeekly(){
+  if(!state.settings.morningOn)return;
+  var now=new Date();
+  if(now.getDay()!==0)return;
+  var today=todayISO();
+  if(state.meta.weekShown===today)return;
+  var hh=(state.settings.morningTime||'08:00').split(':');
+  var past=now.getHours()>+hh[0]||(now.getHours()===+hh[0]&&now.getMinutes()>=+hh[1]);
+  if(!past)return;
+  state.meta.weekShown=today;save();
+  var d7=shiftISO(today,-7),d14=shiftISO(today,-14);
+  var wk1=sums(state.tx.filter(function(t){return t.date>=d7&&t.date<today&&!t.lumpAuto;}));
+  var wk2=sums(state.tx.filter(function(t){return t.date>=d14&&t.date<d7&&!t.lumpAuto;}));
+  var n1=netOf(wk1,state.settings.pct),n2=netOf(wk2,state.settings.pct);
+  var body='השבוע שעבר: '+fmt(n1);
+  if(n2>0){
+    var dd=(n1-n2)/Math.abs(n2)*100;
+    body+=' · '+(dd>=0?'עלייה':'ירידה')+' של '+Math.abs(Math.round(dd))+'% מול השבוע לפניו';
+  }
+  if('Notification' in window&&Notification.permission==='granted'){
+    try{new Notification('סיכום השבוע שלך 📊',{body:body});}catch(e){}
+  }
+}
+function weeklyHoursEndingToday(offsetDays){
+  var end=shiftISO(todayISO(),-offsetDays),start=shiftISO(end,-6),h=0;
+  for(var i=0;i<7;i++)h+=hoursOnDay(shiftISO(start,i));
+  return h;
+}
+function checkOverwork(){
+  if(!state.settings.morningOn)return;
+  var today=todayISO();
+  var wkey=weekStartISO(today);
+  if(state.meta.overworkWeek===wkey)return;
+  var hh=(state.settings.morningTime||'08:00').split(':');
+  var d=new Date();
+  var past=d.getHours()>+hh[0]||(d.getHours()===+hh[0]&&d.getMinutes()>=+hh[1]);
+  if(!past)return;
+  var thisWeek=weeklyHoursEndingToday(0);
+  if(thisWeek<5)return;
+  var pastWeeks=[];
+  for(var w=1;w<=6;w++){var h=weeklyHoursEndingToday(w*7);if(h>0)pastWeeks.push(h);}
+  if(pastWeeks.length<3)return;
+  var avgPast=pastWeeks.reduce(function(a,b){return a+b;},0)/pastWeeks.length;
+  state.meta.overworkWeek=wkey;save();
+  if(thisWeek>avgPast*1.3){
+    if('Notification' in window&&Notification.permission==='granted'){
+      try{new Notification('שווה לשים לב 💙',{body:'השבוע עבדת '+fmtHours(thisWeek)+', יותר מהרגיל שלך ('+fmtHours(avgPast)+' בממוצע) — תזכור לנוח כשאפשר'});}catch(e){}
+    }
+  }
+}
+
+/* ==================== מצב תצוגה לרכב ==================== */
+var carModeMQ=window.matchMedia?window.matchMedia('(orientation: landscape)'):null;
+function updateCarMode(){
+  if(!carModeMQ)return;
+  var overlay=$('#carModeOverlay');
+  if(carModeMQ.matches&&state.settings.carModeOn&&ui.screen==='home'){
+    var today=todayISO();
+    var dS=sums(state.tx.filter(function(x){return x.date===today&&!x.lumpAuto;}));
+    var net=netOf(dS,state.settings.pct);
+    $('#cmNet').textContent=(net>=0?'+':'−')+fmt(Math.abs(net)).replace(/^⁦|⁩$/g,'');
+    $('#cmNet').style.color=net>=0?'#fff':'#F2907D';
+    $('#cmHours').textContent=fmtHours(hoursOnDay(today));
+    $('#cmStreak').textContent=currentStreak();
+    overlay.classList.add('show');
+  }else{
+    overlay.classList.remove('show');
+  }
+}
+if(carModeMQ){
+  carModeMQ.addEventListener?carModeMQ.addEventListener('change',updateCarMode):carModeMQ.addListener(updateCarMode);
+}
+$('#carModeOverlay').addEventListener('click',function(){$('#carModeOverlay').classList.remove('show');});
 
 /* ==================== כללי ==================== */
 function paginate(obj,delta,render){obj.m+=delta;
@@ -3682,6 +4131,12 @@ buildCats();
 renderAmt();
 checkNotify();
 checkMorning();
+checkWeekly();
+checkOverwork();
+if(state.settings.wizardDone&&state.meta.morningGreeted!==todayISO()){
+  state.meta.morningGreeted=todayISO();save();
+  setTimeout(function(){speak(greetWord()+(state.settings.name?', '+state.settings.name:''));},1200);
+}
 requestAnimationFrame(function(){requestAnimationFrame(movePill);});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(movePill).catch(function(){});
 setTimeout(movePill,600);

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#111214">
+<title>איך הולך היום — קופת הנהג</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='4' y='4' width='92' height='92' rx='24' fill='%23F2B01E'/%3E%3Ctext x='50' y='69' font-size='54' text-anchor='middle' font-family='Arial' font-weight='bold' fill='%23111214'%3E%E2%82%AA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo',sans-serif;background:#111214;color:#F6F6F3;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#1A1B1E;border-radius:22px;padding:28px 24px;width:100%;max-width:360px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.mark{font-size:34px;color:#F2B01E;font-weight:800;margin-bottom:6px}
+.title{font-size:15px;color:#9A9A9E;margin-bottom:22px}
+.big{font-size:44px;font-weight:800;letter-spacing:-1px}
+.lbl{font-size:12.5px;color:#9A9A9E;margin-top:4px}
+.row{display:flex;gap:10px;margin-top:22px}
+.mini{flex:1;background:#232427;border-radius:14px;padding:14px 8px}
+.mini b{display:block;font-size:19px;font-weight:800}
+.mini span{font-size:11px;color:#9A9A9E}
+.foot{margin-top:22px;font-size:11px;color:#6B6B70}
+.err{color:#E0654A;font-size:13px}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="mark">₪</div>
+  <div class="title">טוען…</div>
+</div>
+<script>
+try{
+  firebase.initializeApp({
+    apiKey:"AIzaSyAyNdYfgElkFdAXtwBhFYfabZn2RA9tRcw",
+    authDomain:"sodg-272b7.firebaseapp.com",
+    projectId:"sodg-272b7",
+    storageBucket:"sodg-272b7.firebasestorage.app",
+    messagingSenderId:"130888372582",
+    appId:"1:130888372582:web:c7d9ff95f405b2c720b8a7"
+  });
+  var db=firebase.firestore();
+  var id=new URLSearchParams(location.search).get('id');
+  var card=document.getElementById('card');
+  function fmt(n){return '₪'+Math.round(Math.abs(n)).toLocaleString('he-IL');}
+  if(!id){
+    card.innerHTML='<div class="mark">₪</div><div class="err">קישור לא תקין</div>';
+  }else{
+    db.collection('publicShare').doc(id).onSnapshot(function(snap){
+      if(!snap.exists){card.innerHTML='<div class="mark">₪</div><div class="err">הקישור הזה לא פעיל</div>';return;}
+      var d=snap.data();
+      var name=d.name?(' של '+d.name):'';
+      card.innerHTML=
+        '<div class="mark">₪</div>'+
+        '<div class="title">איך הולך היום'+name+'</div>'+
+        '<div class="big" style="color:'+(d.net>=0?'#2E7D52':'#E0654A')+'">'+(d.net>=0?'+':'−')+fmt(d.net)+'</div>'+
+        '<div class="lbl">מאזן היום</div>'+
+        '<div class="row">'+
+          '<div class="mini"><b>'+(d.hours||0)+'</b><span>שעות עבודה היום</span></div>'+
+          '<div class="mini"><b>'+(d.streak||0)+'</b><span>ימי רצף</span></div>'+
+        '</div>'+
+        '<div class="foot">מתעדכן אוטומטית · קופת הנהג</div>';
+    },function(){
+      card.innerHTML='<div class="mark">₪</div><div class="err">שגיאת חיבור — נסה שוב מאוחר יותר</div>';
+    });
+  }
+}catch(e){
+  document.getElementById('card').innerHTML='<div class="mark">₪</div><div class="err">שגיאה בטעינה</div>';
+}
+</script>
+</body>
+</html>
