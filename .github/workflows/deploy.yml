@@ -24,15 +24,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate bc-config.js from repo secret (not committed to git)
-        env:
-          BC_ALLOWLIST: ${{ secrets.BROADCAST_ALLOWLIST }}
-        run: |
-          node -e "
-            const codes = (process.env.BC_ALLOWLIST || '').split(',').map(s => s.trim()).filter(Boolean);
-            require('fs').writeFileSync('bc-config.js', 'window.BROADCAST_ALLOWLIST=' + JSON.stringify(codes) + ';\n');
-          "
-
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
