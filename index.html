@@ -54,6 +54,9 @@ input{font-family:inherit;font-size:16px;color:var(--ink)}
 svg{display:block}
 .app{max-width:520px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;overflow-x:clip}
 
+#globalProgress{position:fixed;top:0;left:0;right:0;height:3px;background:var(--line2);z-index:45;overflow:hidden}
+#globalProgressFill{height:100%;background:linear-gradient(90deg,var(--accent),#ffe093);width:0%;
+  transition:width .7s cubic-bezier(.22,1,.36,1);border-radius:0 0 3px 3px}
 /* ============ טופבר ============ */
 .topbar{
   position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;
@@ -70,8 +73,12 @@ svg{display:block}
   animation:brandIn .55s cubic-bezier(.2,.85,.3,1) both, brandShine 6s ease-in-out .6s infinite}
 @keyframes brandIn{from{transform:scale(.4) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
 @keyframes brandShine{0%,100%{background-position:0% 30%}50%{background-position:100% 70%}}
-#bootSplash{position:fixed;inset:0;z-index:300;background:var(--hero);display:flex;align-items:center;justify-content:center;
+#bootSplash{position:fixed;inset:0;z-index:300;background:var(--hero);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;
   transition:opacity .42s ease,transform .42s cubic-bezier(.4,0,.2,1)}
+#bootLine{color:rgba(255,255,255,.75);font-size:13.5px;font-weight:600;opacity:0;
+  animation:bootLineIn .5s ease .5s both;text-align:center;padding:0 30px;min-height:18px}
+@keyframes bootLineIn{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
 #bootSplash.fadeout{opacity:0;transform:scale(1.08)}
 .boot-mark{width:76px;height:76px;border-radius:23px;display:grid;place-items:center;font-size:40px;font-weight:800;color:var(--accent-ink);
   background:linear-gradient(135deg,#d99a15 0%,var(--accent) 35%,#ffe093 55%,var(--accent) 75%,#d99a15 100%);
@@ -84,6 +91,12 @@ svg{display:block}
 #codeGate{position:fixed;inset:0;z-index:250;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px}
 #lockGate{position:fixed;inset:0;z-index:260;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px}
 #lockGate.show{display:flex}
+#healthOverlay{position:fixed;inset:0;z-index:290;background:linear-gradient(160deg,#12203a,#0c1522);display:none;
+  flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;color:#fff}
+#healthOverlay.show{display:flex;animation:screenIn .4s ease}
+.hl-emoji{font-size:52px;margin-bottom:16px}
+#healthOverlay h2{font-size:22px;font-weight:800;margin-bottom:10px}
+#healthOverlay p{font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;max-width:320px;margin-bottom:26px}
 #carModeOverlay{position:fixed;inset:0;z-index:270;background:var(--hero);display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:24px;text-align:center}
 #carModeOverlay.show{display:flex}
@@ -214,6 +227,8 @@ main{flex:1;padding:18px 18px 132px}
 html[data-daypart="morning"] .hero::before{background:radial-gradient(120% 100% at 15% 0%, rgba(255,196,110,.13), transparent 60%)}
 html[data-daypart="evening"] .hero::before{background:radial-gradient(120% 100% at 15% 0%, rgba(255,140,90,.13), transparent 60%)}
 html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at 15% 0%, rgba(120,150,255,.12), transparent 60%)}
+html[data-mood="great"] .hero::before{background:radial-gradient(120% 100% at 15% 0%, rgba(242,176,30,.24), transparent 60%)}
+html[data-mood="low"] .hero::before{background:radial-gradient(120% 100% at 15% 0%, rgba(120,140,190,.14), transparent 60%)}
 .hero .lbl{color:rgba(243,242,236,.55);position:relative}
 .hero-net-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;position:relative}
 .hero-row{position:relative}
@@ -378,6 +393,8 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 @keyframes digitPop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
 .num.record-glow{animation:recordGlow 2.4s ease-out}
 @keyframes recordGlow{0%{text-shadow:0 0 0 rgba(242,176,30,0)}20%{text-shadow:0 0 14px rgba(242,176,30,.85)}100%{text-shadow:0 0 0 rgba(242,176,30,0)}}
+.hero-net.hero-flash{animation:heroFlash .55s cubic-bezier(.34,1.56,.64,1)}
+@keyframes heroFlash{0%{transform:scale(1);text-shadow:0 0 0 rgba(242,176,30,0)}40%{transform:scale(1.09);text-shadow:0 0 20px rgba(242,176,30,.9)}100%{transform:scale(1);text-shadow:0 0 0 rgba(242,176,30,0)}}
 .gc-badge{font-size:52px;text-align:center;margin-bottom:6px;animation:gcPop .6s cubic-bezier(.34,1.56,.64,1)}
 .voice-mic{width:64px;height:64px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);
   display:grid;place-items:center;margin:0 auto 14px;position:relative}
@@ -428,7 +445,17 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 }
 .selpop{animation:selPop .32s cubic-bezier(.34,1.7,.64,1);position:relative;z-index:2}
 @keyframes selPop{0%{transform:scale(1);box-shadow:none}45%{transform:scale(1.055);box-shadow:0 4px 10px rgba(0,0,0,.16)}100%{transform:scale(1);box-shadow:none}}
-.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px;
+  animation:catsIn .28s ease}
+.cats.collapsed{display:none}
+@keyframes catsIn{0%{opacity:0;transform:translateY(-4px)}100%{opacity:1;transform:translateY(0)}}
+.cat-summary{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:11px 14px;margin-bottom:9px;cursor:pointer;transition:transform .12s}
+.cat-summary:active{transform:scale(.98)}
+.cat-summary .ic{font-size:18px}
+.cat-summary span:nth-child(2){flex:1;font-weight:700;font-size:14px}
+.cat-summary-change{font-size:12px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);
+  border-radius:999px;padding:5px 11px}
 .cat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:10px 3px;
   display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:var(--muted);transition:.12s}
 .cat .ic{font-size:19px;filter:saturate(.85)}
@@ -650,7 +677,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
 </style>
 </head>
 <body>
-<div id="bootSplash"><div class="boot-mark">₪</div></div>
+<div id="bootSplash"><div class="boot-mark">₪</div><div id="bootLine"></div></div>
 
 <div id="codeGate">
   <div class="cg-card">
@@ -689,6 +716,13 @@ html[data-theme="dark"] .track{background:#2b2f34}
   <div class="story-tap story-tap-l" id="storyTapPrev"></div>
 </div>
 
+<div id="healthOverlay">
+  <div class="hl-emoji">💙</div>
+  <h2>שווה לעצור רגע</h2>
+  <p id="healthMsg"></p>
+  <button type="button" class="btn ink big" id="healthOk">הבנתי, ממשיך</button>
+</div>
+
 <div id="carModeOverlay">
   <div class="cm-net num" id="cmNet">₪0</div>
   <div class="cm-lbl">מאזן היום</div>
@@ -700,6 +734,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
 </div>
 
 <div class="app">
+  <div id="globalProgress"><div id="globalProgressFill"></div></div>
   <header class="topbar">
     <div class="brand"><span class="brand-mark">₪</span><span>קופת הנהג</span></div>
     <div style="display:flex;align-items:center;gap:8px">
@@ -854,7 +889,12 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <button data-m="credit">אשראי</button>
         <button data-m="bank">העברה בנקאית</button>
       </div>
-      <div class="cats" id="catGrid"></div>
+      <div class="cat-summary" id="catSummary">
+        <span class="ic" id="catSummaryIcon"></span>
+        <span id="catSummaryLabel"></span>
+        <span class="cat-summary-change">שינוי</span>
+      </div>
+      <div class="cats collapsed" id="catGrid"></div>
       <div class="pct-row" id="pctRow">
         <span class="pct-lbl">עמלה לנסיעה הזו</span>
         <div class="pct-chips" id="pctChips">
@@ -1495,6 +1535,12 @@ function load(){
   return normState(d);
 }
 var state=load();
+try{
+  var _bd=todayISO(),_binc=0;
+  state.tx.forEach(function(t){if(t.date===_bd&&t.type==='income'&&!t.lumpAuto)_binc+=t.amount;});
+  var _bl=document.getElementById('bootLine');
+  if(_bl)_bl.textContent=_binc>0?('היום כבר עשית '+fmtInt(_binc)+' — קדימה'):(state.settings.wizardDone?'בוא נתחיל יום טוב':'');
+}catch(e){}
 
 /* ==================== נעילת פרטיות ==================== */
 var lockGateMode='unlock';
@@ -1528,8 +1574,13 @@ if(state.settings.lockOn&&state.meta.lockPin){
 }
 
 /* ==================== מה חדש ==================== */
-var APP_VER=13;
+var APP_VER=14;
 var WHATS_NEW=[
+  'חדש: פס התקדמות דק וקבוע למעלה בכל מסך — רואים איך הולך החודש במבט אחד, תמיד',
+  'חדש: המסך הראשי משנה גוון עדין לפי איך הולך היום שלך',
+  'חדש: הוספת הכנסה נהיית קצרה יותר — הקטגוריה האחרונה שלך כבר בחורה, בלי לגלול',
+  'חדש: המספר הגדול "מגיב" חי כשמשהו טוב קורה, וכרטיס היעד מראה כמה ימי עבודה נשארו בקצב שלך',
+  'חדש: מסך מיוחד שמזכיר לך לנוח כשזוהה שבוע עבודה חריג',
   'תוקן באג חשוב: מרוץ בין שמירה מקומית לעדכון מהענן שיכול היה לגרום לאובדן תנועות שנרשמו ממש עכשיו',
   'תוקן: עדכון שמתקבל ממכשיר אחר נשמר עכשיו גם באחסון המקומי, לא רק על המסך'
 ];
@@ -1815,6 +1866,7 @@ function go(id){
   window.scrollTo({top:0});
   movePill();
   if(typeof updateCarMode==='function')updateCarMode();
+  if(typeof updateGlobalProgress==='function')updateGlobalProgress();
 }
 $$('[data-go]').forEach(function(b){b.addEventListener('click',function(){go(b.dataset.go);});});
 window.addEventListener('resize',movePill);
@@ -1997,15 +2049,15 @@ function renderHome(){
     speakBtn.style.display='';
     var avg=avgDailyNet();
     if(avg>0&&dS.inc>0){
-      if(bal>=avg*1.15){moodEl.textContent='🤩';moodEl.style.display='';}
-      else if(bal>=avg*0.6){moodEl.textContent='🙂';moodEl.style.display='';}
+      if(bal>=avg*1.15){moodEl.textContent='🤩';moodEl.style.display='';document.documentElement.dataset.mood='great';}
+      else if(bal>=avg*0.6){moodEl.textContent='🙂';moodEl.style.display='';delete document.documentElement.dataset.mood;}
       else{
-        moodEl.textContent='💪';moodEl.style.display='';
+        moodEl.textContent='💪';moodEl.style.display='';document.documentElement.dataset.mood='low';
         var ENC=['יש ימים כאלה — מחר יום חדש','לא כל יום חייב להיות שיא, ממשיכים','יום רגוע גם הוא יום עבודה, כל הכבוד שיצאת'];
         footHtml+='<br><span style="opacity:.7">'+ENC[hashStr(td)%ENC.length]+'</span>';
       }
-    }else moodEl.style.display='none';
-  }else{speakBtn.style.display='none';moodEl.style.display='none';}
+    }else{moodEl.style.display='none';delete document.documentElement.dataset.mood;}
+  }else{speakBtn.style.display='none';moodEl.style.display='none';delete document.documentElement.dataset.mood;}
   $('#tFoot').innerHTML=footHtml;
 
   renderGoal(net);
@@ -2053,6 +2105,14 @@ function renderHome(){
 
 /* ---------- יעד חודשי ---------- */
 var RING_C=2*Math.PI*34;
+function updateGlobalProgress(){
+  var g=state.settings.goal,fill=$('#globalProgressFill');
+  if(!fill)return;
+  if(!g){fill.style.width='0%';return;}
+  var s=sums(monthTx(ui.hm.y,ui.hm.m));
+  var net=netOf(s,state.settings.pct);
+  fill.style.width=Math.max(0,Math.min(100,net/g*100))+'%';
+}
 function renderGoal(net){
   var g=state.settings.goal;
   var card=$('#goalCard');
@@ -2071,6 +2131,11 @@ function renderGoal(net){
   var sameMonth=todayIso0>=cycS&&todayIso0<cycE;
   var daysLeft=sameMonth?Math.round((dObj(cycE)-dObj(todayIso0))/86400000):cycleDayCount(ui.hm.y,ui.hm.m);
   var reached=net>=g;
+  var workdaysLeft=null;
+  if(!reached){
+    var avg=avgDailyNet();
+    if(avg>1)workdaysLeft=Math.ceil((g-net)/avg);
+  }
   card.innerHTML='<div class="mini-head"><span class="lbl">יעד חודשי</span>'+
     '<button class="edit-btn" data-act="set-goal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>'+
     '<div class="mini-body goal-wrap">'+
@@ -2080,7 +2145,8 @@ function renderGoal(net){
     '</svg><div class="gr-txt"><div class="gr-pct num">'+Math.round(p*100)+'%</div><div class="gr-cap">מהיעד</div></div></div>'+
     '<div class="goal-info">'+
       '<div class="gi-big num">'+fmtInt(g)+'</div>'+
-      '<div class="gi-sub">'+(net>=g?'היעד הושג — יפה מאוד':'נותרו '+fmt(Math.max(0,g-net)))+(sameMonth&&daysLeft>0?'<br>עוד '+daysLeft+' ימים לסוף החודש':'')+'</div>'+
+      '<div class="gi-sub">'+(net>=g?'היעד הושג — יפה מאוד':'נותרו '+fmt(Math.max(0,g-net)))+(sameMonth&&daysLeft>0?'<br>עוד '+daysLeft+' ימים לסוף החודש':'')+
+      (workdaysLeft!=null?'<br>בקצב שלך: עוד כ-'+workdaysLeft+(workdaysLeft===1?' יום עבודה':' ימי עבודה'):'')+'</div>'+
     '</div></div>';
 }
 
@@ -2577,12 +2643,25 @@ function buildCats(){
       '<span class="ic">'+c.icon+'</span>'+c.label+'</button>';
   }).join('');
   $$('#methods button').forEach(function(x){x.classList.toggle('active',x.dataset.m===ui.method);});
+  updateCatSummary();
+  $('#catGrid').classList.toggle('collapsed',ui.addType==='income');
+  $('#catSummary').style.display=ui.addType==='income'?'':'none';
 }
+function updateCatSummary(){
+  var c=catById(ui.addCat);
+  if(!c)return;
+  $('#catSummaryIcon').textContent=c.icon;
+  $('#catSummaryLabel').textContent=c.label;
+}
+$('#catSummary').addEventListener('click',function(){
+  $('#catGrid').classList.toggle('collapsed');
+});
 $('#catGrid').addEventListener('click',function(e){
   var b=e.target.closest('[data-cat]');if(!b)return;
   ui.addCat=b.dataset.cat;
   $$('#catGrid .cat').forEach(function(x){x.classList.toggle('active',x.dataset.cat===ui.addCat);});
   popEl(b,'selpop');
+  updateCatSummary();
   var isRideCat=ui.addType==='income'&&ui.addCat==='rides';
   $('#pctRow').classList.toggle('on',isRideCat);
   $('#directRow').classList.toggle('on',isRideCat);
@@ -2591,6 +2670,7 @@ $('#catGrid').addEventListener('click',function(e){
   if(isRideCat)renderPctChips();
   updateRideHint();
   updateAmtSuggest();
+  if(ui.addType==='income')setTimeout(function(){$('#catGrid').classList.add('collapsed');},220);
 });
 
 function popEl(el,cls){cls=cls||'pop';el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);}
@@ -2662,6 +2742,7 @@ $('#saveTx').addEventListener('click',function(){
   setTimeout(function(){
     toast(msgs.join(' · '));
     go('home');
+    popEl($('#netNum'),'hero-flash');
     if(hitGoal){
       setTimeout(function(){celebrate('🎯','הגעת ליעד החודשי!','כל הכבוד, ממשיכים ככה');},400);
     }else if(milestone){
@@ -3850,6 +3931,8 @@ function checkOverwork(){
   var avgPast=pastWeeks.reduce(function(a,b){return a+b;},0)/pastWeeks.length;
   state.meta.overworkWeek=wkey;save();
   if(thisWeek>avgPast*1.3){
+    $('#healthMsg').textContent='השבוע עבדת '+fmtHours(thisWeek)+', יותר מהרגיל שלך ('+fmtHours(avgPast)+' בממוצע). הכסף לא בורח — תזכור לנוח כשאפשר.';
+    $('#healthOverlay').classList.add('show');
     if('Notification' in window&&Notification.permission==='granted'){
       try{new Notification('שווה לשים לב 💙',{body:'השבוע עבדת '+fmtHours(thisWeek)+', יותר מהרגיל שלך ('+fmtHours(avgPast)+' בממוצע) — תזכור לנוח כשאפשר'});}catch(e){}
     }
@@ -3987,6 +4070,7 @@ if(carModeMQ){
   carModeMQ.addEventListener?carModeMQ.addEventListener('change',updateCarMode):carModeMQ.addListener(updateCarMode);
 }
 $('#carModeOverlay').addEventListener('click',function(){$('#carModeOverlay').classList.remove('show');});
+$('#healthOk').addEventListener('click',function(){$('#healthOverlay').classList.remove('show');});
 
 /* ==================== כללי ==================== */
 function paginate(obj,delta,render){obj.m+=delta;
@@ -4028,6 +4112,7 @@ checkMorning();
 checkWeekly();
 checkOverwork();
 updateJournalBadge();
+updateGlobalProgress();
 if(state.settings.wizardDone&&state.meta.morningGreeted!==todayISO()){
   state.meta.morningGreeted=todayISO();save();
   setTimeout(function(){speak(greetWord()+(state.settings.name?', '+state.settings.name:''));},1200);
