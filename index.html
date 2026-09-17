@@ -505,6 +505,12 @@ html[data-mood="low"] .hero::before{background:radial-gradient(120% 100% at 15% 
 .pct-chips button{flex:1;padding:9px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);
   font-weight:700;font-size:12px;color:var(--muted)}
 .pct-chips button.active{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft)}
+.pct-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:6px;opacity:.75}
+.wd-grid{display:flex;gap:6px;justify-content:center;margin-top:16px}
+.wd-chip{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);
+  font-weight:800;font-size:14px;color:var(--muted);transition:transform .15s,background .15s,color .15s,border-color .15s}
+.wd-chip.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.wd-chip:active{transform:scale(.88)}
 .add-meta{display:flex;gap:8px;margin-bottom:14px}
 .add-meta input{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 12px;min-width:0}
 #txDate{width:148px;font-size:13px}
@@ -651,19 +657,22 @@ html[data-theme="dark"] .track{background:#2b2f34}
 .sync-dot.warn{background:var(--accent);animation:heroBreathe 1.4s ease-in-out infinite}
 .sync-dot.off{background:var(--red)}
 .road-ask{position:fixed;inset:0;z-index:106;display:flex;align-items:flex-start;justify-content:center;
-  padding:0 20px;padding-top:calc(78px + env(safe-area-inset-top));
-  background:rgba(8,9,10,0);pointer-events:none;transition:background .35s ease}
-.road-ask.show{pointer-events:auto;background:rgba(8,9,10,.22)}
-.ra-card{width:min(360px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;
-  padding:24px 22px 20px;box-shadow:var(--shadow-lg);text-align:center;
-  transform:translateY(-56px) scale(.88);opacity:0;
-  transition:transform .5s cubic-bezier(.2,1.6,.3,1),opacity .3s ease}
+  padding:0 16px;padding-top:calc(70px + env(safe-area-inset-top));
+  pointer-events:none}
+.road-ask.show{pointer-events:auto}
+.ra-card{width:min(300px,100%);background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:12px 14px;box-shadow:var(--shadow-lg);
+  transform:translateY(-30px) scale(.92);opacity:0;
+  transition:transform .4s cubic-bezier(.2,1.6,.3,1),opacity .25s ease}
 .road-ask.show .ra-card{transform:translateY(0) scale(1);opacity:1}
-.ra-ic{font-size:46px;display:block;margin-bottom:10px;animation:raWiggle 1.8s ease-in-out .55s infinite}
+.ra-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ra-ic{font-size:22px;flex:none;animation:raWiggle 1.8s ease-in-out .55s infinite}
 @keyframes raWiggle{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-9deg)}92%{transform:rotate(8deg)}97%{transform:rotate(0)}}
-.ra-title{font-size:19px;font-weight:800;margin-bottom:6px}
-.ra-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
-.ra-btns{display:flex;gap:10px}
+.ra-text{flex:1;min-width:0;text-align:right}
+.ra-title{font-size:13.5px;font-weight:800}
+.ra-sub{font-size:11px;color:var(--muted)}
+.ra-btns{display:flex;gap:8px}
+.ra-btns .btn{flex:1}
 .ra-btns .btn{flex:1}
 .modal{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;padding:28px;
   background:rgba(8,9,10,.45);backdrop-filter:blur(4px)}
@@ -908,7 +917,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div class="methods" id="methods">
         <button data-m="cash" class="active">מזומן</button>
         <button data-m="bit">ביט</button>
-        <button data-m="credit">אשראי</button>
+        <button data-m="paybox">פייבוקס</button>
         <button data-m="bank">העברה בנקאית</button>
       </div>
       <div class="cat-summary" id="catSummary">
@@ -919,13 +928,8 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div class="cats collapsed" id="catGrid"></div>
       <div class="pct-row" id="pctRow">
         <span class="pct-lbl">עמלה לנסיעה הזו</span>
-        <div class="pct-chips" id="pctChips">
-          <button data-cp="10">10%</button>
-          <button data-cp="12">12%</button>
-          <button data-cp="25">25%</button>
-          <button data-cp="30">30%</button>
-          <button data-cp="custom">אחר</button>
-        </div>
+        <div class="pct-chips" id="pctChips"></div>
+        <div class="pct-hint">לחיצה ארוכה על כפתור כדי לשנות את האחוז שלו</div>
       </div>
       <div class="pct-row" id="directRow">
         <span class="pct-lbl">שולם ישירות לסדרן <span style="color:var(--muted);font-weight:400">— לא קיבלת מזומן</span></span>
@@ -1013,22 +1017,6 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <div class="metric"><div class="m-lb">ימי עבודה</div><div class="m-vl num" id="rDays">0</div></div>
       </div>
 
-      <div class="card" id="carNewsCard">
-        <div class="card-title">חדשות רכב וכביש</div>
-        <div class="set-row">
-          <div class="r-lb">מחיר בנזין 95 (שירות עצמי)<div class="r-sub" id="fuelPriceUpdated">מעודכן לספטמבר 2026</div></div>
-          <div class="set-val"><span class="num" id="fuelPriceVal">₪8.25</span></div>
-        </div>
-        <p style="margin-top:4px;color:var(--muted);font-size:11px">אין באינטרנט מקור אוטומטי ורשמי למחיר הדלק בזמן אמת — המספר הזה מתעדכן ידנית מדי חודש, לא לבד.</p>
-        <div class="rep-actions" style="margin-top:12px">
-          <button class="btn line" id="trafficLinkBtn" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h1l4 4v-4h6a2 2 0 0 0 2-2v-2"/><path d="M18 8a4 4 0 0 0-4-4H8a4 4 0 0 0 0 8"/></svg>
-            תנועה חיה בכבישים</button>
-          <button class="btn line" id="motLinkBtn" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            הודעות משרד התחבורה</button>
-        </div>
-      </div>
       <div class="week-line" id="weekLine"></div>
 
       <div class="card">
@@ -1163,6 +1151,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
             <button class="edit-btn" data-act="set-monthstart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
         </div>
         <div class="set-row">
+          <div class="r-lb">ימי העבודה שלך<div class="r-sub">כדי שהרצף לא יישבר בימים שאתה לא עובד בהם</div></div>
+          <div class="set-val"><span class="num" id="workDaysVal">7 ימים</span>
+            <button class="edit-btn" data-act="set-workdays"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
+        </div>
+        <div class="set-row">
           <div class="r-lb">תזכורת סגירת יום<div class="r-sub">אם לא נרשמה הכנסה עד השעה</div></div>
           <label class="switch"><input type="checkbox" id="remindSwitch"><span class="track"></span></label>
         </div>
@@ -1236,7 +1229,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <button class="btn danger big" id="eraseBtn" style="width:100%">מחיקת כל התנועות</button>
       </div>
 
-      <div class="about">קופת הנהג · גרסה 2.2<br>עובד אופליין · כל הנתונים אצלך<br>כל הנתונים נשמרים רק במכשיר שלך · ללא שרת, ללא הרשמה</div>
+      <div class="about">קופת הנהג · גרסה 2.2<br>עובד אופליין · הנתונים במכשיר שלך<br>מגובים אוטומטית לענן לפי הקוד האישי שלך · ללא הרשמה, ללא סיסמה</div>
     </section>
   </main>
 
@@ -1271,12 +1264,16 @@ html[data-theme="dark"] .track{background:#2b2f34}
 
 <div class="road-ask" id="roadAsk">
   <div class="ra-card">
-    <span class="ra-ic">🛣️</span>
-    <div class="ra-title">נסעת בכביש 6?</div>
-    <div class="ra-sub">נוסיף את האגרה אוטומטית להוצאות שלך</div>
+    <div class="ra-row">
+      <span class="ra-ic">🛣️</span>
+      <div class="ra-text">
+        <div class="ra-title">נסעת בכביש 6?</div>
+        <div class="ra-sub">נוסיף את האגרה אוטומטית</div>
+      </div>
+    </div>
     <div class="ra-btns">
-      <button class="btn line" id="raNo">לא הפעם</button>
-      <button class="btn amber" id="raYes">כן, הוספה</button>
+      <button class="btn line sm" id="raNo">לא הפעם</button>
+      <button class="btn amber sm" id="raYes">כן, הוספה</button>
     </div>
   </div>
 </div>
@@ -1372,6 +1369,27 @@ html[data-theme="dark"] .track{background:#2b2f34}
   </div>
 </div>
 
+<div class="modal" id="workDaysModal">
+  <div class="modal-card">
+    <div class="gc-badge">📅</div>
+    <h3>אילו ימים אתה עובד?</h3>
+    <p style="margin-top:6px;color:var(--muted);font-size:13px;line-height:1.5">
+      כדי שהרצף שלך לא יישבר בימים שאתה ממילא לא עובד בהם (כמו שישי-שבת) — סמן את הימים שבהם אתה בדרך כלל כן עובד.
+      אפשר לשנות את זה תמיד בהגדרות.
+    </p>
+    <div class="wd-grid" id="wdGrid">
+      <button type="button" class="wd-chip active" data-wd="0">א</button>
+      <button type="button" class="wd-chip active" data-wd="1">ב</button>
+      <button type="button" class="wd-chip active" data-wd="2">ג</button>
+      <button type="button" class="wd-chip active" data-wd="3">ד</button>
+      <button type="button" class="wd-chip active" data-wd="4">ה</button>
+      <button type="button" class="wd-chip active" data-wd="5">ו</button>
+      <button type="button" class="wd-chip active" data-wd="6">ש</button>
+    </div>
+    <button type="button" class="btn ink big" id="wdSave" style="width:100%;margin-top:18px">שמירה</button>
+  </div>
+</div>
+
 <div class="modal" id="dayPickModal">
   <div class="modal-card" id="dayPickCard">
     <h3 id="dpTitle">באיזה יום בחודש?</h3>
@@ -1441,6 +1459,25 @@ function renderSyncStatus(){
   txt.textContent=m[1];
 }
 var firstPushChecked=false,pendingLocalPush=false;
+/* מיזוג בלתי-הרסני: לעולם לא דורסים state שלם ב-state אחר. כל תנועה/משמרת/פריט יומן
+   מזוהה לפי id, וממוזג באיחוד (union) — קיים בכל צד = נשאר, לא משנה איזה צד "יותר חדש".
+   זה מחליף לגמרי השוואת timestamp-ים בין מכשירים, שלא אמינה מעצם הטבע שלה: מכשיר עם
+   נתונים ישנים שעושה save() מקבל Date.now() עכשווי בדיוק כמו מכשיר עם נתונים טריים —
+   ההשוואה לא יכולה להבדיל "ישן באמת" מ"נראה ישן כי המכשיר לא היה מחובר". איחוד לפי id
+   פותר את זה מבנית: אף תנועה אמיתית לא יכולה "להפסיד" במרוץ. המחיר (מודע ומקובל, ראו
+   CLAUDE.md): מחיקה שלא הספיקה להסתנכרן למכשיר אחר יכולה לחזור לחיים במיזוג נדיר — עדיף
+   בהרבה מאיבוד הכנסה אמיתית, בהתחשב באיך שהמשתמש חווה את זה. */
+function unionMergeState(base,extra){
+  var merged=normState(JSON.parse(JSON.stringify(base)));
+  ['tx','shifts','journal'].forEach(function(key){
+    var seen={};
+    merged[key].forEach(function(item){if(item&&item.id)seen[item.id]=1;});
+    (extra[key]||[]).forEach(function(item){
+      if(item&&item.id&&!seen[item.id]){merged[key].push(item);seen[item.id]=1;}
+    });
+  });
+  return merged;
+}
 function cloudPush(){
   if(!db||!state.settings.syncCode)return;
   pendingLocalPush=true;
@@ -1457,20 +1494,21 @@ function cloudPush(){
       pushPublicShare();
       pushDailyBackup();
     };
-    var localLooksEmpty=state.tx.length===0&&state.shifts.length===0;
-    if(!firstPushChecked&&localLooksEmpty){
-      /* מגן חד-פעמי: אם המכשיר הזה נטען עם state ריק (localStorage שנוקה וכו')
-         לפני שהספקנו לקבל את הענן, אסור לדרוס נתונים אמיתיים שכבר קיימים שם. */
+    if(!firstPushChecked){
+      /* מגן חד-פעמי, לכל טעינת דף: לפני ה-push הראשון בכלל, ממזגים עם מה שבפועל
+         בענן כרגע — בלי קשר אם ה-state המקומי נראה ריק, מלא, או "טרי". זה בדיוק
+         המקרה שגרם לאיפוס: מכשיר שני שהיה זמן רב בלי אינטרנט, וברגע שהוא מתחבר
+         ועושה save() ראשון, היה עלול לדרוס את מה שהצטבר בענן בינתיים. עכשיו הוא
+         פשוט ממזג — שני הצדדים משתמרים, לא משנה מי "הגיע קודם". */
       ref.get().then(function(snap){
         firstPushChecked=true;
         if(snap.exists){
           var d=snap.data(),remote=null;
           try{remote=JSON.parse(d.data);}catch(e){}
-          if(remote&&((Array.isArray(remote.tx)&&remote.tx.length>0)||(Array.isArray(remote.shifts)&&remote.shifts.length>0))){
-            state=normState(remote);
-            pendingLocalPush=false;
-            applyTheme();renderSettings();refreshAll('שוחזרו הנתונים שלך מהענן אוטומטית ✓');
-            return;
+          if(remote){
+            state=unionMergeState(state,remote);
+            try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){mem=JSON.stringify(state);}
+            applyTheme();renderSettings();refreshAll();
           }
         }
         doPush();
@@ -1517,7 +1555,10 @@ function startCloudSync(){
       var remote;
       try{remote=JSON.parse(d.data);}catch(e){return;}
       if(!remote||(remote.updatedAt||0)<=(state.updatedAt||0))return;
-      state=normState(remote);
+      /* מיזוג, לא דריסה — ראו unionMergeState() למעלה. remote כבסיס (זה כנראה מה
+         שהמכשיר האחר התכוון אליו), וכל תנועה/משמרת/פריט יומן שקיים רק מקומית ולא
+         הגיע עדיין לענן מתווסף אליו, לא נמחק. */
+      state=unionMergeState(remote,state);
       /* חובה לשמור מיד ל-localStorage — לא רק לזיכרון — אחרת אם המכשיר ייסגר לפני
          עריכה מקומית הבאה, בפתיחה הבאה ייטען שוב הגיבוי המקומי הישן שלא כולל את זה. */
       try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){mem=JSON.stringify(state);}
@@ -1538,7 +1579,10 @@ function normState(d){
   d.settings=Object.assign({name:'',pct:30,dark:false,goal:0,fundPct:10,ownerPhone:'',remindOn:false,remindTime:'21:30',lastMethod:'cash',rent:0,workDays:24,autoRent:true,
     ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null,billingDay:1,dayStartHour:0,lastSeenVer:0,soundOn:false,
     monthStartDay:1,monthCycleSet:false,
-    morningOn:false,morningTime:'08:00',lockOn:false,shareOn:false,carModeOn:true,smartCloseOn:true},d.settings||{});
+    morningOn:false,morningTime:'08:00',lockOn:false,shareOn:false,carModeOn:true,smartCloseOn:true,
+    pctPresets:[10,12,25,30],workDays7:[true,true,true,true,true,true,true],workDaysSet:false},d.settings||{});
+  if(!Array.isArray(d.settings.pctPresets)||d.settings.pctPresets.length!==4)d.settings.pctPresets=[10,12,25,30];
+  if(!Array.isArray(d.settings.workDays7)||d.settings.workDays7.length!==7)d.settings.workDays7=[true,true,true,true,true,true,true];
   if(!Array.isArray(d.tx))d.tx=[];
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!Array.isArray(d.journal))d.journal=[];
@@ -1596,15 +1640,13 @@ if(state.settings.lockOn&&state.meta.lockPin){
 }
 
 /* ==================== מה חדש ==================== */
-var APP_VER=14;
+var APP_VER=15;
 var WHATS_NEW=[
-  'חדש: פס התקדמות דק וקבוע למעלה בכל מסך — רואים איך הולך החודש במבט אחד, תמיד',
-  'חדש: המסך הראשי משנה גוון עדין לפי איך הולך היום שלך',
-  'חדש: הוספת הכנסה נהיית קצרה יותר — הקטגוריה האחרונה שלך כבר בחורה, בלי לגלול',
-  'חדש: המספר הגדול "מגיב" חי כשמשהו טוב קורה, וכרטיס היעד מראה כמה ימי עבודה נשארו בקצב שלך',
-  'חדש: מסך מיוחד שמזכיר לך לנוח כשזוהה שבוע עבודה חריג',
-  'תוקן באג חשוב: מרוץ בין שמירה מקומית לעדכון מהענן שיכול היה לגרום לאובדן תנועות שנרשמו ממש עכשיו',
-  'תוקן: עדכון שמתקבל ממכשיר אחר נשמר עכשיו גם באחסון המקומי, לא רק על המסך'
+  'תוקן באג משמעותי בסנכרון בין כמה מכשירים — נתונים לא יימחקו יותר גם אם מכשיר אחד לא היה מחובר לאינטרנט',
+  'חדש: פייבוקס במקום אשראי כאמצעי תשלום',
+  'חדש: 4 כפתורי אחוז עמלה משלך (כולל 0%) — לחיצה ארוכה על כפתור כדי לשנות אותו',
+  'חדש: קובעים באילו ימים אתה עובד, כדי שהרצף לא יתאפס לך בימים שאתה לא עובד (ניתן לשינוי גם בהגדרות)',
+  'שיפורים: הודעת כביש 6 קטנה ונעימה יותר, ותיקוני אמינות לרמקול ולצליל השמירה'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
@@ -1613,14 +1655,15 @@ function maybeShowWhatsNew(){
   $('#whatsNewModal').classList.add('show');
 }
 function maybeShowMonthCycle(){
-  if(!state.settings.wizardDone)return;
-  if(state.settings.monthCycleSet)return;
+  if(!state.settings.wizardDone){return;}
+  if(state.settings.monthCycleSet){maybeShowWorkDays();return;}
   $('#monthCycleModal').classList.add('show');
 }
 function applyNewMonthStart(day){
   state.settings.monthStartDay=day;state.settings.monthCycleSet=true;save();
   var cyc0=cycleOf(todayISO());ui.hm={y:cyc0.y,m:cyc0.m};ui.lm={y:cyc0.y,m:cyc0.m};ui.rm={y:cyc0.y,m:cyc0.m};
   refreshAll(day===1?'סבבה, נשאר ככה':'עודכן — כל התצוגות התעדכנו לפי המחזור החדש');
+  setTimeout(maybeShowWorkDays,400);
 }
 $('#mcDefault').addEventListener('click',function(){
   $('#monthCycleModal').classList.remove('show');
@@ -1637,6 +1680,27 @@ function closeWhatsNew(){
   $('#whatsNewModal').classList.remove('show');
   setTimeout(maybeShowMonthCycle,400);
 }
+function maybeShowWorkDays(){
+  if(!state.settings.wizardDone)return;
+  if(state.settings.workDaysSet)return;
+  var days=state.settings.workDays7||[true,true,true,true,true,true,true];
+  $$('#wdGrid .wd-chip').forEach(function(b){b.classList.toggle('active',!!days[+b.dataset.wd]);});
+  $('#workDaysModal').classList.add('show');
+}
+$('#wdGrid').addEventListener('click',function(e){
+  var b=e.target.closest('[data-wd]');if(!b)return;
+  b.classList.toggle('active');
+  popEl(b,'selpop');
+});
+$('#wdSave').addEventListener('click',function(){
+  var days=[false,false,false,false,false,false,false];
+  $$('#wdGrid .wd-chip').forEach(function(b){days[+b.dataset.wd]=b.classList.contains('active');});
+  state.settings.workDays7=days;
+  state.settings.workDaysSet=true;
+  save();
+  $('#workDaysModal').classList.remove('show');
+  renderSettings();refreshAll('נשמר ✓');
+});
 
 var CATS={
   income:[
@@ -1663,7 +1727,7 @@ function catById(id){
   for(var i=0;i<all.length;i++)if(all[i].id===id)return all[i];
   return{id:'x',label:'אחר',icon:'📦'};
 }
-var METHODS={cash:'מזומן',bit:'ביט',credit:'אשראי',bank:'העברה בנקאית',direct:'ישיר לסדרן'};
+var METHODS={cash:'מזומן',bit:'ביט',paybox:'פייבוקס',credit:'אשראי',bank:'העברה בנקאית',direct:'ישיר לסדרן'};
 
 /* ==================== עזר ==================== */
 function pad2(n){return String(n).padStart(2,'0');}
@@ -1788,10 +1852,20 @@ function fmtHours(h){
 function incomeDaySet(){
   var set={};state.tx.forEach(function(t){if(t.type==='income')set[t.date]=1;});return set;
 }
+function isWorkDay(iso){
+  var days=state.settings.workDays7;
+  if(!Array.isArray(days)||days.length!==7)return true;
+  return !!days[dObj(iso).getDay()];
+}
 function currentStreak(){
-  var set=incomeDaySet(),d=todayISO();
-  if(!set[d])d=shiftISO(d,-1);
-  var n=0;while(set[d]){n++;d=shiftISO(d,-1);}
+  var set=incomeDaySet();
+  var d=todayISO(),n=0,isToday=true;
+  for(var i=0;i<3650;i++){
+    if(!isWorkDay(d)){d=shiftISO(d,-1);isToday=false;continue;}
+    if(set[d]){n++;d=shiftISO(d,-1);isToday=false;continue;}
+    if(isToday){d=shiftISO(d,-1);isToday=false;continue;}
+    break;
+  }
   return n;
 }
 function bestDayEver(){
@@ -1829,15 +1903,27 @@ function updateAppBadge(streak){
   }catch(e){}
 }
 var daySummaryCache=null;
-function speak(text){
+function speak(text,opts){
+  opts=opts||{};
   try{
-    if(!state.settings.soundOn)return;
-    if(!('speechSynthesis' in window))return;
-    window.speechSynthesis.cancel();
+    if(!state.settings.soundOn){if(opts.notifyFail)toast('הצליל כבוי — אפשר להדליק בהגדרות');return;}
+    if(!('speechSynthesis' in window)){if(opts.notifyFail)toast('הדפדפן הזה לא תומך בהשמעה קולית');return;}
+    var synth=window.speechSynthesis;
+    synth.cancel();
+    /* תיקון לבאג ידוע בכרום: מנוע ההשמעה נתקע בשקט אם הוא היה חסר-עבודה זמן מה
+       (בלי שום שגיאה, בלי שום אירוע) — מחזור pause+resume ממש לפני speak() מעיר
+       אותו בצורה אמינה. זה בדיוק מתאים לתלונה "לפעמים הרמקול לא עובד". */
+    synth.resume();
     var u=new SpeechSynthesisUtterance(text);
     u.lang='he-IL';u.rate=1;u.pitch=1;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
+    if(opts.notifyFail){
+      var started=false;
+      u.onstart=function(){started=true;};
+      u.onerror=function(){toast('לא הצלחתי להשמיע — נסה שוב');};
+      setTimeout(function(){if(!started)toast('לא הצלחתי להשמיע — בדוק שהקול דלוק בטלפון');},1800);
+    }
+    synth.speak(u);
+  }catch(e){if(opts.notifyFail)toast('לא הצלחתי להשמיע');}
 }
 function speakNum(n){return Math.round(Math.abs(n)).toLocaleString('he-IL')+' שקל';}
 function rentNote(){
@@ -2332,7 +2418,7 @@ document.addEventListener('click',function(e){
     var txt='ההכנסות היום '+speakNum(dsc.inc)+', ההוצאות '+speakNum(dsc.exp)+
       (dsc.car>0?', עלות הרכב '+speakNum(dsc.car):'')+
       ', והמאזן הסופי '+(dsc.net>=0?'פלוס ':'מינוס ')+speakNum(dsc.net)+'.';
-    speak(txt);
+    speak(txt,{notifyFail:true});
   }
   else if(act==='start-shift'){
     state.shifts.push({id:uid(),start:Date.now(),end:null});
@@ -2379,6 +2465,11 @@ document.addEventListener('click',function(e){
       var cyc0=cycleOf(todayISO());ui.hm={y:cyc0.y,m:cyc0.m};ui.lm={y:cyc0.y,m:cyc0.m};ui.rm={y:cyc0.y,m:cyc0.m};
       renderSettings();refreshAll('עודכן — כל התצוגות התעדכנו לפי המחזור החדש');
     });
+  }
+  else if(act==='set-workdays'){
+    var days0=state.settings.workDays7||[true,true,true,true,true,true,true];
+    $$('#wdGrid .wd-chip').forEach(function(b){b.classList.toggle('active',!!days0[+b.dataset.wd]);});
+    $('#workDaysModal').classList.add('show');
   }
   else if(act==='set-insurance'){
     openSheet({title:'ביטוח רכב — עלות חודשית',unit:'₪',decimals:0,initial:state.settings.insuranceMonthly||'',ok:'שמירה'},function(v){
@@ -2441,7 +2532,7 @@ function parseVoiceCommand(text){
   if(out.type==='income'){
     if(/ביט/.test(text))out.method='bit';
     else if(/מזומן/.test(text))out.method='cash';
-    else if(/אשראי/.test(text))out.method='credit';
+    else if(/פייבוקס/.test(text))out.method='paybox';
     else if(/העברה/.test(text))out.method='bank';
   }
   if(out.cat==='rides'&&pctMatch)out.pct=Math.max(1,Math.min(100,parseInt(pctMatch[1],10)));
@@ -2585,10 +2676,6 @@ function shareSummary(){
   var url='https://wa.me/'+(phone?phone+'?':'?')+'text='+encodeURIComponent(lines.join('\n'));
   window.open(url,'_blank');
 }
-var trafficLinkBtnEl=$('#trafficLinkBtn'),motLinkBtnEl=$('#motLinkBtn');
-if(trafficLinkBtnEl)trafficLinkBtnEl.addEventListener('click',function(){window.open('https://www.google.com/maps','_blank');});
-if(motLinkBtnEl)motLinkBtnEl.addEventListener('click',function(){window.open('https://www.gov.il/he/departments/ministry_of_transport_and_road_safety','_blank');});
-
 /* ==================== הוספה ==================== */
 function amtVal(){var v=parseFloat(ui.amt);return isNaN(v)?0:v;}
 function amtViewStr(){
@@ -2635,17 +2722,10 @@ function renderAmt(){
   updateAmtSuggest();
 }
 function renderPctChips(){
-  var presets=[10,12,25,30];
-  $$('#pctChips button').forEach(function(x){
-    var p=x.dataset.cp;
-    if(p==='custom'){
-      var isCustom=presets.indexOf(ui.ridePct)<0;
-      x.classList.toggle('active',isCustom);
-      x.textContent=isCustom?ui.ridePct+'%':'אחר';
-    }else{
-      x.classList.toggle('active',+p===ui.ridePct);
-    }
-  });
+  var presets=state.settings.pctPresets||[10,12,25,30];
+  $('#pctChips').innerHTML=presets.map(function(p,i){
+    return '<button data-idx="'+i+'" data-cp="'+p+'"'+(p===ui.ridePct?' class="active"':'')+'>'+p+'%</button>';
+  }).join('');
 }
 function updateRideHint(){
   var el=$('#rideHint');
@@ -2676,20 +2756,36 @@ $('#methods').addEventListener('click',function(e){
   $$('#methods button').forEach(function(x){x.classList.toggle('active',x===b);});
   popEl(b,'selpop');
 });
+var pctHoldT=null,pctHoldFired=false;
+$('#pctChips').addEventListener('pointerdown',function(e){
+  var b=e.target.closest('[data-idx]');if(!b)return;
+  pctHoldFired=false;
+  pctHoldT=setTimeout(function(){
+    pctHoldFired=true;
+    if(navigator.vibrate)try{navigator.vibrate(15);}catch(err){}
+    editPctPreset(+b.dataset.idx);
+  },550);
+});
+['pointerup','pointercancel','pointerleave'].forEach(function(ev){
+  $('#pctChips').addEventListener(ev,function(){clearTimeout(pctHoldT);});
+});
 $('#pctChips').addEventListener('click',function(e){
-  var b=e.target.closest('[data-cp]');if(!b)return;
-  if(b.dataset.cp==='custom'){
-    openSheet({title:'אחוז עמלה מותאם לנסיעה זו',unit:'%',decimals:0,initial:ui.ridePct||'',ok:'אישור'},function(v){
-      if(v>0&&v<=100){
-        ui.ridePct=Math.round(v);state.settings.lastRidePct=ui.ridePct;save();
-        renderPctChips();updateRideHint();
-      }
-    });
-    return;
-  }
+  var b=e.target.closest('[data-idx]');if(!b)return;
+  if(pctHoldFired){pctHoldFired=false;return;}
   ui.ridePct=+b.dataset.cp;state.settings.lastRidePct=ui.ridePct;save();
   renderPctChips();popEl(b,'selpop');updateRideHint();
 });
+function editPctPreset(idx){
+  var presets=(state.settings.pctPresets||[10,12,25,30]).slice();
+  openSheet({title:'עריכת כפתור עמלה '+(idx+1),unit:'%',decimals:0,initial:presets[idx],max:100,ok:'שמירה'},function(v){
+    v=Math.max(0,Math.min(100,Math.round(v)));
+    presets[idx]=v;
+    state.settings.pctPresets=presets;
+    save();
+    renderPctChips();
+    toast('הכפתור עודכן ל-'+v+'% ✓');
+  });
+}
 
 function buildCats(){
   $('#catGrid').innerHTML=CATS[ui.addType].map(function(c){
@@ -3007,12 +3103,12 @@ function renderReports(){
   }else wl.innerHTML='';
 
   /* אמצעי תשלום */
-  var ms={cash:0,bit:0,credit:0,bank:0,direct:0,none:0};
+  var ms={cash:0,bit:0,paybox:0,credit:0,bank:0,direct:0,none:0};
   list.forEach(function(t){if(t.type==='income')ms[t.method||'none']+=t.amount;});
-  var mKeys=['cash','bit','credit','bank','direct','none'];
-  var mLbl={cash:'מזומן',bit:'ביט',credit:'אשראי',bank:'העברה בנקאית',direct:'ישיר לסדרן',none:'לא סומן'};
-  var mCol={cash:'#111214',bit:'#5c636b',credit:'#a6acb3',bank:'#F2B01E',direct:'#5C7CA6',none:'#d8dbe0'};
-  if(document.documentElement.dataset.theme==='dark')mCol={cash:'#EDEEEA',bit:'#989ea6',credit:'#5c636b',bank:'#F2B01E',direct:'#8FA8C9',none:'#3a3f45'};
+  var mKeys=['cash','bit','paybox','credit','bank','direct','none'];
+  var mLbl={cash:'מזומן',bit:'ביט',paybox:'פייבוקס',credit:'אשראי',bank:'העברה בנקאית',direct:'ישיר לסדרן',none:'לא סומן'};
+  var mCol={cash:'#111214',bit:'#5c636b',paybox:'#a6acb3',credit:'#c9cdd2',bank:'#F2B01E',direct:'#5C7CA6',none:'#d8dbe0'};
+  if(document.documentElement.dataset.theme==='dark')mCol={cash:'#EDEEEA',bit:'#989ea6',paybox:'#5c636b',credit:'#787f86',bank:'#F2B01E',direct:'#8FA8C9',none:'#3a3f45'};
   var incT=s.inc;
   if(incT>0){
     $('#methodBar').innerHTML=mKeys.filter(function(k){return ms[k]>0;}).map(function(k){
@@ -3320,7 +3416,7 @@ $('#restoreFile').addEventListener('change',function(e){
 });
 $('#demoBtn').addEventListener('click',function(){
   var notes=['קו מרכז','שיפט לילה','נמל','רכבת','צפון',''];
-  var methods=['cash','cash','bit','credit'];
+  var methods=['cash','cash','bit','paybox'];
   var i,iso;
   for(i=13;i>=0;i--){
     iso=shiftISO(todayISO(),-i);
@@ -3475,11 +3571,31 @@ $('#darkSwitch').addEventListener('change',function(){
   state.settings.dark=$('#darkSwitch').checked;save();applyTheme();
   renderHome();if(ui.screen==='reports')renderReports();
 });
+var sharedAudioCtx=null;
+function getAudioCtx(){
+  /* קונטקסט אודיו אחד ויחיד, שנוצר פעם אחת ונשאר בחיים. הקוד הישן יצר AudioContext
+     חדש (וסגר אותו) בכל צליל בנפרד — זה בדיוק הדפוס שגורם ל"לפעמים הרמקול לא עובד":
+     ברוב הדפדפנים הניידים, יצירת קונטקסט חדש מותרת רק בתוך ז'סטורת משתמש ישירה,
+     וצליל החגיגה (celebrate) תמיד מגיע דרך setTimeout מושהה — כלומר מחוץ לז'סטורה.
+     קונטקסט אחד שנוצר מוקדם (בהקשה הראשונה על המסך, ראו pointerdown למטה) ומתעורר
+     מחדש עם resume() לפני כל צליל, נשאר שמיש גם משם. */
+  var Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx)return null;
+  if(!sharedAudioCtx){
+    try{sharedAudioCtx=new Ctx();}catch(e){return null;}
+  }
+  if(sharedAudioCtx.state==='suspended'){
+    try{sharedAudioCtx.resume();}catch(e){}
+  }
+  return sharedAudioCtx;
+}
+document.addEventListener('pointerdown',function primeAudio(){
+  getAudioCtx();
+},{once:false});
 function playSaveSound(){
   if(!state.settings.soundOn)return;
   try{
-    var Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
-    var ctx=new Ctx();
+    var ctx=getAudioCtx();if(!ctx)return;
     var o=ctx.createOscillator(),g=ctx.createGain();
     o.type='sine';
     o.frequency.setValueAtTime(880,ctx.currentTime);
@@ -3489,14 +3605,12 @@ function playSaveSound(){
     g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.28);
     o.connect(g);g.connect(ctx.destination);
     o.start();o.stop(ctx.currentTime+.3);
-    setTimeout(function(){ctx.close();},450);
   }catch(e){}
 }
 function playCelebrationSound(){
   if(!state.settings.soundOn)return;
   try{
-    var Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
-    var ctx=new Ctx();
+    var ctx=getAudioCtx();if(!ctx)return;
     [660,880,1100,1320].forEach(function(freq,i){
       var o=ctx.createOscillator(),g=ctx.createGain();
       o.type='triangle';
@@ -3508,7 +3622,6 @@ function playCelebrationSound(){
       o.connect(g);g.connect(ctx.destination);
       o.start(t);o.stop(t+.26);
     });
-    setTimeout(function(){ctx.close();},900);
   }catch(e){}
 }
 function spawnCoinRain(){
@@ -3554,7 +3667,14 @@ function computeLongestStreak(){
   var dates=Object.keys(set).sort();
   var longest=0,cur=0,prev=null;
   dates.forEach(function(d){
-    if(prev&&shiftISO(prev,1)===d)cur++;else cur=1;
+    if(prev){
+      var gapOk=true,p=shiftISO(prev,1),guard=0;
+      while(p<d&&guard++<3650){
+        if(isWorkDay(p)){gapOk=false;break;}
+        p=shiftISO(p,1);
+      }
+      cur=gapOk?cur+1:1;
+    }else cur=1;
     longest=Math.max(longest,cur);prev=d;
   });
   return longest;
@@ -3632,6 +3752,9 @@ function renderSettings(){
   $('#wdVal').textContent=state.settings.workDays;
   $('#dshInput').value=pad2(state.settings.dayStartHour||0)+':00';
   $('#monthStartVal').textContent=state.settings.monthStartDay||1;
+  var wd7=state.settings.workDays7||[true,true,true,true,true,true,true];
+  var wdCount=wd7.filter(Boolean).length;
+  $('#workDaysVal').textContent=wdCount===7?'כל השבוע':(wdCount+(wdCount===1?' יום':' ימים'));
   $('#autoRent').checked=!!state.settings.autoRent;
   $('#autoIns').checked=!!state.settings.autoIns;
   var OWN_LBL={rent:'שכירות',finance:'מימון / הלוואה',leasing:'ליסינג (הכל כלול)',owned:'בבעלותי, בלי תשלום חודשי'};
@@ -3813,6 +3936,7 @@ $('#cgGo').addEventListener('click',function(){
       if(snap.exists){cgSetLoading(false);cgSetErr('הקוד הזה כבר תפוס — נסה קוד אחר');return;}
       state.settings.lastSeenVer=APP_VER;
       state.settings.monthCycleSet=true;
+      state.settings.workDaysSet=true;
       return ref.set({data:JSON.stringify(state),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
         .then(function(){finishCodeGate(code);});
     }else{
@@ -4157,7 +4281,7 @@ $('#journalSpeakBtn').addEventListener('click',function(){
     ', מאזן '+(net>=0?'פלוס ':'מינוס ')+speakNum(net)+'. ';
   if(openTasks.length)txt+='יש לך '+openTasks.length+' דברים פתוחים ביומן: '+openTasks.map(function(j){return j.text;}).join(', ')+'.';
   else txt+='אין דברים פתוחים ביומן, הכל מסודר.';
-  speak(txt);
+  speak(txt,{notifyFail:true});
 });
 function computeAdaptiveCloseHour(){
   var byDay={};
