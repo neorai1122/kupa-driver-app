@@ -1117,6 +1117,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <div class="r-lb">עמלה לסדרן — ברירת מחדל<div class="r-sub">אפשר לשנות לכל נסיעה בנפרד בעת ההוספה</div></div>
           <div class="stepper"><button id="pctDown">−</button><b class="num"><span data-pct>30</span>%</b><button id="pctUp">+</button></div>
         </div>
+        <div class="set-row" id="breakEvenRow">
+          <div class="r-lb">🚗 מצב "רכב מכוסה"<div class="r-sub">מהרגע שהנטו החודשי עובר את עלות הרכב+ביטוח — "היום שלך" מפסיק להוריד את העלות היומית, ומכאן הכל רווח נקי</div></div>
+          <label class="switch"><input type="checkbox" id="breakEvenSwitch"><span class="track"></span></label>
+        </div>
         <div class="set-row">
           <div class="r-lb">טלפון של הסדרן<div class="r-sub">לשליחת סיכום ישירה בוואטסאפ</div></div>
           <input type="tel" id="phoneInput" placeholder="05X-XXXXXXX" maxlength="12" dir="ltr">
@@ -1580,7 +1584,8 @@ function normState(d){
     ownershipType:'',insuranceType:'',insuranceMonthly:0,autoIns:true,wizardDone:false,lastToll:0,syncCode:'',lastRidePct:null,billingDay:1,dayStartHour:0,lastSeenVer:0,soundOn:false,
     monthStartDay:1,monthCycleSet:false,
     morningOn:false,morningTime:'08:00',lockOn:false,shareOn:false,carModeOn:true,smartCloseOn:true,
-    pctPresets:[10,12,25,30],workDays7:[true,true,true,true,true,true,true],workDaysSet:false},d.settings||{});
+    pctPresets:[10,12,25,30],workDays7:[true,true,true,true,true,true,true],workDaysSet:false,
+    breakEvenOn:true},d.settings||{});
   if(!Array.isArray(d.settings.pctPresets)||d.settings.pctPresets.length!==4)d.settings.pctPresets=[10,12,25,30];
   if(!Array.isArray(d.settings.workDays7)||d.settings.workDays7.length!==7)d.settings.workDays7=[true,true,true,true,true,true,true];
   if(!Array.isArray(d.tx))d.tx=[];
@@ -1589,7 +1594,7 @@ function normState(d){
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
   if(!Array.isArray(d.fund.log))d.fund.log=[];
   d.meta=Object.assign({best:0,goalToast:'',notified:'',coveredDay:'',dismiss:{},lastTx:null,morningShown:'',milestones:{},
-    morningGreeted:'',weekShown:'',overworkWeek:'',lockPin:'',shareId:''},d.meta||{});
+    morningGreeted:'',weekShown:'',overworkWeek:'',lockPin:'',shareId:'',breakEvenCycle:''},d.meta||{});
   if(!d.meta.milestones||typeof d.meta.milestones!=='object')d.meta.milestones={};
   if(!d.meta.dismiss)d.meta.dismiss={};
   if(typeof d.updatedAt!=='number')d.updatedAt=0;
@@ -1640,13 +1645,12 @@ if(state.settings.lockOn&&state.meta.lockPin){
 }
 
 /* ==================== מה חדש ==================== */
-var APP_VER=15;
+var APP_VER=16;
 var WHATS_NEW=[
+  'חדש: מצב "רכב מכוסה" — מהרגע שההכנסה נטו החודש עוברת את עלות הרכב+ביטוח, "היום שלך" מפסיק להוריד את העלות היומית ומראה רווח נקי (ניתן לכיבוי בהגדרות)',
   'תוקן באג משמעותי בסנכרון בין כמה מכשירים — נתונים לא יימחקו יותר גם אם מכשיר אחד לא היה מחובר לאינטרנט',
-  'חדש: פייבוקס במקום אשראי כאמצעי תשלום',
-  'חדש: 4 כפתורי אחוז עמלה משלך (כולל 0%) — לחיצה ארוכה על כפתור כדי לשנות אותו',
-  'חדש: קובעים באילו ימים אתה עובד, כדי שהרצף לא יתאפס לך בימים שאתה לא עובד (ניתן לשינוי גם בהגדרות)',
-  'שיפורים: הודעת כביש 6 קטנה ונעימה יותר, ותיקוני אמינות לרמקול ולצליל השמירה'
+  'חדש: פייבוקס במקום אשראי, ו-4 כפתורי אחוז עמלה משלך (כולל 0%) — לחיצה ארוכה על כפתור כדי לערוך',
+  'חדש: קובעים באילו ימים אתה עובד, כדי שהרצף לא יתאפס לך בימים שאתה לא עובד (ניתן לשינוי גם בהגדרות)'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
@@ -1947,9 +1951,20 @@ function ensureInsuranceExpense(){
   state.tx.push({id:uid(),type:'expense',cat:'insurance',amount:state.settings.insuranceMonthly,date:k+'-01',note:'ביטוח חודשי',ts:Date.now(),lumpAuto:true});
   save();
 }
+function fixedMonthlyCost(){return (state.settings.rent||0)+(state.settings.insuranceMonthly||0);}
 function carDailyCost(){
-  var total=(state.settings.rent||0)+(state.settings.insuranceMonthly||0);
+  var total=fixedMonthlyCost();
   return total>0?total/state.settings.workDays:0;
+}
+function operatingProfit(y,m){
+  var list=monthTx(y,m),s=sums(list),varExp=0;
+  list.forEach(function(t){if(t.type==='expense'&&t.cat!=='rent'&&t.cat!=='insurance')varExp+=t.amount;});
+  return s.inc-sadranDue(s,state.settings.pct)-varExp;
+}
+function monthlyCarCovered(y,m){
+  var total=fixedMonthlyCost();
+  if(!state.settings.breakEvenOn||total<=0)return false;
+  return operatingProfit(y,m)>=total;
 }
 
 /* ==================== ניווט ==================== */
@@ -2137,21 +2152,24 @@ function renderHome(){
   var dDue=sadranDue(dS,pct);
   var dNetIn=dS.inc-dDue;
   var car=carDailyCost();
-  var bal=dNetIn-dS.exp-car;
+  var covered=monthlyCarCovered(ui.hm.y,ui.hm.m);
+  var carApplied=covered?0:car;
+  var bal=dNetIn-dS.exp-carApplied;
   $('#tRides').textContent=bidiNum((dNetIn>=0?'+':'')+fmt(dNetIn));
   $('#tExp').textContent=bidiNum('−'+fmt(dS.exp));
-  $('#tCar').textContent=car>0?bidiNum('−'+fmtInt(car)):'—';
+  $('#tCar').textContent=car>0?(covered?'✓ מכוסה':bidiNum('−'+fmtInt(car))):'—';
   var tn=$('#tNet');
   tn.textContent=bidiNum((bal>=0?'+':'')+fmt(bal));
   tn.style.color=bal>=0?'var(--green)':'var(--red)';
   if(pendingRecordGlow&&td===todayISO()){pendingRecordGlow=false;popEl(tn,'record-glow');}
-  $('#tCarCost').textContent=car>0?carCostBasisLbl()+': '+fmtInt(car)+' ליום':'';
-  var roadPct=car>0?Math.min(100,Math.max(0,dNetIn)/car*100):0;
+  $('#tCarCost').textContent=car>0?carCostBasisLbl()+': '+fmtInt(car)+' ליום'+(covered?' (מכוסה החודש)':''):'';
+  var roadPct=car>0?(covered?100:Math.min(100,Math.max(0,dNetIn)/car*100)):0;
   $('#tProg').style.width=roadPct+'%';
   $('#roadCar').style.right='calc('+roadPct+'% - 8px)';
   var footHtml;
   if(car>0){
-    footHtml=dNetIn>=car?'הרכב כוסה להיום ✓':'עוד <b>'+fmt(Math.max(0,car-dNetIn))+'</b> לכיסוי הרכב';
+    if(covered)footHtml='הרכב מכוסה החודש 🎉 מכאן והלאה — הכל רווח נקי';
+    else footHtml=dNetIn>=car?'הרכב כוסה להיום ✓':'עוד <b>'+fmt(Math.max(0,car-dNetIn))+'</b> לכיסוי הרכב';
     if(dDue>0)footHtml+=' · לסדרן היום: '+fmt(dDue);
     if(dS.com>0)footHtml+=' · שולם בפועל: '+fmt(dS.com);
   }else{
@@ -2851,6 +2869,28 @@ function flyCoinToHero(){
     setTimeout(function(){target.classList.remove('hero-flash');},600);
   },560);
 }
+function showPureProfitBadge(){
+  if(prefersReducedMotion())return;
+  var target=$('#netNum');
+  if(!target)return;
+  var r=target.getBoundingClientRect();
+  var b=document.createElement('div');
+  b.textContent='💰 100% רווח';
+  b.style.cssText='position:fixed;z-index:400;left:'+(r.left+r.width/2)+'px;top:'+(r.top-8)+'px;'+
+    'transform:translate(-50%,0) scale(.85);font-size:12.5px;font-weight:800;color:#fff;'+
+    'background:var(--green);padding:5px 12px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,.18);'+
+    'pointer-events:none;opacity:0;transition:transform .4s cubic-bezier(.2,.7,.3,1),opacity .4s ease;white-space:nowrap;';
+  document.body.appendChild(b);
+  requestAnimationFrame(function(){
+    b.style.opacity='1';
+    b.style.transform='translate(-50%,-14px) scale(1)';
+  });
+  setTimeout(function(){
+    b.style.opacity='0';
+    b.style.transform='translate(-50%,-26px) scale(.9)';
+    setTimeout(function(){b.remove();},400);
+  },1100);
+}
 var goalRingBooted=false,goalPctSeen={};
 function microConfetti(el){
   if(prefersReducedMotion()||!el)return;
@@ -2949,9 +2989,15 @@ $('#saveTx').addEventListener('click',function(){
     if(net>=g){hitGoal=true;state.meta.goalToast=mk;}
   }
   var milestone=checkMilestones(tx,d);
+  var cycD=cycleOf(d),justCovered=false,alreadyCovered=false;
+  if(state.settings.breakEvenOn&&fixedMonthlyCost()>0&&monthlyCarCovered(cycD.y,cycD.m)){
+    var cycKeyD=cycleStartISO(cycD.y,cycD.m);
+    if(state.meta.breakEvenCycle!==cycKeyD){justCovered=true;state.meta.breakEvenCycle=cycKeyD;}
+    else if(tx.type==='income')alreadyCovered=true;
+  }
   save();
 
-  var cyc0=cycleOf(d);ui.hm.y=cyc0.y;ui.hm.m=cyc0.m;ui.day=d;
+  ui.hm.y=cycD.y;ui.hm.m=cycD.m;ui.day=d;
   ui.amt='';$('#txNote').value='';
   ui.direct=false;$('#directSwitch').checked=false;$('#methods').classList.remove('faded');
   var sbtn=$('#saveTx');
@@ -2962,8 +3008,11 @@ $('#saveTx').addEventListener('click',function(){
     toast(msgs.join(' · '));
     go('home');
     flyCoinToHero();
+    if(alreadyCovered)showPureProfitBadge();
     if(hitGoal){
       setTimeout(function(){celebrate('🎯','הגעת ליעד החודשי!','כל הכבוד, ממשיכים ככה');},400);
+    }else if(justCovered){
+      setTimeout(function(){celebrate('🚗💰','כיסית את הרכב לחודש!','מכאן והלאה — כל שקל הוא רווח נקי');},400);
     }else if(milestone){
       setTimeout(function(){celebrate(milestone.emoji,milestone.title,milestone.sub);},400);
     }else if(newRecord){
@@ -3545,6 +3594,9 @@ $('#carModeSwitch').addEventListener('change',function(){
   state.settings.carModeOn=$('#carModeSwitch').checked;save();
   if(!state.settings.carModeOn)$('#carModeOverlay').classList.remove('show');
 });
+$('#breakEvenSwitch').addEventListener('change',function(){
+  state.settings.breakEvenOn=$('#breakEvenSwitch').checked;save();renderHome();
+});
 $('#shareLinkCopy').addEventListener('click',function(){
   var url=location.origin+location.pathname.replace(/index\.html$/,'')+'share.html?id='+state.meta.shareId;
   if(navigator.share){navigator.share({title:'קופת הנהג',url:url}).catch(function(){});}
@@ -3746,6 +3798,7 @@ function renderSettings(){
   $('#shareSwitch').checked=!!state.settings.shareOn;
   $('#shareLinkRow').style.display=(state.settings.shareOn&&state.meta.shareId)?'':'none';
   $('#carModeSwitch').checked=!!state.settings.carModeOn;
+  $('#breakEvenSwitch').checked=!!state.settings.breakEvenOn;
   $('#fundPct').textContent=state.settings.fundPct;
   $('#goalVal').textContent=state.settings.goal?fmtInt(state.settings.goal):'לא הוגדר';
   $('#rentVal').textContent=state.settings.rent?fmtInt(state.settings.rent):'לא הוגדר';
