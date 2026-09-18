@@ -1118,7 +1118,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <div class="stepper"><button id="pctDown">−</button><b class="num"><span data-pct>30</span>%</b><button id="pctUp">+</button></div>
         </div>
         <div class="set-row" id="breakEvenRow">
-          <div class="r-lb">🚗 מצב "רכב מכוסה"<div class="r-sub">מהרגע שהנטו החודשי עובר את עלות הרכב+ביטוח — "היום שלך" מפסיק להוריד את העלות היומית, ומכאן הכל רווח נקי</div></div>
+          <div class="r-lb">🚗 מצב "רכב מכוסה"<div class="r-sub">מהרגע שהרווח שלך ממחזור החיוב הנוכחי (לפי "תאריך חיוב בחודש" למעלה) מכסה את הרכב+ביטוח — "היום שלך" מפסיק להוריד את העלות היומית, ומכאן הכל רווח נקי</div></div>
           <label class="switch"><input type="checkbox" id="breakEvenSwitch"><span class="track"></span></label>
         </div>
         <div class="set-row">
@@ -1645,12 +1645,10 @@ if(state.settings.lockOn&&state.meta.lockPin){
 }
 
 /* ==================== מה חדש ==================== */
-var APP_VER=16;
+var APP_VER=17;
 var WHATS_NEW=[
-  'חדש: מצב "רכב מכוסה" — מהרגע שההכנסה נטו החודש עוברת את עלות הרכב+ביטוח, "היום שלך" מפסיק להוריד את העלות היומית ומראה רווח נקי (ניתן לכיבוי בהגדרות)',
-  'תוקן באג משמעותי בסנכרון בין כמה מכשירים — נתונים לא יימחקו יותר גם אם מכשיר אחד לא היה מחובר לאינטרנט',
-  'חדש: פייבוקס במקום אשראי, ו-4 כפתורי אחוז עמלה משלך (כולל 0%) — לחיצה ארוכה על כפתור כדי לערוך',
-  'חדש: קובעים באילו ימים אתה עובד, כדי שהרצף לא יתאפס לך בימים שאתה לא עובד (ניתן לשינוי גם בהגדרות)'
+  'תוקן: מצב "רכב מכוסה" מחשב עכשיו לפי תאריך החיוב האמיתי של הרכב שלך, לא לפי מחזור הדוחות',
+  'תוקן: כפתור השמעת היום/יומן עובד עכשיו גם אם "צליל" כבוי בהגדרות'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
@@ -1761,6 +1759,25 @@ function cycleOf(iso){
 }
 function monthTx(y,m){
   var s=cycleStartISO(y,m),e=cycleEndISO(y,m);
+  return state.tx.filter(function(t){return t.date>=s&&t.date<e;});
+}
+/* מחזור החיוב של הרכב — לפי billingDay (מתי שהוא "מביא את הרכב"/משלם), לא לפי monthStartDay הכללי.
+   זה בכוונה נפרד מ-cycleOf/monthTx: מחזור הדוחות הוא איך המשתמש אוהב להסתכל על הכסף שלו,
+   מחזור הרכב הוא מתי בפועל יורד לו התשלום החודשי (בדיוק כמו ensureRentExpense). */
+function carCycleStartDate(y,m){
+  var sd=Math.min(state.settings.billingDay||1,daysInMonth(y,m));
+  return new Date(y,m,sd);
+}
+function carCycleStartISO(y,m){return isoOf(carCycleStartDate(y,m));}
+function carCycleEndISO(y,m){return carCycleStartISO(y,m+1);}
+function carCycleOf(iso){
+  var d=dObj(iso),y=d.getFullYear(),m=d.getMonth();
+  var sd=Math.min(state.settings.billingDay||1,daysInMonth(y,m));
+  if(d.getDate()<sd){m--;if(m<0){m=11;y--;}}
+  return{y:y,m:m};
+}
+function carCycleTx(y,m){
+  var s=carCycleStartISO(y,m),e=carCycleEndISO(y,m);
   return state.tx.filter(function(t){return t.date>=s&&t.date<e;});
 }
 function ridePct(t){return t.pct!=null?t.pct:state.settings.pct;}
@@ -1910,7 +1927,10 @@ var daySummaryCache=null;
 function speak(text,opts){
   opts=opts||{};
   try{
-    if(!state.settings.soundOn){if(opts.notifyFail)toast('הצליל כבוי — אפשר להדליק בהגדרות');return;}
+    /* opts.notifyFail מסמן לחיצה מפורשת על כפתור השמעה — זו כוונה ברורה לשמוע, בלי קשר
+       ל"צליל שמירה" (soundOn, שנועד לצליל קליק קטן בעת שמירה, לא לקריאת טקסט). רק קריאות
+       אוטומטיות/לא-מבוקשות (כמו ברכת בוקר) עדיין מכבדות את המתג הזה. */
+    if(!opts.notifyFail&&!state.settings.soundOn)return;
     if(!('speechSynthesis' in window)){if(opts.notifyFail)toast('הדפדפן הזה לא תומך בהשמעה קולית');return;}
     var synth=window.speechSynthesis;
     synth.cancel();
@@ -1957,7 +1977,7 @@ function carDailyCost(){
   return total>0?total/state.settings.workDays:0;
 }
 function operatingProfit(y,m){
-  var list=monthTx(y,m),s=sums(list),varExp=0;
+  var list=carCycleTx(y,m),s=sums(list),varExp=0;
   list.forEach(function(t){if(t.type==='expense'&&t.cat!=='rent'&&t.cat!=='insurance')varExp+=t.amount;});
   return s.inc-sadranDue(s,state.settings.pct)-varExp;
 }
@@ -2152,7 +2172,8 @@ function renderHome(){
   var dDue=sadranDue(dS,pct);
   var dNetIn=dS.inc-dDue;
   var car=carDailyCost();
-  var covered=monthlyCarCovered(ui.hm.y,ui.hm.m);
+  var carCyc=carCycleOf(td);
+  var covered=monthlyCarCovered(carCyc.y,carCyc.m);
   var carApplied=covered?0:car;
   var bal=dNetIn-dS.exp-carApplied;
   $('#tRides').textContent=bidiNum((dNetIn>=0?'+':'')+fmt(dNetIn));
@@ -2990,8 +3011,9 @@ $('#saveTx').addEventListener('click',function(){
   }
   var milestone=checkMilestones(tx,d);
   var cycD=cycleOf(d),justCovered=false,alreadyCovered=false;
-  if(state.settings.breakEvenOn&&fixedMonthlyCost()>0&&monthlyCarCovered(cycD.y,cycD.m)){
-    var cycKeyD=cycleStartISO(cycD.y,cycD.m);
+  var carCycD=carCycleOf(d);
+  if(state.settings.breakEvenOn&&fixedMonthlyCost()>0&&monthlyCarCovered(carCycD.y,carCycD.m)){
+    var cycKeyD=carCycleStartISO(carCycD.y,carCycD.m);
     if(state.meta.breakEvenCycle!==cycKeyD){justCovered=true;state.meta.breakEvenCycle=cycKeyD;}
     else if(tx.type==='income')alreadyCovered=true;
   }
