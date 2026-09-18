@@ -691,6 +691,21 @@ html[data-theme="dark"] .track{background:#2b2f34}
 .wiz-choice:active{background:var(--line2);transform:scale(.98)}
 .wiz-choice b{display:block;font-size:13.5px;font-weight:700}
 .wiz-choice span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
+.wiz-progress{display:flex;gap:5px;justify-content:center;margin-bottom:16px}
+.wiz-dot{width:6px;height:6px;border-radius:50%;background:var(--line2);transition:background .3s,transform .3s}
+.wiz-dot.active{background:var(--accent);transform:scale(1.4)}
+.wiz-dot.done{background:var(--accent)}
+.wiz-hero{text-align:center;margin-bottom:4px}
+.wiz-emoji{font-size:40px;display:inline-block;animation:wizWave 1.7s ease-in-out .3s infinite}
+@keyframes wizWave{0%,74%,100%{transform:rotate(0)}78%{transform:rotate(-11deg)}84%{transform:rotate(9deg)}90%{transform:rotate(-6deg)}95%{transform:rotate(0)}}
+.wiz-hero h3{margin-top:8px}
+.wiz-input{width:100%;margin-top:16px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;
+  font-size:16px;font-weight:700;text-align:center;background:var(--bg);color:var(--ink)}
+.wiz-input:focus{outline:none;border-color:var(--accent)}
+.wiz-intro-line{display:flex;align-items:flex-start;gap:10px;margin-top:12px;text-align:right}
+.wiz-intro-line .ic{font-size:17px;flex:none;line-height:1.3}
+.wiz-intro-line b{display:block;font-size:13px;font-weight:700}
+.wiz-intro-line span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
 
 .sheet{position:fixed;inset:0;z-index:115;display:none;align-items:flex-end;justify-content:center;
   background:rgba(8,9,10,.45);backdrop-filter:blur(4px)}
@@ -4032,20 +4047,62 @@ function finishCodeGate(code){
   applyTheme();renderSettings();
   refreshAll('הקוד הופעל — הנתונים שלך מגובים לתמיד ✓');
   startCloudSync();
-  if(!state.settings.wizardDone){setTimeout(openWizard,400);}
+  if(!state.settings.wizardDone){setTimeout(function(){openWizard(true);},400);}
 }
 
 /* ==================== אשף הגדרת פרופיל (שכירות / מימון / בבעלות) ==================== */
-var wizState=null,wizOnChoice=null;
+var wizState=null,wizOnChoice=null,wizStepIndex=0;
+var WIZ_TOTAL=6;
 function wizChoiceBtn(val,title,sub){
   return '<button type="button" class="wiz-choice" data-wiz="'+val+'"><span style="flex:1"><b>'+title+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</span></button>';
 }
+function wizProgress(){
+  var dots='';
+  for(var i=0;i<WIZ_TOTAL;i++)dots+='<span class="wiz-dot'+(i<wizStepIndex?' done':i===wizStepIndex?' active':'')+'"></span>';
+  wizStepIndex=Math.min(wizStepIndex+1,WIZ_TOTAL-1);
+  return '<div class="wiz-progress">'+dots+'</div>';
+}
 function wizShow(html){$('#wizCard').innerHTML=html;$('#wizModal').classList.add('show');}
 function wizClose(){$('#wizModal').classList.remove('show');wizOnChoice=null;}
-function openWizard(){
+function openWizard(isFirstRun){
   wizState={ownershipType:null,carMonthly:0,billingDay:state.settings.billingDay||1,insuranceType:'',insuranceMonthly:0};
-  wizStep1();
+  wizStepIndex=0;
+  if(isFirstRun)wizWelcome();
+  else wizStep1();
 }
+function wizWelcome(){
+  wizOnChoice=null;
+  wizShow(
+    wizProgress()+
+    '<div class="wiz-hero"><span class="wiz-emoji">👋</span><h3>ברוך הבא לקופת הנהג</h3><p>בוא נכיר — איך קוראים לך?</p></div>'+
+    '<input type="text" id="wizNameInput" class="wiz-input" maxlength="16" placeholder="השם שלך">'+
+    '<div class="modal-btns"><button type="button" class="btn ink" id="wizNameGo" style="flex:1">המשך</button></div>'
+  );
+  var el=$('#wizNameInput');
+  setTimeout(function(){el&&el.focus();},280);
+}
+function wizNameSubmit(){
+  var v=($('#wizNameInput').value||'').trim();
+  state.settings.name=v;save();
+  wizIntro(v);
+}
+document.addEventListener('click',function(e){if(e.target.id==='wizNameGo')wizNameSubmit();});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='wizNameInput')wizNameSubmit();
+});
+function wizIntro(name){
+  wizOnChoice=function(){wizStep1();};
+  var hi=name?('שלום '+name+' 👋'):'שלום 👋';
+  wizShow(
+    wizProgress()+
+    '<div class="wiz-hero"><span class="wiz-emoji">🚕</span><h3>'+hi+'</h3><p>קופת הנהג עוקבת אחרי הכסף שלך אוטומטית — ככה שתמיד תדע כמה באמת הרווחת, לא רק כמה נכנס.</p></div>'+
+    '<div class="wiz-intro-line"><span class="ic">💰</span><div><b>כל הכנסה והוצאה במקום אחד</b><span>נטו אמיתי, אחרי עמלת סדרן ועלות רכב</span></div></div>'+
+    '<div class="wiz-intro-line"><span class="ic">🔒</span><div><b>הנתונים שלך מגובים אוטומטית</b><span>בענן, לפי קוד אישי — לא יתאפס לך שום דבר</span></div></div>'+
+    '<div class="wiz-intro-line"><span class="ic">🚗</span><div><b>עכשיו כמה שאלות קצרות על הרכב</b><span>כדי לחשב לך את המספרים נכון מההתחלה</span></div></div>'+
+    '<div class="modal-btns"><button type="button" class="btn ink" id="wizIntroGo" style="flex:1">בואו נתחיל</button></div>'
+  );
+}
+document.addEventListener('click',function(e){if(e.target.id==='wizIntroGo'&&wizOnChoice)wizOnChoice();});
 function wizStep1(){
   wizOnChoice=function(v){
     wizState.ownershipType=v;
@@ -4053,6 +4110,7 @@ function wizStep1(){
     else wizStep2(v);
   };
   wizShow(
+    wizProgress()+
     '<h3>איך הרכב אצלך?</h3><p>זה קובע איך נחשב לך את עלות הרכב היומית.</p>'+
     '<div style="margin-top:14px">'+
     wizChoiceBtn('rent','שכירות','משלם סכום חודשי קבוע לסדרן/לחברה')+
@@ -4086,6 +4144,7 @@ function wizStep3(){
     wizStep4();
   };
   wizShow(
+    wizProgress()+
     '<h3>ביטוח רכב</h3><p>לא חובה, אבל עוזר לחשב עלות יומית מדויקת יותר.</p>'+
     '<div style="margin-top:14px">'+
     wizChoiceBtn('חובה','ביטוח חובה בלבד')+
@@ -4114,9 +4173,11 @@ function wizFinish(){
   renderSettings();renderHome();
   var daily=Math.round(carDailyCost());
   var basis=carCostBasisLbl();
+  var nm=state.settings.name;
   wizShow(
-    '<h3>מוכן ✅</h3><p>עלות הרכב היומית שלך ('+basis+'): <b style="color:var(--ink);font-size:18px">'+fmtInt(daily)+'</b> ליום.<br>אפשר לשנות הכול בכל רגע מ״הגדרות״.</p>'+
-    '<div class="modal-btns"><button type="button" class="btn ink" id="wizDone" style="flex:1">הבנתי</button></div>'
+    '<div class="wiz-hero"><span class="wiz-emoji" style="animation:none">🎉</span><h3>מוכן'+(nm?', '+nm:'')+'!</h3>'+
+    '<p>עלות הרכב היומית שלך ('+basis+'): <b style="color:var(--ink);font-size:18px">'+fmtInt(daily)+'</b> ליום.<br>אפשר לשנות הכול בכל רגע מ״הגדרות״.</p></div>'+
+    '<div class="modal-btns"><button type="button" class="btn ink" id="wizDone" style="flex:1">קדימה, בואו נרוויח</button></div>'
   );
 }
 document.addEventListener('click',function(e){
