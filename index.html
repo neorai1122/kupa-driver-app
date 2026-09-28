@@ -849,6 +849,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
         </div>
       </div>
 
+      <div class="card" id="liabCard" style="display:none">
+        <div class="card-title">💰 מה נשאר לי באמת</div>
+        <div id="liabBody"></div>
+      </div>
+
       <div class="card">
         <div class="card-title">
           <span class="month-pager" id="dayPager">
@@ -1055,6 +1060,12 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <div id="methodRows"></div>
       </div>
 
+      <div class="card" id="pctCompareCard" style="display:none">
+        <div class="card-title">איזה אחוז הכי משתלם לך</div>
+        <p id="pccLead" style="font-size:12.5px;color:var(--muted);margin:0 0 8px"></p>
+        <div id="pccRows"></div>
+      </div>
+
       <div class="card">
         <div class="card-title">מפת החודש</div>
         <div class="chart-wrap" id="monthChartWrap"><canvas id="monthChart"></canvas></div>
@@ -1071,6 +1082,12 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <div class="card-title">מתי אני הכי חזק</div>
         <div class="wh-grid" id="whGrid"></div>
         <p style="margin-top:10px;color:var(--muted);font-size:11px">לפי כל ההיסטוריה שלך — יום בשבוע מול שעה ביום, צבע חזק יותר = הכנסה ממוצעת גבוהה יותר</p>
+      </div>
+
+      <div class="card" id="hwByDayCard" style="display:none">
+        <div class="card-title">כמה יצא לך לשעה, לפי יום בשבוע</div>
+        <div id="hwByDayRows"></div>
+        <p style="margin-top:10px;color:var(--muted);font-size:11px">נטו אמיתי חלקי שעות עבודה בפועל, לפי כל ההיסטוריה שלך</p>
       </div>
 
       <div class="card">
@@ -1767,12 +1784,12 @@ $('#bioSwitch').addEventListener('change',async function(){
 });
 
 /* ==================== מה חדש ==================== */
-var APP_VER=22;
+var APP_VER=23;
 $('#appVerLbl').textContent='גרסה '+APP_VER;
 var WHATS_NEW=[
-  'תיקון: הודעת הקצב ביעד החודשי כבר לא סותרת את עצמה בחודש חלש',
-  'שיפור: מסך היומן נראה מסודר יותר כשאין בו הרבה פריטים',
-  'שיפור: מספר הגרסה בהגדרות מתעדכן לבד מעכשיו'
+  'חדש: כרטיס "מה נשאר לי באמת" בבית — כל מה שפתוח (סדרן, יומן, רכב, מעשרות) במקום אחד, וכמה נשאר לך בפועל',
+  'חדש: בדוחות, כרטיס שמראה איזה אחוז עמלה הכי משתלם לך לפי הנסיעות האמיתיות שלך',
+  'חדש: בדוחות, כמה יצא לך לשעה לפי כל יום בשבוע — לדעת אילו ימים באמת שווים'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
@@ -2428,6 +2445,8 @@ function renderHome(){
     $('#maaserSub').textContent=wkNet>0?'מתוך נטו השבוע: '+fmt(wkNet):'עוד אין נטו חיובי השבוע';
   }else maaserCard.style.display='none';
 
+  renderLiabilities();
+
   /* תנועות היום הנבחר */
   $('#dayListLbl').textContent='תנועות · '+dayLabel(td);
   var dayList=dTx.slice().sort(function(a,b){return (b.ts||0)-(a.ts||0);});
@@ -2518,7 +2537,8 @@ function renderShiftCard(s,pct){
     card.innerHTML='<div class="mini-head"><span class="lbl">משמרת</span><span class="shift-live"><span class="pulse"></span>פעילה</span></div>'+
       '<div class="mini-body"><div class="shift-timer num" id="shiftTimer">'+fmtHours(shiftDurMs(act,Date.now())/3600000)+'</div>'+
       '<div class="shift-stats">מתחילת המשמרת</div></div>'+
-      '<div class="mini-foot"><button class="btn amber sm" style="width:100%" data-act="end-shift">סיום משמרת</button></div>';
+      '<div class="mini-foot"><button class="btn amber sm" style="width:100%" data-act="end-shift">סיום משמרת</button></div>'+
+      (hours>0.1?foot:'');
   }else{
     card.innerHTML='<div class="mini-head"><span class="lbl">משמרת</span></div>'+
       '<div class="mini-body"><div class="shift-timer num">'+fmtHours(hours)+'</div>'+
@@ -2526,6 +2546,41 @@ function renderShiftCard(s,pct){
       '<div class="mini-foot"><button class="btn ink sm" style="width:100%" data-act="start-shift">התחלת משמרת</button></div>'+
       (hours>0.1?foot:'');
   }
+}
+/* ---------- מה נשאר לי באמת (סיכום התחייבויות פתוחות) ----------
+   חשוב: "נטו אמיתי" כבר כולל בתוכו כל הוצאת שכירות/ביטוח שנרשמה בפועל (אוטומטית או ידנית) החודש —
+   לכן אסור לחשב כאן "כמה עוד חסר לכיסוי הרכב" לפי operatingProfit ולהוריד את זה שוב מהנטו,
+   כי זו תהיה ספירה כפולה של אותה הוצאה. הבדיקה היחידה שלא כפולה: האם ההוצאה כבר נרשמה בפועל החודש. */
+function unpostedCarCost(){
+  var rent=state.settings.rent||0,ins=state.settings.insuranceMonthly||0;
+  if(rent<=0&&ins<=0)return 0;
+  var k=ymKey(new Date().getFullYear(),new Date().getMonth());
+  var total=0;
+  if(rent>0&&!state.tx.some(function(t){return t.type==='expense'&&t.cat==='rent'&&t.date.slice(0,7)===k;}))total+=rent;
+  if(ins>0&&!state.tx.some(function(t){return t.type==='expense'&&t.cat==='insurance'&&t.date.slice(0,7)===k;}))total+=ins;
+  return total;
+}
+function renderLiabilities(){
+  var card=$('#liabCard'),body=$('#liabBody');if(!card||!body)return;
+  if(ui.hm.y!==curCycle.y||ui.hm.m!==curCycle.m){card.style.display='none';return;}
+  var all=sums(state.tx);
+  var dispatcherDebt=Math.max(0,all.due-all.com);
+  var carRemaining=unpostedCarCost();
+  var journalOpen=state.journal.filter(function(j){return !j.done&&j.amount>0;});
+  var journalTotal=journalOpen.reduce(function(a,j){return a+(+j.amount||0);},0);
+  var maaserAdv=state.settings.maaserOn?maaserAmount(weeklyNetSoFar()):0;
+  var hardTotal=dispatcherDebt+carRemaining+journalTotal+maaserAdv;
+  if(hardTotal<=0.5){card.style.display='none';return;}
+  card.style.display='';
+  var heroNet=netOf(sums(monthTx(ui.hm.y,ui.hm.m)),state.settings.pct);
+  var rows='';
+  if(dispatcherDebt>0.5)rows+='<div class="t-row"><span>חוב פתוח ל'+dispatcherNoun()+'</span><b class="num">'+fmt(dispatcherDebt)+'</b></div>';
+  if(carRemaining>0.5)rows+='<div class="t-row"><span>עלות הרכב החודש, טרם נרשמה</span><b class="num">'+fmt(carRemaining)+'</b></div>';
+  if(journalTotal>0.5)rows+='<div class="t-row"><span>פתוח ביומן ('+journalOpen.length+')</span><b class="num">'+fmt(journalTotal)+'</b></div>';
+  if(maaserAdv>0.5)rows+='<div class="t-row"><span>מעשרות השבוע, טרם הופרש</span><b class="num">'+fmt(maaserAdv)+'</b></div>';
+  var free=heroNet-hardTotal;
+  rows+='<div class="t-total"><span>נשאר לך בפועל, אחרי הכל</span><b class="num" style="color:'+(free<0?'var(--red)':'var(--green)')+'">'+fmt(free)+'</b></div>';
+  body.innerHTML=rows;
 }
 function renderShiftBanner(){
   var b=$('#shiftBanner');
@@ -3469,10 +3524,63 @@ function renderReports(){
     $('#methodRows').innerHTML='<div style="color:var(--muted);font-size:12.5px">עוד אין הכנסות החודש</div>';
   }
 
+  renderPctCompare(list);
+
   drawMonth();
   drawDonut(s);
   renderHeatmap(pct);
   renderWeekHourHeat();
+  renderHourlyWageByDay();
+}
+function renderPctCompare(list){
+  var card=$('#pctCompareCard'),lead=$('#pccLead'),rows=$('#pccRows');if(!card)return;
+  var rides=list.filter(function(t){return t.type==='income'&&t.cat==='rides';});
+  var groups={};
+  rides.forEach(function(t){
+    var p=ridePct(t),amt=safeAmt(t.amount);
+    if(!groups[p])groups[p]={pct:p,count:0,net:0};
+    groups[p].count++;groups[p].net+=amt-(amt*p/100);
+  });
+  var keys=Object.keys(groups);
+  if(keys.length<2){card.style.display='none';return;}
+  card.style.display='';
+  var arr=keys.map(function(k){var g=groups[k];g.avgNet=g.net/g.count;return g;});
+  arr.sort(function(a,b){return b.avgNet-a.avgNet;});
+  var best=arr[0];
+  lead.textContent='ב-'+best.pct+'% אתה נשאר עם הכי הרבה לנסיעה בממוצע — '+fmtInt(best.avgNet)+' נטו לנסיעה';
+  rows.innerHTML=arr.map(function(g){
+    var isBest=g===best;
+    return '<div class="mrow"><span class="nm">'+g.pct+'% · '+g.count+' נסיעות</span>'+
+      '<span class="vl num"'+(isBest?' style="color:var(--green)"':'')+'>'+fmtInt(g.avgNet)+' לנסיעה</span></div>';
+  }).join('');
+}
+function renderHourlyWageByDay(){
+  var card=$('#hwByDayCard'),rowsEl=$('#hwByDayRows');if(!card)return;
+  var DAY_NAMES=['יום ראשון','יום שני','יום שלישי','יום רביעי','יום חמישי','יום שישי','שבת'];
+  var days={};
+  state.shifts.forEach(function(sh){days[shiftDay(sh)]=1;});
+  var isos=Object.keys(days);
+  if(!isos.length){card.style.display='none';return;}
+  var buckets=[0,1,2,3,4,5,6].map(function(){return {net:0,hours:0};});
+  var pct=state.settings.pct;
+  isos.forEach(function(iso){
+    var hours=hoursOnDay(iso);
+    if(hours<0.1)return;
+    var dayNet=netOf(sums(state.tx.filter(function(t){return t.date===iso&&!t.lumpAuto;})),pct);
+    var wd=dObj(iso).getDay();
+    buckets[wd].net+=dayNet;buckets[wd].hours+=hours;
+  });
+  var rates=buckets.map(function(b){return b.hours>0.1?b.net/b.hours:null;});
+  if(!rates.some(function(r){return r!=null;})){card.style.display='none';return;}
+  card.style.display='';
+  var maxRate=Math.max.apply(null,rates.filter(function(r){return r!=null;}));
+  rowsEl.innerHTML=DAY_NAMES.map(function(name,i){
+    var r=rates[i];
+    var valTxt=r!=null?fmtInt(r)+' לשעה':'אין נתונים';
+    var color=r!=null&&r===maxRate?'var(--green)':(r==null?'var(--muted)':'');
+    return '<div class="mrow"><span class="nm">'+name+'</span>'+
+      '<span class="vl num" style="color:'+color+'">'+valTxt+'</span></div>';
+  }).join('');
 }
 function renderWeekHourHeat(){
   var card=$('#whHeatCard'),grid=$('#whGrid');if(!grid)return;
