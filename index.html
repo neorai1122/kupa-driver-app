@@ -442,7 +442,8 @@ html[data-mood="low"] .hero::before{background:radial-gradient(120% 100% at 15% 
 .j-tag{font-size:9.5px;font-weight:800;background:var(--accent-soft);color:var(--accent-ink);border-radius:6px;padding:2px 6px;margin-inline-start:6px;vertical-align:1px}
 .j-del{color:var(--muted);flex:none;width:26px;height:26px;display:grid;place-items:center;border-radius:8px;cursor:pointer}
 .j-del:active{background:var(--line2)}
-.j-empty{color:var(--muted);font-size:12.5px;padding:10px 0;text-align:center}
+.j-empty{color:var(--muted);font-size:12.5px;padding:20px 0;text-align:center}
+.j-empty-ico{display:block;width:28px;height:28px;margin:0 auto 8px;color:var(--line)}
 .journal-add-row{display:flex;gap:8px;margin-top:12px}
 .journal-add-row input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;font-family:inherit;color:var(--ink)}
 .journal-add-row button{width:40px;height:40px;border-radius:12px;background:var(--ink);color:var(--card);flex:none;display:grid;place-items:center;transition:transform .12s}
@@ -1281,7 +1282,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <button class="btn danger big" id="eraseBtn" style="width:100%">מחיקת כל התנועות</button>
       </div>
 
-      <div class="about">קופת הנהג · גרסה 2.2<br>עובד אופליין · הנתונים במכשיר שלך<br>מגובים אוטומטית לענן לפי הקוד האישי שלך · ללא הרשמה, ללא סיסמה</div>
+      <div class="about">קופת הנהג · <span id="appVerLbl"></span><br>עובד אופליין · הנתונים במכשיר שלך<br>מגובים אוטומטית לענן לפי הקוד האישי שלך · ללא הרשמה, ללא סיסמה</div>
     </section>
   </main>
 
@@ -1766,11 +1767,12 @@ $('#bioSwitch').addEventListener('change',async function(){
 });
 
 /* ==================== מה חדש ==================== */
-var APP_VER=21;
+var APP_VER=22;
+$('#appVerLbl').textContent='גרסה '+APP_VER;
 var WHATS_NEW=[
-  'חדש: קיצורי דרך בבית — 4 כפתורים מתחת למספרים הגדולים, לחיצה ארוכה כדי להגדיר להם סכום קבוע ולשמור תנועה בלחיצה אחת',
-  'חדש: כפתורי אחוז העמלה לומדים לבד אילו אחוזים אתה הכי משתמש בהם',
-  'שיפור: אייקונים לכל כרטיס בהגדרות, שיהיה קל יותר להתמצא'
+  'תיקון: הודעת הקצב ביעד החודשי כבר לא סותרת את עצמה בחודש חלש',
+  'שיפור: מסך היומן נראה מסודר יותר כשאין בו הרבה פריטים',
+  'שיפור: מספר הגרסה בהגדרות מתעדכן לבד מעכשיו'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
@@ -2466,10 +2468,15 @@ function renderGoal(net){
   var sameMonth=todayIso0>=cycS&&todayIso0<cycE;
   var daysLeft=sameMonth?Math.round((dObj(cycE)-dObj(todayIso0))/86400000):cycleDayCount(ui.hm.y,ui.hm.m);
   var reached=net>=g;
-  var workdaysLeft=null;
-  if(!reached){
+  var paceLine='';
+  if(!reached&&sameMonth){
     var avg=avgDailyNet();
-    if(avg>1)workdaysLeft=Math.ceil((g-net)/avg);
+    if(avg>1){
+      var workdaysLeft=Math.ceil((g-net)/avg);
+      paceLine=(daysLeft>0&&workdaysLeft>daysLeft)?
+        '<br>בקצב הנוכחי לא תספיק להגיע החודש':
+        '<br>בקצב שלך: עוד כ-'+workdaysLeft+(workdaysLeft===1?' יום עבודה':' ימי עבודה');
+    }
   }
   var startOff=goalRingBooted?off:RING_C;
   card.innerHTML='<div class="mini-head"><span class="lbl">יעד חודשי</span>'+
@@ -2481,8 +2488,7 @@ function renderGoal(net){
     '</svg><div class="gr-txt"><div class="gr-pct num">'+Math.round(p*100)+'%</div><div class="gr-cap">מהיעד</div></div></div>'+
     '<div class="goal-info">'+
       '<div class="gi-big num">'+fmtInt(g)+'</div>'+
-      '<div class="gi-sub">'+(net>=g?'היעד הושג — יפה מאוד':'נותרו '+fmt(Math.max(0,g-net)))+(sameMonth&&daysLeft>0?'<br>עוד '+daysLeft+' ימים לסוף החודש':'')+
-      (workdaysLeft!=null?'<br>בקצב שלך: עוד כ-'+workdaysLeft+(workdaysLeft===1?' יום עבודה':' ימי עבודה'):'')+'</div>'+
+      '<div class="gi-sub">'+(net>=g?'היעד הושג — יפה מאוד':'נותרו '+fmt(Math.max(0,g-net)))+(sameMonth&&daysLeft>0?'<br>עוד '+daysLeft+' ימים לסוף החודש':'')+paceLine+'</div>'+
     '</div></div>';
   if(!goalRingBooted){
     goalRingBooted=true;
@@ -4678,7 +4684,7 @@ function renderJournal(){
   var openTasks=state.journal.filter(function(j){return !j.done;});
   var list=$('#journalOpenList');
   if(!openTasks.length){
-    list.innerHTML='<div class="j-empty">אין דברים פתוחים כרגע — נקי ✓</div>';
+    list.innerHTML='<div class="j-empty"><svg class="j-empty-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5"/></svg>אין דברים פתוחים כרגע — נקי ✓</div>';
   }else{
     list.innerHTML=openTasks.slice().sort(function(a,b){return b.ts-a.ts;}).map(function(j,i){
       return '<div class="j-task" data-jid="'+j.id+'" style="animation-delay:'+(i*0.04)+'s">'+
@@ -4707,7 +4713,7 @@ function renderJournalTimeline(){
   });
   rows.sort(function(a,b){return b.ts-a.ts;});
   var el=$('#journalTimeline');
-  if(!rows.length){el.innerHTML='<div class="j-empty">עוד לא קרה כלום היום</div>';return;}
+  if(!rows.length){el.innerHTML='<div class="j-empty"><svg class="j-empty-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>עוד לא קרה כלום היום</div>';return;}
   el.innerHTML=rows.map(function(r,i){
     return '<div class="j-tl-row" style="animation-delay:'+(i*0.03)+'s">'+
       '<span class="j-tl-dot '+r.dot+'"></span>'+
