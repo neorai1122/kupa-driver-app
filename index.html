@@ -239,15 +239,21 @@ html[data-daypart="night"] .hero::before{background:radial-gradient(120% 100% at
 html[data-mood="great"] .hero::before{background:radial-gradient(120% 100% at 15% 0%, rgba(242,176,30,.24), transparent 60%)}
 html[data-mood="low"] .hero::before{background:radial-gradient(120% 100% at 15% 0%, rgba(120,140,190,.14), transparent 60%)}
 .hero .lbl{color:rgba(243,242,236,.55);position:relative}
-.hero-net-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;position:relative}
+.hero-net-row{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;position:relative;flex-wrap:wrap-reverse}
 .hero-row{position:relative}
 .hero-notes{position:relative}
+.hero-net-wrap{display:flex;align-items:center;gap:6px;min-width:0;flex-shrink:0}
 .hero-net{font-size:42px;font-weight:800;color:var(--accent);line-height:1.15;letter-spacing:-.5px;margin-top:4px;
-  animation:heroBreathe 4.5s ease-in-out infinite}
+  animation:heroBreathe 4.5s ease-in-out infinite;min-width:0}
+.hero-edit-btn{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none;
+  color:rgba(243,242,236,.4);align-self:center}
+.hero-edit-btn svg{width:14px;height:14px}
+.hero-edit-btn:active{background:rgba(255,255,255,.08);color:rgba(243,242,236,.75)}
 @keyframes heroBreathe{0%,100%{opacity:1}50%{opacity:.9}}
 @media (prefers-reduced-motion: reduce){.hero-net{animation:none}}
 .trend{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:5px 10px;
-  border-radius:999px;background:rgba(255,255,255,.07);color:rgba(243,242,236,.75);margin-bottom:6px;white-space:nowrap}
+  border-radius:999px;background:rgba(255,255,255,.07);color:rgba(243,242,236,.75);margin-bottom:6px;
+  white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .trend.up{color:#7fd0a6}.trend.down{color:#f08a6f}
 .trend svg{width:10px;height:10px}
 .hero-notes{font-size:11.5px;color:rgba(243,242,236,.42);margin-top:3px}
@@ -506,6 +512,10 @@ html[data-mood="low"] .hero::before{background:radial-gradient(120% 100% at 15% 
   font-weight:700;font-size:12px;color:var(--muted)}
 .pct-chips button.active{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft)}
 .pct-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:6px;opacity:.75}
+.pct-toggle{display:flex;gap:8px}
+.pct-toggle button{flex:1;padding:9px 8px;border-radius:10px;border:1px solid var(--line);background:var(--card);
+  font-weight:700;font-size:12px;color:var(--muted)}
+.pct-toggle button.active{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft)}
 .wd-grid{display:flex;gap:6px;justify-content:center;margin-top:16px}
 .wd-chip{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);
   font-weight:800;font-size:14px;color:var(--muted);transition:transform .15s,background .15s,color .15s,border-color .15s}
@@ -546,6 +556,8 @@ html[data-mood="low"] .hero::before{background:radial-gradient(120% 100% at 15% 
 .metric.hero-m .m-lb{color:rgba(243,242,236,.55)}
 .metric.hero-m .m-vl{color:var(--accent)}
 .week-line{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:600;margin:-4px 3px 15px}
+.maaser-note{font-size:12px;color:var(--muted);font-weight:600;text-align:center;margin:-6px 3px 15px}
+.maaser-note b{color:var(--ink)}
 .week-line b{color:var(--ink)}
 .week-line .trend{background:var(--card);border:1px solid var(--line);color:var(--muted);margin:0}
 .week-line .trend.up{color:var(--green)} .week-line .trend.down{color:var(--red)}
@@ -820,13 +832,18 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div class="card hero">
         <div class="lbl">נטו אמיתי · <span id="heroMonth"></span></div>
         <div class="hero-net-row">
-          <div class="hero-net num" id="netNum">₪0</div>
+          <div class="hero-net-wrap">
+            <div class="hero-net num" id="netNum">₪0</div>
+            <button type="button" class="hero-edit-btn" id="netEditBtn" aria-label="תיקון נטו" title="לא מסתדר עם המספר? אפשר לתקן">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg>
+            </button>
+          </div>
           <div class="trend" id="momChip" style="display:none"></div>
         </div>
-        <div class="hero-notes">אחרי עמלת סדרן (<span data-pct>30</span>%) והוצאות</div>
+        <div class="hero-notes">אחרי <span data-pct>30</span>% עמלת <span id="heroNotesNoun">סדרן</span> והוצאות</div>
         <div class="hero-row">
           <div><div class="hr-lb">הכנסות</div><div class="hr-vl num" id="hInc">₪0</div></div>
-          <div><div class="hr-lb">סדרן · <span data-pct>30</span>%</div><div class="hr-vl num" id="hCom">₪0</div></div>
+          <div><div class="hr-lb"><span id="hComNoun">סדרן</span> · <span data-pct>30</span>%</div><div class="hr-vl num" id="hCom">₪0</div></div>
           <div><div class="hr-lb">הוצאות</div><div class="hr-vl num" id="hExp">₪0</div></div>
         </div>
       </div>
@@ -844,7 +861,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
           </span>
         </div>
         <div class="daycard-body" id="dayCardBody">
-          <div class="t-row"><span>נסיעות — נטו אחרי סדרן</span><b class="num" id="tRides">₪0</b></div>
+          <div class="t-row"><span>נסיעות — נטו אחרי <span id="tRidesNoun">סדרן</span></span><b class="num" id="tRides">₪0</b></div>
           <div class="t-row"><span>דלק והוצאות</span><b class="num" id="tExp">₪0</b></div>
           <div class="t-row"><span>הרכב להיום</span><b class="num" id="tCar">₪0</b></div>
           <div class="t-total"><span>מאזן היום</span><b class="num" id="tNet">₪0</b></div>
@@ -864,7 +881,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div class="card">
         <div class="owner-top">
           <div>
-            <div class="lbl">לסדרן</div>
+            <div class="lbl" id="debtLbl">לסדרן</div>
             <div class="owner-num num" id="debtNum">₪0</div>
             <div class="owner-sub" id="debtSub"></div>
           </div>
@@ -886,18 +903,14 @@ html[data-theme="dark"] .track{background:#2b2f34}
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="maaserCard" style="display:none">
         <div class="fund-top">
           <div>
-            <div class="lbl">קרן חכמה</div>
-            <div class="fund-num num" id="fundNum">₪0</div>
-            <div class="fund-sub" id="fundSub"></div>
+            <div class="lbl">מעשרות השבוע</div>
+            <div class="fund-num num" id="maaserNum">₪0</div>
+            <div class="fund-sub" id="maaserSub"></div>
           </div>
-          <span class="slabel" style="margin:0">לביטוח וטיפולים</span>
-        </div>
-        <div class="fund-btns">
-          <button class="btn line sm" data-act="fund-in">הפקדה לקרן</button>
-          <button class="btn line sm" data-act="fund-out">משיכה</button>
+          <span class="slabel" id="maaserPctLbl" style="margin:0">10%</span>
         </div>
       </div>
 
@@ -951,12 +964,12 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <div class="pct-hint">לחיצה ארוכה על כפתור כדי לשנות את האחוז שלו</div>
       </div>
       <div class="pct-row" id="directRow">
-        <span class="pct-lbl">שולם ישירות לסדרן <span style="color:var(--muted);font-weight:400">— לא קיבלת מזומן</span></span>
+        <span class="pct-lbl">שולם ישירות <span id="directSwitchNoun">לסדרן</span> <span style="color:var(--muted);font-weight:400">— לא קיבלת מזומן</span></span>
         <label class="switch"><input type="checkbox" id="directSwitch"><span class="track"></span></label>
       </div>
       <div class="add-meta">
         <input type="date" id="txDate">
-        <input type="text" id="txNote" placeholder="הערה (לא חובה)" maxlength="40">
+        <input type="text" id="txNote" placeholder="הערה, לא חובה" maxlength="40">
       </div>
       <div class="pad" dir="ltr" id="pad">
         <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
@@ -976,7 +989,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <span id="lmLbl"></span>
           <button id="lmNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
         </div>
-        <div class="mini-totals"><span class="up num" id="mtUp">+₪0</span><span class="down num" id="mtDown">−₪0</span></div>
+        <div class="mini-totals"><span class="up num" id="mtUp">+₪0</span><span class="down num" id="mtDown">₪0</span></div>
       </div>
       <div class="chips" id="filterChips">
         <button class="chip active" data-f="all">הכל</button>
@@ -1031,10 +1044,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <div class="metric hero-m"><div class="m-lb">נטו אמיתי</div><div class="m-vl num" id="rNet">₪0</div></div>
         <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--green)"></span>הכנסות</div><div class="m-vl num" id="rInc">₪0</div></div>
         <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--red)"></span>הוצאות</div><div class="m-vl num" id="rExp">₪0</div></div>
-        <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--accent)"></span>סדרן <span data-pct>30</span>%</div><div class="m-vl num" id="rCom">₪0</div></div>
+        <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--accent)"></span><span id="rComNoun">סדרן</span> <span data-pct>30</span>%</div><div class="m-vl num" id="rCom">₪0</div></div>
         <div class="metric"><div class="m-lb">נטו לשעה</div><div class="m-vl num" id="rPerHour">—</div></div>
         <div class="metric"><div class="m-lb">ימי עבודה</div><div class="m-vl num" id="rDays">0</div></div>
       </div>
+      <div class="maaser-note" id="maaserNote" style="display:none"></div>
 
       <div class="week-line" id="weekLine"></div>
 
@@ -1047,7 +1061,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div class="card">
         <div class="card-title">מפת החודש</div>
         <div class="chart-wrap" id="monthChartWrap"><canvas id="monthChart"></canvas></div>
-        <div class="legend"><span><span class="dot" style="background:var(--green)"></span> הכנסות (למעלה)</span><span><span class="dot" style="background:var(--red)"></span> הוצאות (למטה)</span></div>
+        <div class="legend"><span><span class="dot" style="background:var(--green)"></span> הכנסות למעלה</span><span><span class="dot" style="background:var(--red)"></span> הוצאות למטה</span></div>
       </div>
 
       <div class="card">
@@ -1081,7 +1095,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div class="rep-actions">
         <button class="btn ink big" data-act="wa-share">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>
-          שליחת סיכום חודשי לסדרן</button>
+          שליחת סיכום חודשי <span id="waShareNoun">לסדרן</span></button>
         <button class="btn line big" id="csvBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           ייצוא החודש לאקסל (CSV)</button>
@@ -1101,7 +1115,11 @@ html[data-theme="dark"] .track{background:#2b2f34}
       </div>
 
       <div class="card">
-        <div class="card-title">רכב וסדרן<button class="btn line sm" data-act="run-wizard" style="font-weight:700">עדכון פרופיל</button></div>
+        <div class="card-title"><span id="carCardTitle">רכב וסדרן</span><button class="btn line sm" data-act="run-wizard" style="font-weight:700">עדכון פרופיל</button></div>
+        <div class="set-row">
+          <div class="r-lb">איך עובד מולך<div class="r-sub" id="driverModeLbl">—</div></div>
+          <button class="edit-btn" data-act="set-drivermode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button>
+        </div>
         <div class="set-row">
           <div class="r-lb">איך הרכב אצלך<div class="r-sub" id="ownTypeLbl">—</div></div>
         </div>
@@ -1133,29 +1151,40 @@ html[data-theme="dark"] .track{background:#2b2f34}
           <label class="switch"><input type="checkbox" id="autoIns" checked><span class="track"></span></label>
         </div>
         <div class="set-row">
-          <div class="r-lb">עמלה לסדרן — ברירת מחדל<div class="r-sub">אפשר לשנות לכל נסיעה בנפרד בעת ההוספה</div></div>
+          <div class="r-lb">עמלה <span id="pctRowNoun">לסדרן</span> — ברירת מחדל<div class="r-sub">אפשר לשנות לכל נסיעה בנפרד בעת ההוספה</div></div>
           <div class="stepper"><button id="pctDown">−</button><b class="num"><span data-pct>30</span>%</b><button id="pctUp">+</button></div>
         </div>
         <div class="set-row" id="breakEvenRow">
-          <div class="r-lb">🚗 מצב "רכב מכוסה"<div class="r-sub">מהרגע שהרווח שלך ממחזור החיוב הנוכחי (לפי "תאריך חיוב בחודש" למעלה) מכסה את הרכב+ביטוח — "היום שלך" מפסיק להוריד את העלות היומית, ומכאן הכל רווח נקי</div></div>
+          <div class="r-lb">🚗 מצב רכב מכוסה<div class="r-sub">ברגע שהרווח שלך במחזור החיוב הנוכחי — לפי תאריך חיוב בחודש למעלה — מכסה את הרכב והביטוח, כרטיס היום שלך מפסיק להוריד את העלות היומית ומכאן הכל רווח נקי</div></div>
           <label class="switch"><input type="checkbox" id="breakEvenSwitch"><span class="track"></span></label>
         </div>
         <div class="set-row">
-          <div class="r-lb">טלפון של הסדרן<div class="r-sub">לשליחת סיכום ישירה בוואטסאפ</div></div>
+          <div class="r-lb">טלפון <span id="phoneRowNoun">של הסדרן</span><div class="r-sub">לשליחת סיכום ישירה בוואטסאפ</div></div>
           <input type="tel" id="phoneInput" placeholder="05X-XXXXXXX" maxlength="12" dir="ltr">
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">יעדים וקרן</div>
+        <div class="card-title">יעדים</div>
         <div class="set-row">
           <div class="r-lb">יעד נטו חודשי<div class="r-sub">מעקב בטבעת במסך הבית</div></div>
           <div class="set-val"><span class="num" id="goalVal">לא הוגדר</span>
             <button class="edit-btn" data-act="set-goal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button></div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🙏 מעשרות</div>
         <div class="set-row">
-          <div class="r-lb">הפרשה לקרן חכמה<div class="r-sub">אחוז מהנטו שכדאי לשים בצד</div></div>
-          <div class="stepper"><button id="fundDown">−</button><b class="num"><span id="fundPct">10</span>%</b><button id="fundUp">+</button></div>
+          <div class="r-lb">הפרשת מעשרות<div class="r-sub">חישוב ותזכורת שבועית, לא נוגע בנתונים שלך</div></div>
+          <label class="switch"><input type="checkbox" id="maaserSwitch"><span class="track"></span></label>
+        </div>
+        <div class="set-row" id="maaserPctRow" style="display:none">
+          <div class="r-lb">כמה להפריש<div class="r-sub">מעשר הוא 10%, חומש הוא 20%</div></div>
+          <div class="pct-toggle">
+            <button type="button" class="btn sm" data-mp="10" id="maaserBtn10">מעשר · 10%</button>
+            <button type="button" class="btn sm" data-mp="20" id="maaserBtn20">חומש · 20%</button>
+          </div>
         </div>
       </div>
 
@@ -1608,10 +1637,12 @@ function normState(d){
     monthStartDay:1,monthCycleSet:false,
     morningOn:false,morningTime:'08:00',lockOn:false,shareOn:false,carModeOn:true,smartCloseOn:true,
     pctPresets:[10,12,25,30],workDays7:[true,true,true,true,true,true,true],workDaysSet:false,
-    breakEvenOn:true},d.settings||{});
+    breakEvenOn:true,driverMode:'dispatcher',driverModeSet:false,
+    maaserOn:false,maaserPct:10,maaserSet:false,maaserWeekShown:''},d.settings||{});
   if(!Array.isArray(d.settings.pctPresets)||d.settings.pctPresets.length!==4)d.settings.pctPresets=[10,12,25,30];
   if(!Array.isArray(d.settings.workDays7)||d.settings.workDays7.length!==7)d.settings.workDays7=[true,true,true,true,true,true,true];
   if(!Array.isArray(d.tx))d.tx=[];
+  d.tx.forEach(function(t){if(t&&!isFinite(+t.amount))t.amount=0;});
   if(!Array.isArray(d.shifts))d.shifts=[];
   if(!Array.isArray(d.journal))d.journal=[];
   if(!d.fund||typeof d.fund.balance!=='number')d.fund={balance:0,log:[]};
@@ -1737,11 +1768,12 @@ $('#bioSwitch').addEventListener('change',async function(){
 });
 
 /* ==================== מה חדש ==================== */
-var APP_VER=18;
+var APP_VER=19;
 var WHATS_NEW=[
-  'חדש: מי שמפעיל נעילת אפליקציה יכול עכשיו להיכנס עם טביעת אצבע או זיהוי פנים, במקום להקליד קוד כל פעם (הקוד תמיד נשאר גיבוי)',
-  'תוקן: מצב "רכב מכוסה" מחשב לפי תאריך החיוב האמיתי של הרכב שלך, לא לפי מחזור הדוחות',
-  'תוקן: כפתור השמעת היום/יומן עובד גם אם "צליל" כבוי בהגדרות'
+  'חדש: מגדירים אם אתה עובד עם סדרן, מושך נסיעות לבד, או גם וגם — כל הכיתובים באפליקציה מתאימים את עצמם',
+  'חדש: מעשרות במקום קרן חכמה — בוחרים מעשר או חומש, מקבלים תזכורת בכל יום שישי',
+  'חדש: אפשר לתקן את הנטו ידנית עם עט קטן ליד המספר הגדול, אם ספרת ביד וזה לא תואם',
+  'תוקן: כמה תקלות עיצוב — מספרים שהיו נגלשים מחוץ לכרטיס, וניקוי כיתובים בכל האפליקציה'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
@@ -1823,6 +1855,35 @@ function catById(id){
   return{id:'x',label:'אחר',icon:'📦'};
 }
 var METHODS={cash:'מזומן',bit:'ביט',paybox:'פייבוקס',credit:'אשראי',bank:'העברה בנקאית',direct:'ישיר לסדרן'};
+function dispatcherNoun(){return state.settings.driverMode==='self'?'תחנה':'סדרן';}
+function dispatcherWord(){return 'ל'+dispatcherNoun();}
+function applyDriverModeLabels(){
+  var noun=dispatcherNoun(),word=dispatcherWord();
+  catById('commission').label=word;
+  METHODS.direct='ישיר '+word;
+  var elCommChip=document.querySelector('.chip[data-f="commission"]');
+  if(elCommChip)elCommChip.textContent=noun;
+  var elCommBtn=document.querySelector('[data-act="q-commission"]');
+  if(elCommBtn){
+    var svg=elCommBtn.querySelector('svg');
+    elCommBtn.innerHTML='';
+    if(svg)elCommBtn.appendChild(svg);
+    elCommBtn.appendChild(document.createTextNode(noun));
+  }
+  ['heroNotesNoun','hComNoun','pctRowNoun','rComNoun','tRidesNoun'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.textContent=noun;
+  });
+  var directNoun=document.getElementById('directSwitchNoun');if(directNoun)directNoun.textContent=word;
+  var phoneNoun=document.getElementById('phoneRowNoun');if(phoneNoun)phoneNoun.textContent=noun==='תחנה'?'התחנה':'של הסדרן';
+  var waNoun=document.getElementById('waShareNoun');if(waNoun)waNoun.textContent=word;
+  var debtLbl=document.getElementById('debtLbl');if(debtLbl)debtLbl.textContent=word;
+  var carTitle=document.getElementById('carCardTitle');if(carTitle)carTitle.textContent=noun==='תחנה'?'רכב ותחנה':'רכב וסדרן';
+  var dmLbl=document.getElementById('driverModeLbl');
+  if(dmLbl){
+    var DM_LBL={dispatcher:'עובד עם סדרן',self:'מושך נסיעות בעצמי',both:'גם עם סדרן וגם מושך לבד'};
+    dmLbl.textContent=DM_LBL[state.settings.driverMode]||DM_LBL.dispatcher;
+  }
+}
 
 /* ==================== עזר ==================== */
 function pad2(n){return String(n).padStart(2,'0');}
@@ -1874,15 +1935,16 @@ function carCycleTx(y,m){
   return state.tx.filter(function(t){return t.date>=s&&t.date<e;});
 }
 function ridePct(t){return t.pct!=null?t.pct:state.settings.pct;}
+function safeAmt(v){var n=+v;return isFinite(n)?n:0;}
 function sums(list){
   var inc=0,com=0,exp=0,rides=0,due=0;
-  for(var i=0;i<list.length;i++){var t=list[i];
+  for(var i=0;i<list.length;i++){var t=list[i];var amt=safeAmt(t.amount);
     if(t.type==='income'){
-      inc+=t.amount;
-      if(t.cat==='rides'){rides+=t.amount;due+=t.amount*ridePct(t)/100;}
+      inc+=amt;
+      if(t.cat==='rides'){rides+=amt;due+=amt*ridePct(t)/100;}
     }
-    else if(t.cat==='commission')com+=t.amount;
-    else exp+=t.amount;}
+    else if(t.cat==='commission')com+=amt;
+    else exp+=amt;}
   return{inc:inc,com:com,exp:exp,rides:rides,due:due,expAll:com+exp};
 }
 function sadranDue(s){return s.due||0;}
@@ -2044,7 +2106,7 @@ function speak(text,opts){
 }
 function speakNum(n){return Math.round(Math.abs(n)).toLocaleString('he-IL')+' שקל';}
 function rentNote(){
-  var NOTES={finance:'החזר מימון/הלוואה',leasing:'תשלום ליסינג'};
+  var NOTES={finance:'החזר מימון או הלוואה',leasing:'תשלום ליסינג'};
   return NOTES[state.settings.ownershipType]||'שכירות חודשית';
 }
 function ensureRentExpense(){
@@ -2244,17 +2306,19 @@ function renderHome(){
     var pNet=netOf(prev,pct);
     var d=pNet!==0?(net-pNet)/Math.abs(pNet)*100:0;
     var up=d>=0;
+    var dAbs=Math.abs(Math.round(d));
+    var pctTxt=dAbs>300?'300%+':dAbs+'%';
     chip.style.display='';
     chip.className='trend '+(up?'up':'down');
     chip.innerHTML=(up
       ?'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l7 12H5z"/></svg>'
       :'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20 5 8h14z"/></svg>')+
-      Math.abs(Math.round(d))+'% מול '+monthLabelShort({y:py,m:pm});
+      pctTxt+' מהחודש שעבר';
   }else chip.style.display='none';
 
   animateNum($('#hInc'),s.inc,fmt);
-  animateNum($('#hCom'),sadranDue(s,pct),function(v){return bidiNum('−'+fmt(v));});
-  animateNum($('#hExp'),s.exp,function(v){return bidiNum('−'+fmt(v));});
+  animateNum($('#hCom'),sadranDue(s,pct),fmt);
+  animateNum($('#hExp'),s.exp,fmt);
 
   /* ===== כרטיס "היום שלך" ===== */
   var td=ui.day;
@@ -2270,13 +2334,13 @@ function renderHome(){
   var carApplied=covered?0:car;
   var bal=dNetIn-dS.exp-carApplied;
   $('#tRides').textContent=bidiNum((dNetIn>=0?'+':'')+fmt(dNetIn));
-  $('#tExp').textContent=bidiNum('−'+fmt(dS.exp));
-  $('#tCar').textContent=car>0?(covered?'✓ מכוסה':bidiNum('−'+fmtInt(car))):'—';
+  $('#tExp').textContent=fmt(dS.exp);
+  $('#tCar').textContent=car>0?(covered?'✓ מכוסה':fmtInt(car)):'—';
   var tn=$('#tNet');
   tn.textContent=bidiNum((bal>=0?'+':'')+fmt(bal));
   tn.style.color=bal>=0?'var(--green)':'var(--red)';
   if(pendingRecordGlow&&td===todayISO()){pendingRecordGlow=false;popEl(tn,'record-glow');}
-  $('#tCarCost').textContent=car>0?carCostBasisLbl()+': '+fmtInt(car)+' ליום'+(covered?' (מכוסה החודש)':''):'';
+  $('#tCarCost').textContent=car>0?carCostBasisLbl()+': '+fmtInt(car)+' ליום'+(covered?' · מכוסה החודש':''):'';
   var roadPct=car>0?(covered?100:Math.min(100,Math.max(0,dNetIn)/car*100)):0;
   $('#tProg').style.width=roadPct+'%';
   $('#roadCar').style.right='calc('+roadPct+'% - 8px)';
@@ -2284,7 +2348,7 @@ function renderHome(){
   if(car>0){
     if(covered)footHtml='הרכב מכוסה החודש 🎉 מכאן והלאה — הכל רווח נקי';
     else footHtml=dNetIn>=car?'הרכב כוסה להיום ✓':'עוד <b>'+fmt(Math.max(0,car-dNetIn))+'</b> לכיסוי הרכב';
-    if(dDue>0)footHtml+=' · לסדרן היום: '+fmt(dDue);
+    if(dDue>0)footHtml+=' · '+dispatcherWord()+' היום: '+fmt(dDue);
     if(dS.com>0)footHtml+=' · שולם בפועל: '+fmt(dS.com);
   }else{
     footHtml='כדאי להגדיר <b>שכירות רכב חודשית</b> ולראות כאן כמה הרכב עולה ביום · <button class="mini-link" data-act="open-settings">להגדרות</button>';
@@ -2331,22 +2395,23 @@ function renderHome(){
   var paidPct=comDue>0?Math.min(100,s.com/comDue*100):0;
   $('#comProg').style.width=paidPct+'%';
   $('#comFoot').textContent=comDue>0
-    ?'החודש הועבר '+fmt(s.com)+' מתוך '+fmt(comDue)+' ('+Math.round(paidPct)+'%)'
+    ?'החודש הועבר '+fmt(s.com)+' מתוך '+fmt(comDue)+', '+Math.round(paidPct)+'%'
     :'עוד אין הכנסות החודש';
   var drCirc=169.6,ringPct=debt<=0.5?100:paidPct;
   $('#drFg').style.strokeDashoffset=(drCirc-drCirc*ringPct/100)+'';
   $('#drFg').classList.toggle('done',debt<=0.5);
   $('#drCheck').classList.toggle('show',debt<=0.5);
 
-  /* קרן */
-  animateNum($('#fundNum'),state.fund.balance,fmt);
-  var rec=Math.max(0,net)*state.settings.fundPct/100;
-  var fundS=cycleStartISO(ui.hm.y,ui.hm.m),fundE=cycleEndISO(ui.hm.y,ui.hm.m);
-  var doneM=state.fund.log.filter(function(l){var li=isoOf(new Date(l.ts));return l.delta>0&&li>=fundS&&li<fundE;})
-    .reduce(function(a,l){return a+l.delta;},0);
-  $('#fundSub').textContent=rec>0
-    ?('מומלץ להפריש '+fmt(rec)+' החודש ('+state.settings.fundPct+'% מהנטו) · הופקד '+fmt(doneM))
-    :'ההפרשה המומלצת תוצג כשיש נטו חיובי';
+  /* מעשרות */
+  var maaserCard=$('#maaserCard');
+  if(state.settings.maaserOn){
+    maaserCard.style.display='';
+    var wkNet=weeklyNetSoFar();
+    var mAmt=maaserAmount(wkNet);
+    $('#maaserPctLbl').textContent=state.settings.maaserPct+'%';
+    animateNum($('#maaserNum'),mAmt,fmt);
+    $('#maaserSub').textContent=wkNet>0?'מתוך נטו השבוע: '+fmt(wkNet):'עוד אין נטו חיובי השבוע';
+  }else maaserCard.style.display='none';
 
   /* תנועות היום הנבחר */
   $('#dayListLbl').textContent='תנועות · '+dayLabel(td);
@@ -2467,7 +2532,7 @@ function renderNudges(s,debt){
     list.push({key:'close-'+today,icon:'clock',title:'עוד לא נסגר היום',sub:'רושמים את ההכנסה ב-10 שניות',btn:'רישום',act:'q-rides'});
   }
   if(debt>=50&&new Date().getDay()===0){
-    list.push({key:'comm-'+today,icon:'send',title:'יום ראשון — זמן להעביר לסדרן',sub:'חוב פתוח: '+fmt(debt),btn:'וואטסאפ',act:'wa-share'});
+    list.push({key:'comm-'+today,icon:'send',title:'יום ראשון — זמן להעביר '+dispatcherWord(),sub:'חוב פתוח: '+fmt(debt),btn:'וואטסאפ',act:'wa-share'});
   }
   list=list.filter(function(n){return state.meta.dismiss[n.key]!==today;});
   var box=$('#nudges');
@@ -2577,8 +2642,24 @@ document.addEventListener('click',function(e){
       toast(state.settings.goal?'היעד עודכן':'היעד בוטל');
     });
   }
+  else if(act==='set-drivermode'){
+    wizStepIndex=0;
+    wizOnChoice=function(v){
+      state.settings.driverMode=v;state.settings.driverModeSet=true;save();
+      applyDriverModeLabels();renderSettings();renderHome();
+      wizClose();toast('עודכן ✓');
+    };
+    wizShow(
+      '<h3>איך עובד מולך?</h3><p>זה קובע איך נציג לך את חישובי העמלה — לא משנה שום נתון קיים.</p>'+
+      '<div style="margin-top:14px">'+
+      wizChoiceBtn('dispatcher','עובד עם סדרן','מקבל ממנו נסיעות, משלם לו אחוז')+
+      wizChoiceBtn('self','מושך נסיעות בעצמי','לוקח נסיעות ישירות מתחנה או בוט')+
+      wizChoiceBtn('both','גם וגם','לפעמים דרך סדרן, לפעמים מושך לבד')+
+      '</div>'
+    );
+  }
   else if(act==='set-rent'){
-    var RENT_TITLES={finance:'החזר מימון/הלוואה חודשי',leasing:'תשלום ליסינג חודשי (כולל הכל)'};
+    var RENT_TITLES={finance:'החזר מימון או הלוואה חודשי',leasing:'תשלום ליסינג חודשי, כולל הכל'};
     var rentTitle=RENT_TITLES[state.settings.ownershipType]||'שכירות רכב חודשית';
     openSheet({title:rentTitle,unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'שמירה'},function(v){
       state.settings.rent=Math.round(v);save();ensureRentExpense();
@@ -2799,7 +2880,7 @@ function shareSummary(){
     'סיכום '+monthLabel(o)+' — קופת הנהג',
     '———————————',
     'נסיעות ברוטו: '+fmtInt(s.rides),
-    'עמלה לסדרן ('+pct+'%): '+fmtInt(due),
+    'עמלה '+dispatcherWord()+' '+pct+'%: '+fmtInt(due),
     'כבר הועבר: '+fmtInt(s.com),
     'נותר לתשלום: '+fmtInt(remain)
   ];
@@ -2864,9 +2945,9 @@ function updateRideHint(){
   if(ui.addType==='income'&&ui.addCat==='rides'&&amtVal()>0){
     var due=amtVal()*ui.ridePct/100;
     if(ui.direct){
-      el.innerHTML='ישיר לסדרן — '+fmt(due)+' עמלה עליה, ועוד <b>'+fmt(amtVal()-due)+' יורדים לך מהחוב</b> · לא מגיע אליך מזומן';
+      el.innerHTML='ישיר '+dispatcherWord()+' — '+fmt(due)+' עמלה עליה, ועוד <b>'+fmt(amtVal()-due)+' יורדים לך מהחוב</b> · לא מגיע אליך מזומן';
     }else{
-      el.innerHTML='לסדרן ('+ui.ridePct+'%): −'+fmt(due)+' · <b>נשאר לך '+fmt(amtVal()-due)+'</b>';
+      el.innerHTML=dispatcherWord()+' '+ui.ridePct+'%: '+fmt(due)+' · <b>נשאר לך '+fmt(amtVal()-due)+'</b>';
     }
   }else el.innerHTML='&nbsp;';
 }
@@ -3193,7 +3274,7 @@ function renderList(){
     if(a.date!==b.date)return a.date<b.date?1:-1;return (b.ts||0)-(a.ts||0);});
   var s=sums(list);
   $('#mtUp').textContent=bidiNum('+'+fmt(s.inc));
-  $('#mtDown').textContent=bidiNum('−'+fmt(s.expAll));
+  $('#mtDown').textContent=fmt(s.expAll);
   var el=$('#fullList');
   var filtered=list.filter(passFilter);
   if(!filtered.length){
@@ -3233,6 +3314,13 @@ function renderReports(){
   animateNum($('#rCom'),comDue,fmt);
   $('#rPerHour').textContent=hours>0.1?fmt(net/hours):'—';
 
+  var maaserNoteEl=$('#maaserNote');
+  if(state.settings.maaserOn){
+    var mAmt=maaserAmount(net),netAfterMaaser=net-mAmt;
+    maaserNoteEl.style.display='';
+    maaserNoteEl.innerHTML='נטו אחרי '+pct+'% '+dispatcherNoun()+' ועוד '+state.settings.maaserPct+'% מעשרות: <b>'+fmt(netAfterMaaser)+'</b>';
+  }else maaserNoteEl.style.display='none';
+
   /* ימי עבודה + שיאים */
   var by={},i;
   for(i=0;i<list.length;i++){var t=list[i];
@@ -3270,7 +3358,7 @@ function renderReports(){
   var ms={cash:0,bit:0,paybox:0,credit:0,bank:0,direct:0,none:0};
   list.forEach(function(t){if(t.type==='income')ms[t.method||'none']+=t.amount;});
   var mKeys=['cash','bit','paybox','credit','bank','direct','none'];
-  var mLbl={cash:'מזומן',bit:'ביט',paybox:'פייבוקס',credit:'אשראי',bank:'העברה בנקאית',direct:'ישיר לסדרן',none:'לא סומן'};
+  var mLbl={cash:'מזומן',bit:'ביט',paybox:'פייבוקס',credit:'אשראי',bank:'העברה בנקאית',direct:'ישיר '+dispatcherWord(),none:'לא סומן'};
   var mCol={cash:'#111214',bit:'#5c636b',paybox:'#a6acb3',credit:'#c9cdd2',bank:'#F2B01E',direct:'#5C7CA6',none:'#d8dbe0'};
   if(document.documentElement.dataset.theme==='dark')mCol={cash:'#EDEEEA',bit:'#989ea6',paybox:'#5c636b',credit:'#787f86',bank:'#F2B01E',direct:'#8FA8C9',none:'#3a3f45'};
   var incT=s.inc;
@@ -3595,8 +3683,7 @@ $('#demoBtn').addEventListener('click',function(){
     if(Math.random()<0.4)state.tx.push({id:uid(),type:'income',cat:'tips',amount:Math.round(Math.random()*35),
       date:iso,note:'',method:'cash',ts:Date.now()-i*864e5+5});
     if(i%4===0)state.tx.push({id:uid(),type:'expense',cat:'fuel',amount:120+Math.round(Math.random()*80),date:iso,note:'',ts:Date.now()-i*864e5+9});
-    if(i===10){state.tx.push({id:uid(),type:'expense',cat:'wash',amount:40,date:iso,note:'',ts:Date.now()-i*864e5+8});
-      state.fund.balance+=150;state.fund.log.push({id:uid(),ts:Date.now()-i*864e5,delta:150});}
+    if(i===10)state.tx.push({id:uid(),type:'expense',cat:'wash',amount:40,date:iso,note:'',ts:Date.now()-i*864e5+8});
     if(i===8)state.tx.push({id:uid(),type:'expense',cat:'tolls',amount:32,date:iso,note:'כביש 6',ts:Date.now()-i*864e5+7});
     if(i===6){
       var s=sums(state.tx);
@@ -3616,14 +3703,42 @@ function setPct(p){
   $$('[data-pct]').forEach(function(el){el.textContent=state.settings.pct;});
   renderHome();renderReports();renderList();
 }
+$('#netEditBtn').addEventListener('click',function(){
+  wizStepIndex=0;
+  wizOnChoice=function(dir){
+    wizClose();
+    openSheet({title:dir==='add'?'כמה להוסיף לנטו?':'כמה להוריד מהנטו?',unit:'₪',decimals:2,ok:'תיקון'},function(v){
+      if(!(v>0))return;
+      var tx={id:uid(),type:dir==='add'?'income':'expense',cat:dir==='add'?'other_in':'other_ex',
+        amount:Math.round(v*100)/100,date:todayISO(),note:'תיקון ידני להתאמת הקופה',ts:Date.now(),manualAdjust:true};
+      state.tx.push(tx);
+      save();refreshAll('הנטו תוקן ✓');
+    });
+  };
+  wizShow(
+    '<h3>תיקון הנטו</h3><p>ספרת ביד וזה לא תואם למה שרשום? אפשר להוסיף או להוריד הפרש — זה יירשם כתנועה רגילה וברורה, אפשר תמיד למחוק אותה.</p>'+
+    '<div style="margin-top:14px">'+
+    wizChoiceBtn('add','להוסיף לנטו','ספרת יותר ממה שרשום כאן')+
+    wizChoiceBtn('sub','להוריד מהנטו','ספרת פחות ממה שרשום כאן')+
+    '</div>'
+  );
+});
 $('#pctUp').addEventListener('click',function(){setPct(state.settings.pct+1);});
 $('#pctDown').addEventListener('click',function(){setPct(state.settings.pct-1);});
-function setFundPct(p){
-  state.settings.fundPct=Math.max(0,Math.min(50,Math.round(p)));
-  save();$('#fundPct').textContent=state.settings.fundPct;renderHome();
-}
-$('#fundUp').addEventListener('click',function(){setFundPct(state.settings.fundPct+1);});
-$('#fundDown').addEventListener('click',function(){setFundPct(state.settings.fundPct-1);});
+$('#maaserSwitch').addEventListener('change',function(){
+  state.settings.maaserOn=$('#maaserSwitch').checked;
+  state.settings.maaserSet=true;
+  save();renderSettings();renderHome();
+  if(state.settings.maaserOn&&'Notification' in window&&Notification.permission==='default'){
+    try{Notification.requestPermission();}catch(e){}
+  }
+  toast(state.settings.maaserOn?'הפרשת מעשרות הופעלה':'הפרשת מעשרות כבויה');
+});
+$('#maaserPctRow').addEventListener('click',function(e){
+  var b=e.target.closest('[data-mp]');if(!b)return;
+  state.settings.maaserPct=+b.dataset.mp;
+  save();renderSettings();renderHome();
+});
 function carCostBasisLbl(){
   return state.settings.ownershipType==='leasing'?'ליסינג, כולל הכל':'רכב+ביטוח';
 }
@@ -3921,7 +4036,10 @@ function renderSettings(){
   $('#shareLinkRow').style.display=(state.settings.shareOn&&state.meta.shareId)?'':'none';
   $('#carModeSwitch').checked=!!state.settings.carModeOn;
   $('#breakEvenSwitch').checked=!!state.settings.breakEvenOn;
-  $('#fundPct').textContent=state.settings.fundPct;
+  $('#maaserSwitch').checked=!!state.settings.maaserOn;
+  $('#maaserPctRow').style.display=state.settings.maaserOn?'':'none';
+  $('#maaserBtn10').classList.toggle('active',state.settings.maaserPct===10);
+  $('#maaserBtn20').classList.toggle('active',state.settings.maaserPct===20);
   $('#goalVal').textContent=state.settings.goal?fmtInt(state.settings.goal):'לא הוגדר';
   $('#rentVal').textContent=state.settings.rent?fmtInt(state.settings.rent):'לא הוגדר';
   $('#wdVal').textContent=state.settings.workDays;
@@ -3940,7 +4058,7 @@ function renderSettings(){
   $('#autoRentRow').style.display=isOwned?'none':'';
   $('#billingDayRow').style.display=isOwned?'none':'';
   $('#billingDayVal').textContent=state.settings.billingDay||1;
-  var RENT_LBL={finance:'החזר מימון/הלוואה חודשי',leasing:'תשלום ליסינג חודשי (כולל הכל)'};
+  var RENT_LBL={finance:'החזר מימון או הלוואה חודשי',leasing:'תשלום ליסינג חודשי, כולל הכל'};
   $('#rentRowLbl').textContent=RENT_LBL[state.settings.ownershipType]||'שכירות רכב חודשית';
   $('#insRow').style.display=isLeasing?'none':'';
   $('#autoInsRow').style.display=isLeasing?'none':'';
@@ -4137,7 +4255,7 @@ function finishCodeGate(code){
 
 /* ==================== אשף הגדרת פרופיל (שכירות / מימון / בבעלות) ==================== */
 var wizState=null,wizOnChoice=null,wizStepIndex=0;
-var WIZ_TOTAL=6;
+var WIZ_TOTAL=8;
 function wizChoiceBtn(val,title,sub){
   return '<button type="button" class="wiz-choice" data-wiz="'+val+'"><span style="flex:1"><b>'+title+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</span></button>';
 }
@@ -4176,7 +4294,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='wizNameInput')wizNameSubmit();
 });
 function wizIntro(name){
-  wizOnChoice=function(){wizStep1();};
+  wizOnChoice=function(){wizDriverMode();};
   var hi=name?('שלום '+name+' 👋'):'שלום 👋';
   wizShow(
     wizProgress()+
@@ -4188,6 +4306,24 @@ function wizIntro(name){
   );
 }
 document.addEventListener('click',function(e){if(e.target.id==='wizIntroGo'&&wizOnChoice)wizOnChoice();});
+function wizDriverMode(){
+  wizOnChoice=function(v){
+    state.settings.driverMode=v;
+    state.settings.driverModeSet=true;
+    state.settings.pctPresets=v==='self'?[0,10,12,15]:[10,12,25,30];
+    save();applyDriverModeLabels();
+    wizStep1();
+  };
+  wizShow(
+    wizProgress()+
+    '<h3>איך עובד מולך?</h3><p>זה קובע איך נציג לך את חישובי העמלה.</p>'+
+    '<div style="margin-top:14px">'+
+    wizChoiceBtn('dispatcher','עובד עם סדרן','מקבל ממנו נסיעות, משלם לו אחוז — לרוב סביב 25-30%')+
+    wizChoiceBtn('self','מושך נסיעות בעצמי','לוקח נסיעות ישירות מתחנה או בוט, לרוב אחוז נמוך יותר')+
+    wizChoiceBtn('both','גם וגם','לפעמים דרך סדרן, לפעמים מושך לבד')+
+    '</div>'
+  );
+}
 function wizStep1(){
   wizOnChoice=function(v){
     wizState.ownershipType=v;
@@ -4198,16 +4334,16 @@ function wizStep1(){
     wizProgress()+
     '<h3>איך הרכב אצלך?</h3><p>זה קובע איך נחשב לך את עלות הרכב היומית.</p>'+
     '<div style="margin-top:14px">'+
-    wizChoiceBtn('rent','שכירות','משלם סכום חודשי קבוע לסדרן/לחברה')+
-    wizChoiceBtn('finance','מימון / הלוואה','החזר חודשי על הרכב + ביטוח בנפרד')+
-    wizChoiceBtn('leasing','ליסינג','תשלום חודשי אחד שכולל הכל — ביטוח, טיפולים וכו׳ (חוץ מדלק)')+
+    wizChoiceBtn('rent','שכירות','משלם סכום חודשי קבוע לסדרן או לחברה')+
+    wizChoiceBtn('finance','מימון או הלוואה','החזר חודשי על הרכב, ביטוח משולם בנפרד')+
+    wizChoiceBtn('leasing','ליסינג','תשלום חודשי אחד שכולל הכל — ביטוח, טיפולים וכו׳, חוץ מדלק')+
     wizChoiceBtn('owned','הרכב שלי, בלי תשלום חודשי','אין החזר חודשי על הרכב עצמו')+
     '</div>'
   );
 }
 function wizStep2(type){
   wizClose();
-  var labels={rent:'כמה אתה משלם על שכירות הרכב בחודש?',finance:'כמה ההחזר החודשי על ההלוואה/מימון?',leasing:'כמה אתה משלם על הליסינג בחודש? (כולל הכל)'};
+  var labels={rent:'כמה אתה משלם על שכירות הרכב בחודש?',finance:'כמה ההחזר החודשי על ההלוואה או המימון?',leasing:'כמה אתה משלם על הליסינג בחודש, כולל הכל?'};
   openSheet({title:labels[type],unit:'₪',decimals:0,initial:state.settings.rent||'',ok:'המשך'},function(v){
     wizState.carMonthly=Math.round(v)||0;
     wizStep2b(type);
@@ -4281,7 +4417,7 @@ setInterval(function(){
   if(act&&el)el.textContent=fmtHours(shiftDurMs(act,Date.now())/3600000);
 },2000);
 
-setInterval(function(){checkNotify();checkMorning();checkWeekly();checkOverwork();},60000);
+setInterval(function(){checkNotify();checkMorning();checkWeekly();checkOverwork();checkMaaser();},60000);
 var lastActivityTs=Date.now();
 document.addEventListener('pointerdown',function(){
   lastActivityTs=Date.now();
@@ -4294,7 +4430,7 @@ setInterval(function(){
   if(!fab)return;
   if(Date.now()-lastActivityTs>3*60000)fab.classList.add('fab-invite');
 },15000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden){checkNotify();checkMorning();checkWeekly();checkOverwork();}});
+document.addEventListener('visibilitychange',function(){if(!document.hidden){checkNotify();checkMorning();checkWeekly();checkOverwork();checkMaaser();}});
 function checkNotify(){
   if(!state.settings.remindOn)return;
   var today=todayISO();
@@ -4366,6 +4502,12 @@ function weekdaySuccessChance(wd,avg){
 function weekStartISO(iso){
   return shiftISO(iso,-dObj(iso).getDay());
 }
+function weeklyNetSoFar(){
+  var today=todayISO(),ws=weekStartISO(today);
+  var list=state.tx.filter(function(t){return t.date>=ws&&t.date<=today&&!t.lumpAuto;});
+  return netOf(sums(list),state.settings.pct);
+}
+function maaserAmount(net){return Math.max(0,net)*state.settings.maaserPct/100;}
 function checkWeekly(){
   if(!state.settings.morningOn)return;
   var now=new Date();
@@ -4387,6 +4529,24 @@ function checkWeekly(){
   }
   if('Notification' in window&&Notification.permission==='granted'){
     try{new Notification('סיכום השבוע שלך 📊',{body:body});}catch(e){}
+  }
+}
+function checkMaaser(){
+  if(!state.settings.maaserOn)return;
+  var now=new Date();
+  if(now.getDay()!==5)return; // יום שישי — לפני כניסת שבת
+  var today=todayISO();
+  var wk=weekStartISO(today);
+  if(state.settings.maaserWeekShown===wk)return;
+  state.settings.maaserWeekShown=wk;save();
+  var net=weeklyNetSoFar();
+  var amt=maaserAmount(net);
+  var kind=state.settings.maaserPct===20?'חומש':'מעשר';
+  var body=net>0
+    ?('נטו השבוע: '+fmt(net)+' · '+kind+' '+state.settings.maaserPct+'%: '+fmt(amt))
+    :'לא היה נטו חיובי השבוע — אין הפרשה';
+  if('Notification' in window&&Notification.permission==='granted'){
+    try{new Notification('מעשרות השבוע 🙏',{body:body});}catch(e){}
   }
 }
 function weeklyHoursEndingToday(offsetDays){
@@ -4581,6 +4741,7 @@ window.addEventListener('resize',function(){
 if(voiceSupported())$('#voiceBtn').style.display='';
 applyTheme();
 applyDaypart();
+applyDriverModeLabels();
 renderSettings();
 ensureRentExpense();
 ensureInsuranceExpense();
@@ -4591,6 +4752,7 @@ checkNotify();
 checkMorning();
 checkWeekly();
 checkOverwork();
+checkMaaser();
 updateJournalBadge();
 updateGlobalProgress();
 if(state.settings.wizardDone&&state.meta.morningGreeted!==todayISO()){
