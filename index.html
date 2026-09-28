@@ -914,12 +914,8 @@ html[data-theme="dark"] .track{background:#2b2f34}
         </div>
       </div>
 
-      <div class="quick">
-        <button data-act="q-rides"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>נסיעות</button>
-        <button data-act="q-fuel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>דלק</button>
-        <button data-act="q-commission"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>סדרן</button>
-        <button data-act="q-other"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>אחר</button>
-      </div>
+      <div class="quick" id="quickRow"></div>
+      <div class="pct-hint">לחיצה ארוכה על קיצור כדי להגדיר לו סכום קבוע</div>
 
       <div class="card">
         <div class="card-title">7 הימים האחרונים</div>
@@ -1107,7 +1103,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       <div class="rep-title" style="margin-bottom:14px">הגדרות</div>
 
       <div class="card">
-        <div class="card-title">פרופיל</div>
+        <div class="card-title">👤 פרופיל</div>
         <div class="set-row">
           <div class="r-lb">שם<div class="r-sub">מופיע במסך הבית</div></div>
           <input type="text" id="nameInput" placeholder="השם שלך" maxlength="16">
@@ -1115,7 +1111,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       </div>
 
       <div class="card">
-        <div class="card-title"><span id="carCardTitle">רכב וסדרן</span><button class="btn line sm" data-act="run-wizard" style="font-weight:700">עדכון פרופיל</button></div>
+        <div class="card-title"><span>🚗 <span id="carCardTitle">רכב וסדרן</span></span><button class="btn line sm" data-act="run-wizard" style="font-weight:700">עדכון פרופיל</button></div>
         <div class="set-row">
           <div class="r-lb">איך עובד מולך<div class="r-sub" id="driverModeLbl">—</div></div>
           <button class="edit-btn" data-act="set-drivermode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg></button>
@@ -1165,7 +1161,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       </div>
 
       <div class="card">
-        <div class="card-title">יעדים</div>
+        <div class="card-title">🎯 יעדים</div>
         <div class="set-row">
           <div class="r-lb">יעד נטו חודשי<div class="r-sub">מעקב בטבעת במסך הבית</div></div>
           <div class="set-val"><span class="num" id="goalVal">לא הוגדר</span>
@@ -1189,7 +1185,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       </div>
 
       <div class="card">
-        <div class="card-title">תזכורות</div>
+        <div class="card-title">🔔 תזכורות</div>
         <div class="set-row">
           <div class="r-lb">היום שלך מתחיל בשעה<div class="r-sub">כל מה שקורה לפני השעה הזו נספר עדיין ל״אתמול״</div></div>
           <div class="time-pick" id="dshPick">
@@ -1238,7 +1234,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       </div>
 
       <div class="card">
-        <div class="card-title">הנתונים שלי</div>
+        <div class="card-title">☁️ הנתונים שלי</div>
         <div class="set-row">
           <div class="r-lb">קוד אישי<div class="r-sub">מקליד אותו במכשיר נוסף כדי לשחזר את הנתונים</div></div>
           <div class="set-val"><span class="num" id="syncCodeVal">—</span>
@@ -1258,7 +1254,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
       </div>
 
       <div class="card">
-        <div class="card-title">פרטיות ושיתוף</div>
+        <div class="card-title">🔒 פרטיות ושיתוף</div>
         <div class="set-row">
           <div class="r-lb">נעילת האפליקציה<div class="r-sub">קוד קטן לפני שנכנסים — לא לשים לב מי מסתכל בטלפון שלך</div></div>
           <label class="switch"><input type="checkbox" id="lockSwitch"><span class="track"></span></label>
@@ -1638,8 +1634,10 @@ function normState(d){
     morningOn:false,morningTime:'08:00',lockOn:false,shareOn:false,carModeOn:true,smartCloseOn:true,
     pctPresets:[10,12,25,30],workDays7:[true,true,true,true,true,true,true],workDaysSet:false,
     breakEvenOn:true,driverMode:'dispatcher',driverModeSet:false,
-    maaserOn:false,maaserPct:10,maaserSet:false,maaserWeekShown:''},d.settings||{});
+    maaserOn:false,maaserPct:10,maaserSet:false,maaserWeekShown:'',
+    quickShortcuts:[{type:'income',cat:'rides',amount:0},{type:'expense',cat:'fuel',amount:0},{type:'expense',cat:'commission',amount:0},null]},d.settings||{});
   if(!Array.isArray(d.settings.pctPresets)||d.settings.pctPresets.length!==4)d.settings.pctPresets=[10,12,25,30];
+  if(!Array.isArray(d.settings.quickShortcuts)||d.settings.quickShortcuts.length!==4)d.settings.quickShortcuts=[{type:'income',cat:'rides',amount:0},{type:'expense',cat:'fuel',amount:0},{type:'expense',cat:'commission',amount:0},null];
   if(!Array.isArray(d.settings.workDays7)||d.settings.workDays7.length!==7)d.settings.workDays7=[true,true,true,true,true,true,true];
   if(!Array.isArray(d.tx))d.tx=[];
   d.tx.forEach(function(t){if(t&&!isFinite(+t.amount))t.amount=0;});
@@ -1768,11 +1766,11 @@ $('#bioSwitch').addEventListener('change',async function(){
 });
 
 /* ==================== מה חדש ==================== */
-var APP_VER=20;
+var APP_VER=21;
 var WHATS_NEW=[
-  'תוקן: העיגול שמסמן את הטאב הפעיל למטה היה קצת לא מיושר — עכשיו יושב בדיוק על המקום',
-  'תוקן: ניקוי כיתובים נוסף בכל האפליקציה, בלי סוגריים ובלי סימני חיסור מיותרים',
-  'נטו שלילי מסומן עכשיו בצבע אדום ברור, במקום סימן חיסור'
+  'חדש: קיצורי דרך בבית — 4 כפתורים מתחת למספרים הגדולים, לחיצה ארוכה כדי להגדיר להם סכום קבוע ולשמור תנועה בלחיצה אחת',
+  'חדש: כפתורי אחוז העמלה לומדים לבד אילו אחוזים אתה הכי משתמש בהם',
+  'שיפור: אייקונים לכל כרטיס בהגדרות, שיהיה קל יותר להתמצא'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
@@ -1855,6 +1853,20 @@ function catById(id){
 }
 var METHODS={cash:'מזומן',bit:'ביט',paybox:'פייבוקס',credit:'אשראי',bank:'העברה בנקאית',direct:'ישיר לסדרן'};
 function dispatcherNoun(){return state.settings.driverMode==='self'?'תחנה':'סדרן';}
+function smartPctPresets(mode){
+  var freq={};
+  state.tx.forEach(function(t){
+    if(t.type==='income'&&t.cat==='rides'){
+      var p=ridePct(t);
+      freq[p]=(freq[p]||0)+1;
+    }
+  });
+  var used=Object.keys(freq).map(Number).sort(function(a,b){return freq[b]-freq[a];});
+  var fallback=mode==='self'?[0,10,12,15]:[10,12,25,30];
+  var result=used.slice(0,4);
+  fallback.forEach(function(f){if(result.length<4&&result.indexOf(f)<0)result.push(f);});
+  return result.slice(0,4).sort(function(a,b){return a-b;});
+}
 function dispatcherWord(){return 'ל'+dispatcherNoun();}
 function applyDriverModeLabels(){
   var noun=dispatcherNoun(),word=dispatcherWord();
@@ -2275,6 +2287,7 @@ function greetWord(){
 
 function renderHome(){
   applyDaypart();
+  renderQuickShortcuts();
   var s=sums(monthTx(ui.hm.y,ui.hm.m));
   var pct=state.settings.pct;
   var net=netOf(s,pct);
@@ -2645,7 +2658,9 @@ document.addEventListener('click',function(e){
   else if(act==='set-drivermode'){
     wizStepIndex=0;
     wizOnChoice=function(v){
-      state.settings.driverMode=v;state.settings.driverModeSet=true;save();
+      state.settings.driverMode=v;state.settings.driverModeSet=true;
+      state.settings.pctPresets=smartPctPresets(v);
+      save();
       applyDriverModeLabels();renderSettings();renderHome();
       wizClose();toast('עודכן ✓');
     };
@@ -2710,6 +2725,79 @@ function quickAdd(type,cat,amount,note){
   if(amount!=null&&amount>0){ui.amt=String(Math.round(amount));renderAmt();}
   if(note)$('#txNote').value=note;
 }
+
+/* ==================== קיצורי דרך בבית ==================== */
+function renderQuickShortcuts(){
+  var arr=state.settings.quickShortcuts||[];
+  var row=$('#quickRow');if(!row)return;
+  row.innerHTML=arr.map(function(qs,i){
+    if(!qs)return '<button data-qidx="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>הגדרה</button>';
+    var c=catById(qs.cat);
+    var main=qs.amount>0?fmtInt(qs.amount):c.label;
+    return '<button data-qidx="'+i+'"><span style="font-size:15px">'+c.icon+'</span><span>'+main+'</span></button>';
+  }).join('');
+}
+function fireQuickShortcut(idx){
+  var qs=(state.settings.quickShortcuts||[])[idx];
+  if(!qs){editQuickShortcut(idx);return;}
+  if(!(qs.amount>0)){quickAdd(qs.type,qs.cat);return;}
+  setSeg(qs.type);ui.addCat=qs.cat;buildCats();
+  ui.amt=String(qs.amount);renderAmt();
+  ui.direct=false;
+  if(qs.type==='income'&&qs.cat==='rides')ui.ridePct=state.settings.lastRidePct||state.settings.pct;
+  $('#txDate').value=todayISO();
+  $('#txNote').value='';
+  $('#saveTx').click();
+}
+function editQuickShortcut(idx){
+  wizStepIndex=0;
+  function chooseAmount(type,cat){
+    wizClose();
+    openSheet({title:'כמה שקל? 0 כדי למחוק את הקיצור',unit:'₪',decimals:0,ok:'שמירה'},function(v){
+      var arr=(state.settings.quickShortcuts||[null,null,null,null]).slice();
+      arr[idx]=v>0?{type:type,cat:cat,amount:Math.round(v)}:null;
+      state.settings.quickShortcuts=arr;
+      save();renderQuickShortcuts();
+      toast(v>0?'הקיצור נשמר ✓':'הקיצור נמחק');
+    });
+  }
+  function chooseCat(type){
+    var cats=CATS[type==='income'?'income':'expense'];
+    wizOnChoice=function(cat){chooseAmount(type,cat);};
+    wizShow(
+      '<h3>איזו קטגוריה?</h3>'+
+      '<div style="margin-top:14px">'+
+      cats.map(function(c){return wizChoiceBtn(c.id,c.icon+' '+c.label,'');}).join('')+
+      '</div>'
+    );
+  }
+  wizOnChoice=function(type){chooseCat(type);};
+  wizShow(
+    '<h3>קיצור דרך — הכנסה או הוצאה</h3><p>מה הקיצור הזה ירשום כשתלחץ עליו.</p>'+
+    '<div style="margin-top:14px">'+
+    wizChoiceBtn('income','הכנסה','למשל נסיעה בסכום קבוע')+
+    wizChoiceBtn('expense','הוצאה','למשל דלק בסכום קבוע')+
+    '</div>'
+  );
+}
+var qsHoldT=null,qsHoldFired=false;
+$('#quickRow').addEventListener('pointerdown',function(e){
+  var b=e.target.closest('[data-qidx]');if(!b)return;
+  qsHoldFired=false;
+  qsHoldT=setTimeout(function(){
+    qsHoldFired=true;
+    if(navigator.vibrate)try{navigator.vibrate(15);}catch(err){}
+    editQuickShortcut(+b.dataset.qidx);
+  },550);
+});
+['pointerup','pointercancel','pointerleave'].forEach(function(ev){
+  $('#quickRow').addEventListener(ev,function(){clearTimeout(qsHoldT);});
+});
+$('#quickRow').addEventListener('click',function(e){
+  var b=e.target.closest('[data-qidx]');if(!b)return;
+  if(qsHoldFired){qsHoldFired=false;return;}
+  fireQuickShortcut(+b.dataset.qidx);
+});
 
 /* ==================== כסף קולי ==================== */
 function parseVoiceCommand(text){
@@ -4311,7 +4399,7 @@ function wizDriverMode(){
   wizOnChoice=function(v){
     state.settings.driverMode=v;
     state.settings.driverModeSet=true;
-    state.settings.pctPresets=v==='self'?[0,10,12,15]:[10,12,25,30];
+    state.settings.pctPresets=smartPctPresets(v);
     save();applyDriverModeLabels();
     wizStep1();
   };
