@@ -841,10 +841,10 @@ html[data-theme="dark"] .track{background:#2b2f34}
           </div>
           <div class="trend" id="momChip" style="display:none"></div>
         </div>
-        <div class="hero-notes">אחרי <span data-pct>30</span>% עמלת <span id="heroNotesNoun">סדרן</span> והוצאות</div>
+        <div class="hero-notes">נטו אחרי עמלת <span id="heroNotesNoun">סדרן</span> והוצאות</div>
         <div class="hero-row">
           <div><div class="hr-lb">הכנסות</div><div class="hr-vl num" id="hInc">₪0</div></div>
-          <div><div class="hr-lb"><span id="hComNoun">סדרן</span> · <span data-pct>30</span>%</div><div class="hr-vl num" id="hCom">₪0</div></div>
+          <div><div class="hr-lb"><span id="hComNoun">סדרן</span> · <span id="hComPct">30</span>%</div><div class="hr-vl num" id="hCom">₪0</div></div>
           <div><div class="hr-lb">הוצאות</div><div class="hr-vl num" id="hExp">₪0</div></div>
         </div>
       </div>
@@ -1046,7 +1046,7 @@ html[data-theme="dark"] .track{background:#2b2f34}
         <div class="metric hero-m"><div class="m-lb">נטו אמיתי</div><div class="m-vl num" id="rNet">₪0</div></div>
         <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--green)"></span>הכנסות</div><div class="m-vl num" id="rInc">₪0</div></div>
         <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--red)"></span>הוצאות</div><div class="m-vl num" id="rExp">₪0</div></div>
-        <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--accent)"></span><span id="rComNoun">סדרן</span> <span data-pct>30</span>%</div><div class="m-vl num" id="rCom">₪0</div></div>
+        <div class="metric"><div class="m-lb"><span class="dot" style="background:var(--accent)"></span><span id="rComNoun">סדרן</span> <span id="rComPct">30</span>%</div><div class="m-vl num" id="rCom">₪0</div></div>
         <div class="metric"><div class="m-lb">נטו לשעה</div><div class="m-vl num" id="rPerHour">—</div></div>
         <div class="metric"><div class="m-lb">ימי עבודה</div><div class="m-vl num" id="rDays">0</div></div>
       </div>
@@ -1784,12 +1784,12 @@ $('#bioSwitch').addEventListener('change',async function(){
 });
 
 /* ==================== מה חדש ==================== */
-var APP_VER=23;
+var APP_VER=24;
 $('#appVerLbl').textContent='גרסה '+APP_VER;
 var WHATS_NEW=[
-  'חדש: כרטיס "מה נשאר לי באמת" בבית — כל מה שפתוח (סדרן, יומן, רכב, מעשרות) במקום אחד, וכמה נשאר לך בפועל',
-  'חדש: בדוחות, כרטיס שמראה איזה אחוז עמלה הכי משתלם לך לפי הנסיעות האמיתיות שלך',
-  'חדש: בדוחות, כמה יצא לך לשעה לפי כל יום בשבוע — לדעת אילו ימים באמת שווים'
+  'תיקון: האחוז שמוצג ליד "עמלת סדרן" עכשיו האחוז האמיתי שנגבה בפועל, לא אחוז קבוע שלא תמיד תואם',
+  'תיקון: הסכום המוצע בכפתור "רישום תשלום" עכשיו תואם בדיוק לחוב שמוצג מעליו',
+  'שיפור: ההסבר מתחת לנטו הגדול פשוט יותר, בלי מספר שעלול להטעות'
 ];
 function maybeShowWhatsNew(){
   if(!state.settings.wizardDone){return;}
@@ -1978,6 +1978,9 @@ function sums(list){
   return{inc:inc,com:com,exp:exp,rides:rides,due:due,expAll:com+exp};
 }
 function sadranDue(s){return s.due||0;}
+/* האחוז האפקטיבי שבאמת ננוכה — משוקלל לפי הנסיעות האמיתיות (t.pct שונה מנסיעה לנסיעה),
+   לא ברירת המחדל הגלובלית (state.settings.pct) שיכולה להיות רחוקה מאוד ממה שבאמת נגבה. */
+function effectivePct(s){return s.rides>0?Math.round(s.due/s.rides*100):state.settings.pct;}
 var LRI='⁦',PDI='⁩';
 function bidiNum(s){return LRI+s+PDI;}
 function fmt(n){
@@ -2350,6 +2353,7 @@ function renderHome(){
   animateNum($('#hInc'),s.inc,fmt);
   animateNum($('#hCom'),sadranDue(s,pct),fmt);
   animateNum($('#hExp'),s.exp,fmt);
+  $('#hComPct').textContent=effectivePct(s);
 
   /* ===== כרטיס "היום שלך" ===== */
   var td=ui.day;
@@ -2678,8 +2682,8 @@ document.addEventListener('click',function(e){
   else if(act==='q-commission'){quickAdd('expense','commission');}
   else if(act==='q-other'){go('add');}
   else if(act==='pay-commission'){
-    var pct=state.settings.pct,s=sums(monthTx(ui.hm.y,ui.hm.m));
-    var due=Math.max(0,s.inc*pct/100-s.com);
+    var all=sums(state.tx);
+    var due=Math.max(0,all.due-all.com);
     quickAdd('expense','commission',due>0?due:null);
   }
   else if(act==='wa-share'){shareSummary();}
@@ -3029,7 +3033,7 @@ function shareSummary(){
     'סיכום '+monthLabel(o)+' — קופת הנהג',
     '———————————',
     'נסיעות ברוטו: '+fmtInt(s.rides),
-    'עמלה '+dispatcherWord()+' '+pct+'%: '+fmtInt(due),
+    'עמלה '+dispatcherWord()+' '+effectivePct(s)+'%: '+fmtInt(due),
     'כבר הועבר: '+fmtInt(s.com),
     'נותר לתשלום: '+fmtInt(remain)
   ];
@@ -3462,13 +3466,14 @@ function renderReports(){
   animateNum($('#rInc'),s.inc,fmt);
   animateNum($('#rExp'),s.exp,fmt);
   animateNum($('#rCom'),comDue,fmt);
+  $('#rComPct').textContent=effectivePct(s);
   $('#rPerHour').textContent=hours>0.1?fmt(net/hours):'—';
 
   var maaserNoteEl=$('#maaserNote');
   if(state.settings.maaserOn){
     var mAmt=maaserAmount(net),netAfterMaaser=net-mAmt;
     maaserNoteEl.style.display='';
-    maaserNoteEl.innerHTML='נטו אחרי '+pct+'% '+dispatcherNoun()+' ועוד '+state.settings.maaserPct+'% מעשרות: <b>'+fmt(netAfterMaaser)+'</b>';
+    maaserNoteEl.innerHTML='נטו אחרי עמלת '+dispatcherNoun()+' ועוד '+state.settings.maaserPct+'% מעשרות: <b>'+fmt(netAfterMaaser)+'</b>';
   }else maaserNoteEl.style.display='none';
 
   /* ימי עבודה + שיאים */
